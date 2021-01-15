@@ -10,36 +10,23 @@ align:	macro
 	dcb.b \1-(*%\1),\2
 	endc
 	endm
+	
+; Macros from Plutiedev.com
 
-; ---------------------------------------------------------------------------
-; stop the Z80
-; ---------------------------------------------------------------------------
-
-stopZ80:	macro
-		move.w	#$100,(Z80BusReq).l
-	@wait:	btst	#0,(Z80BusReq).l
-		bne.s	@wait
-		endm
-
-; ---------------------------------------------------------------------------
-; reset the Z80
-; ---------------------------------------------------------------------------
-
-resetZ80:	macro
-		move.w	#$100,(Z80Reset).l
-		endm
-
-resetZ80a:	macro
-		move.w	#0,(Z80Reset).l
-		endm
-
-; ---------------------------------------------------------------------------
-; start the Z80
-; ---------------------------------------------------------------------------
-
-startZ80:	macro
-		move.w	#0,(Z80BusReq).l
-		endm
+PauseZ80: macro
+    move.w  #$100, (Z80BusReq)
+.WaitZ80\@:
+    btst    #0,(Z80BusReq).l
+    bne.s   .WaitZ80\@
+    endm
+    
+ResumeZ80: macro
+    move.w  #0, (Z80BusReq)
+    endm
+    
+FastPauseZ80: macro
+    move.w  #$100, (Z80BusReq)
+    endm
 
 ; ---------------------------------------------------------------------------
 ; disable interrupts
@@ -56,3 +43,7 @@ disable_ints:	macro
 enable_ints:	macro
 		move	#$2300,sr
 		endm
+		
+SetGfxMode macro mode
+    move.w  #VDPREG_MODE4|(mode), (VdpCtrl)
+    endm
