@@ -63,7 +63,7 @@ sub_71B4C:				; CODE XREF: ROM:loc_B5Cp
 loc_71B5A:				; CODE XREF: sub_71B4C+16j
 		btst	#0,(Z80BusReq).l
 		bne.s	loc_71B5A
-		btst	#7,($A01FFD).l
+		btst	#7,(Z80_DACStatus).l
 		beq.s	loc_71B82
 		ResumeZ80
 		nop
@@ -214,7 +214,7 @@ loc_71C88:				; CODE XREF: sub_71C4E+34j
 		beq.s	locret_71CAA
 		btst	#3,d0
 		bne.s	loc_71CAC
-		move.b	d0,($A01FFF).l
+		move.b	d0,(Z80_DACSample).l
 
 locret_71CAA:				; CODE XREF: sub_71C4E+4j
 					; sub_71C4E+42j ...
@@ -224,13 +224,13 @@ locret_71CAA:				; CODE XREF: sub_71C4E+4j
 loc_71CAC:				; CODE XREF: sub_71C4E+54j
 		subi.b	#-$78,d0
 		move.b	byte_71CC4(pc,d0.w),d0
-		move.b	d0,($A000EA).l
-		move.b	#-$7D,($A01FFF).l
+		move.b	d0,(Z80_DAC3Pitch).l
+		move.b	#-$7D,(Z80_DACSample).l
 		rts
 ; End of function sub_71C4E
 
 ; ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
-byte_71CC4:	dc.b $12,$15,$1C,$1D,$FF,$FF; 0
+byte_71CC4:	dc.b $12,$15,$1C,$1D,-1,-1; 0
 
 ; €€€€€€€€€€€€€€€ S U B	R O U T	I N E €€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€
 
@@ -645,7 +645,7 @@ loc_71F98:
 ; ---------------------------------------------------------------------------
 
 loc_71FAC:				; CODE XREF: Sound_ChkValue+50j
-		move.b	#$88,($A01FFF).l
+		move.b	#$88,(Z80_DACSample).l
 		ResumeZ80
 		move.w	#$11,d1
 
@@ -921,9 +921,9 @@ loc_72244:				; CODE XREF: Sound_ChkValue+2E4j
 		bne.s	loc_7226E
 		move.b	d4,d0
 		ori.b	#$1F,d0
-		move.b	d0,($C00011).l
+		move.b	d0,(PSGinput).l
 		bchg	#5,d0
-		move.b	d0,($C00011).l
+		move.b	d0,(PSGinput).l
 
 loc_7226E:				; CODE XREF: Sound_ChkValue+2F6j
 					; Sound_ChkValue+30Aj
@@ -1044,9 +1044,9 @@ loc_723A6:				; CODE XREF: Sound_ChkValue+452j
 		bpl.s	locret_723C6
 		bset	#2,$370(a6)
 		ori.b	#$1F,d4
-		move.b	d4,($C00011).l
+		move.b	d4,(PSGinput).l
 		bchg	#5,d4
-		move.b	d4,($C00011).l
+		move.b	d4,(PSGinput).l
 
 locret_723C6:				; CODE XREF: Sound_ChkValue+3C4j
 					; Sound_ChkValue+3CCj ...
@@ -1116,7 +1116,7 @@ loc_7245A:				; CODE XREF: Snd_FadeOut1+68j
 		bset	#1,(a0)
 		cmpi.b	#-$20,1(a0)
 		bne.s	loc_72472
-		move.b	$1F(a0),($C00011).l
+		move.b	$1F(a0),(PSGinput).l
 
 loc_72472:				; CODE XREF: Snd_FadeOut1+Cj
 					; Snd_FadeOut1+5Aj ...
@@ -1162,7 +1162,7 @@ loc_724AE:				; CODE XREF: Snd_FadeOut2+6j
 		bpl.s	locret_724E4
 		cmpi.b	#$E0,1(a5)
 		bne.s	locret_724E4
-		move.b	$1F(a5),($C00011).l
+		move.b	$1F(a5),(PSGinput).l
 
 locret_724E4:				; CODE XREF: Snd_FadeOut2+38j
 					; Snd_FadeOut2+42j ...
@@ -1503,19 +1503,19 @@ sub_72722:				; CODE XREF: ROM:0007271Cj
 
 sub_7272E:				; CODE XREF: sub_71CCA+A2Ej
 					; sub_726FE+12j ...
-		move.b	($A04000).l,d2
+		move.b	(YM2612_a0).l,d2
 		btst	#7,d2
 		bne.s	sub_7272E
-		move.b	d0,($A04000).l
+		move.b	d0,(YM2612_a0).l
 		nop
 		nop
 		nop
 
 loc_72746:				; CODE XREF: sub_7272E+22j
-		move.b	($A04000).l,d2
+		move.b	(YM2612_a0).l,d2
 		btst	#7,d2
 		bne.s	loc_72746
-		move.b	d1,($A04001).l
+		move.b	d1,(YM2612_d0).l
 		rts
 ; End of function sub_7272E
 
@@ -1533,19 +1533,19 @@ loc_7275A:				; CODE XREF: sub_72722+6j
 
 sub_72764:				; CODE XREF: sub_72764+Aj
 					; DATA XREF: sub_71B4C+322t ...
-		move.b	($A04000).l,d2
+		move.b	(YM2612_a0).l,d2
 		btst	#7,d2
 		bne.s	sub_72764
-		move.b	d0,($A04002).l
+		move.b	d0,(YM2612_a1).l
 		nop
 		nop
 		nop
 
 loc_7277C:				; CODE XREF: sub_72764+22j
-		move.b	($A04000).l,d2
+		move.b	(YM2612_a0).l,d2
 		btst	#7,d2
 		bne.s	loc_7277C
-		move.b	d1,($A04003).l
+		move.b	d1,(YM2612_d1).l
 		rts
 ; End of function sub_72764
 
@@ -1676,8 +1676,8 @@ loc_72904:				; CODE XREF: sub_728E2+1Cj
 		or.b	d1,d0
 		lsr.w	#4,d6
 		andi.b	#$3F,d6
-		move.b	d0,($C00011).l
-		move.b	d6,($C00011).l
+		move.b	d0,(PSGinput).l
+		move.b	d6,(PSGinput).l
 
 locret_7291E:				; CODE XREF: sub_728E2+Cj
 					; sub_728E2+12j
@@ -1744,7 +1744,7 @@ loc_7297C:				; CODE XREF: sub_7296A+26j
 					; sub_7296A+2Cj
 		or.b	1(a5),d6
 		addi.b	#$10,d6
-		move.b	d6,($C00011).l
+		move.b	d6,(PSGinput).l
 
 locret_7298A:				; CODE XREF: sub_72926+4j sub_7296A+4j ...
 		rts
@@ -1777,7 +1777,7 @@ sub_729A0:				; CODE XREF: sub_728AC+2Cj
 loc_729A6:				; DATA XREF: Snd_FadeOut2+44t
 		move.b	1(a5),d0
 		ori.b	#$1F,d0
-		move.b	d0,($C00011).l
+		move.b	d0,(PSGinput).l
 
 locret_729B4:				; CODE XREF: sub_729A0+4j
 		rts
@@ -1790,7 +1790,7 @@ locret_729B4:				; CODE XREF: sub_729A0+4j
 sub_729B6:				; CODE XREF: Sound_ChkValue+67Aj
 					; sub_725CA+3Ej
 					; DATA XREF: ...
-		lea	($C00011).l,a0
+		lea	(PSGinput).l,a0
 		move.b	#-$61,(a0)
 		move.b	#-$41,(a0)
 		move.b	#-$21,(a0)
@@ -2263,7 +2263,7 @@ loc_72DEA:				; CODE XREF: ROM:00072DD8j
 		bset	#1,(a0)
 		cmpi.b	#-$20,1(a0)
 		bne.s	loc_72E02
-		move.b	$1F(a0),($C00011).l
+		move.b	$1F(a0),(PSGinput).l
 
 loc_72E02:				; CODE XREF: ROM:00072D6Aj
 					; ROM:00072D7Cj ...
@@ -2276,7 +2276,7 @@ loc_72E06:				; CODE XREF: ROM:00072AB0j
 		move.b	(a4)+,$1F(a5)
 		btst	#2,(a5)
 		bne.s	locret_72E1E
-		move.b	-1(a4),($C00011).l
+		move.b	-1(a4),(PSGinput).l
 
 locret_72E1E:				; CODE XREF: ROM:00072E14j
 		rts

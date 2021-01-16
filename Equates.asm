@@ -35,6 +35,10 @@ VRAM_DMA_CMD:   equ $40000080
 CRAM_DMA_CMD:   equ $C0000080
 VSRAM_DMA_CMD:  equ $40000090
 
+VRAM_SIZE:    equ 65536
+CRAM_SIZE:    equ 128
+VSRAM_SIZE:   equ 80
+
 GFXMODE_256x224:      equ %00000000
 GFXMODE_320x224:      equ %10000001
 GFXMODE_256x448:      equ %00000110
@@ -57,9 +61,18 @@ LOPRI:  equ $0000  ; Low priority (default)
 HIPRI:  equ $8000  ; High priority
 
 ; Z80 stuff
-Z80Ram:     equ $A00000  ; Where Z80 RAM starts
-Z80BusReq:  equ $A11100  ; Z80 bus request line
-Z80Reset:   equ $A11200  ; Z80 reset line
+Z80Ram:    	equ $A00000  ; Where Z80 RAM starts
+Z80BusReq:  	equ $A11100  ; Z80 bus request line
+Z80Reset:   	equ $A11200  ; Z80 reset line
+Z80Version:	equ $A10001
+Z80_DAC3Pitch:	equ $A000EA
+Z80_DACStatus:	equ $A01FFD
+Z80_DACSample:	equ $A01FFF
+YM2612_a0:	equ $A04000
+YM2612_d0:	equ $A04001
+YM2612_a1:	equ $A04002
+YM2612_d1:	equ $A04003
+PSGinput:	equ $C00011
 
 ; Controller stuff
 IoCtrl1:      equ $A10009  ; I/O control port 1P

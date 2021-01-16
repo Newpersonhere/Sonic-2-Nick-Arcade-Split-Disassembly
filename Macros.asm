@@ -43,7 +43,3 @@ disable_ints:	macro
 enable_ints:	macro
 		move	#$2300,sr
 		endm
-		
-SetGfxMode macro mode
-    move.w  #VDPREG_MODE4|(mode), (VdpCtrl)
-    endm
