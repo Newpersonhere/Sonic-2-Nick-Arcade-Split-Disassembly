@@ -10,6 +10,9 @@
 
 		include "macros.asm"
 		include Equates.asm
+; Assembly options
+RemovePadding = 0
+; If this is set to 1, this removes unnecessary 'nops' also removes leftovers.
 
 ; Segment type:	Pure code
 ; segment "ROM"
@@ -37,7 +40,11 @@ Serial:		dc.b 'GM 00004049-01'   ; Serial/version number (leftover from Sonic 1)
 Checksum:	dc.w $AFC7		; ROM Checksum (leftover from Sonic 1)
 IOSupport:	dc.b 'J               ' ; I/O support
 ROMStart:	dc.l 0			; ROM start location
+	if RemovePadding=0
 ROMEnd:		dc.l $7FFFF		; ROM end location (leftover from Sonic	1)
+	else
+ROMEnd:		dc.l EndOfROM-1		; ROM end location
+	endif
 RAMStart:	dc.l $FF0000		; RAM start location
 RAMEnd:		dc.l $FFFFFF		; RAM end location
 SRAMSupport:	dc.l $20202020		; SRAM support (none)
@@ -205,6 +212,7 @@ GameProgram:				; CODE XREF: ROM:PortC_OKj
 		beq.w	AlreadyInit
 
 ChecksumCheck:				; CODE XREF: ROM:0000030Ej
+	if RemovePadding=0
 		movea.l	#EndOfHeader,a0
 		movea.l	#ROMEnd,a1	; ROM end location (leftover from Sonic	1)
 		move.l	(a1),d0
@@ -219,6 +227,8 @@ ChksumChkLoop:				; CODE XREF: ROM:00000336j
 		cmp.w	(a1),d1
 		nop
 		nop
+	else
+	endif
 		lea	($FFFFFE00).w,a6
 		moveq	#0,d7
 		move.w	#$7F,d6	; ''
@@ -262,6 +272,7 @@ GameModeArray:
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 		bra.w	SpecialStage
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 ;----------------------------------------------------
 ;
 ; ChecksumError
@@ -282,6 +293,8 @@ ChksumErr_RedFill:			; CODE XREF: ROM:000003C8j
 
 ChksumErr_InfLoop:			; CODE XREF: ROM:ChksumErr_InfLoopj
 		bra.s	ChksumErr_InfLoop
+	else
+	endif
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 BusError:				; DATA XREF: ROM:00000000o
@@ -620,8 +633,6 @@ loc_CBC:				; DATA XREF: ROM:off_B6Co
 		bsr.w	sub_1732
 		tst.w	($FFFFF614).w
 		beq.w	locret_CD0
-
-loc_CCC:
 		subq.w	#1,($FFFFF614).w
 
 locret_CD0:				; CODE XREF: ROM:00000CC8j
@@ -993,14 +1004,20 @@ ReadJoypads:				; CODE XREF: Error_WaitForCp
 
 Joypad_Read:				; CODE XREF: ReadJoypads+Ap
 		move.b	#0,(a1)
+	if RemovePadding=0
 		nop
 		nop
+	else
+	endif
 		move.b	(a1),d0
 		lsl.b	#2,d0
 		andi.b	#$C0,d0
 		move.b	#$40,(a1) ; '@'
+	if RemovePadding=0
 		nop
 		nop
+	else
+	endif
 		move.b	(a1),d1
 		andi.b	#$3F,d1	; '?'
 		or.b	d1,d0
@@ -1123,17 +1140,23 @@ ClearScreen:				; CODE XREF: ROM:000030FCp
 
 SoundDriverLoad:			; CODE XREF: ROM:00000380p
 					; ROM:000031F4p
+	if RemovePadding=0
 		nop
+	else
+	endif
 		FastPauseZ80
 		resetZ80
 		lea	(Kos_Z80).l,a0
 		lea	(Z80Ram).l,a1
 		bsr.w	KosDec
 		resetZ80a
+	if RemovePadding=0
 		nop
 		nop
 		nop
 		nop
+	else
+	endif
 		resetZ80
 		ResumeZ80
 		rts
@@ -1170,7 +1193,10 @@ PlaySound_Unk:
 
 Pause:					; CODE XREF: ROM:Level_MainLoopp
 					; ROM:loc_516Ap ...
+	if RemovePadding=0
 		nop
+	else
+	endif
 		tst.b	($FFFFFE12).w
 		beq.s	Unpause
 		tst.w	($FFFFF63A).w
@@ -1190,7 +1216,10 @@ Pause_Loop:				; CODE XREF: Pause+5Aj
 		btst	#6,($FFFFF605).w
 		beq.s	Pause_CheckBC
 		move.b	#4,($FFFFF600).w
+	if RemovePadding=0
 		nop
+	else
+	endif
 		bra.s	loc_1464
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
@@ -1601,7 +1630,10 @@ RunPLC:					; CODE XREF: Pal_FadeTo+2Ep
 		bne.s	locret_1730
 		movea.l	($FFFFF680).w,a0
 		lea	NemDec_Output(pc),a3
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 		lea	($FFFFAA00).w,a1
 		move.w	(a0)+,d2
 		bpl.s	loc_16FE
@@ -2842,6 +2874,7 @@ PalCycle:	dc.w PalCycle_GHZ-PalCycle ; DATA XREF:	ROM:PalCycleo
 		dc.w PalCycle_HTZ-PalCycle
 		dc.w PalCycle_GHZ-PalCycle
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 ;-------------------------------
 ; Leftover palette cycling subroutine
 ;  for Sonic 1 title screen
@@ -2850,6 +2883,8 @@ PalCycle:	dc.w PalCycle_GHZ-PalCycle ; DATA XREF:	ROM:PalCycleo
 PalCycle_S1TitleScreen:
 		lea	(Pal_S1TitleCyc?).l,a0
 		bra.s	loc_1E7C
+	else
+	endif
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 PalCycle_GHZ:				; DATA XREF: ROM:PalCycleo
@@ -2964,8 +2999,11 @@ locret_1FB8:				; CODE XREF: ROM:00001F90j
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 Pal_HTZCyc2:	incbin	palettes/HTZcycle2.bin
 		even
+	if RemovePadding=0
 Pal_S1TitleCyc?:incbin	palettes/S1TScycle.bin
 		even
+	else
+	endif
 Pal_GHZCyc:	incbin	palettes/GHZcycle.bin
 		even
 Pal_EHZCyc:	incbin	palettes/EHZcycle.bin
@@ -3585,6 +3623,7 @@ PalPointers:	dc.l Pal_SegaBG		; DATA XREF: PalLoad1o	PalLoad2o ...
 		dc.l Pal_LZ4SonicWater
 		dc.w $FB00
 		dc.w 7
+	if RemovePadding=0
 		dc.l Pal_S1SpecialStageTC
 		dc.w $FB00
 		dc.w $1F
@@ -3594,6 +3633,8 @@ PalPointers:	dc.l Pal_SegaBG		; DATA XREF: PalLoad1o	PalLoad2o ...
 		dc.l Pal_S1Ending
 		dc.w $FB00
 		dc.w $1F
+	else
+	endif
 Pal_SegaBG:	incbin	palettes/SEGAbg.bin
 		even
 Pal_Title:	incbin	palettes/Titlescreen.bin
@@ -3624,14 +3665,23 @@ Pal_LZSonicWater:incbin	palettes/LZSonic.bin
 		even
 Pal_LZ4SonicWater:incbin	palettes/LZ4Sonic.bin
 		even
-Pal_S1SpecialStageTC:incbin	palettes/SSTC.bin
+	if RemovePadding=0
+Pal_S1SpecialStageTC:
+		incbin	palettes/SSTC.bin
 		even
-Pal_S1Continue:	incbin	palettes/Continue.bin
+Pal_S1Continue:
+	       	incbin	palettes/Continue.bin
 		even
-Pal_S1Ending:	incbin	palettes/Ending.bin
+Pal_S1Ending:
+	     	incbin	palettes/Ending.bin
 		even
+	else
+	endif
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -3754,7 +3804,10 @@ loc_2FAA:				; CODE XREF: CalcAngle+Ej
 AngleData:	incbin	Collision/anglemap.bin
 		even
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 SegaScreen:				; CODE XREF: ROM:GameModeArrayj
 		move.b	#$E4,d0
@@ -3833,7 +3886,10 @@ Sega_GoToTitleScreen:			; CODE XREF: ROM:000031CCj
 		move.b	#4,($FFFFF600).w
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		dc.w 0
+	if RemovePadding=0
+ 	   	dc.w 0
+	else
+	endif
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 TitleScreen:				; CODE XREF: ROM:000003A0j
@@ -3907,7 +3963,10 @@ loc_3270:				; CODE XREF: ROM:00003272j
 loc_32C4:				; CODE XREF: ROM:000032C6j
 		move.w	(a5)+,(a6)
 		dbf	d1,loc_32C4
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 		move.b	#0,($FFFFFE30).w
 		move.w	#0,($FFFFFE08).w
 		move.w	#0,($FFFFFFF0).w
@@ -4084,12 +4143,15 @@ loc_3516:				; CODE XREF: ROM:0000350Ej
 		bne.s	loc_3570
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0	; 'Ђ'
+	if RemovePadding=0
 		tst.b	($FFFFFFE3).w
 		beq.s	loc_353A
 		cmpi.w	#$9F,d0	; 'џ'
 		beq.s	loc_354C
 		cmpi.w	#$9E,d0	; 'ћ'
 		beq.s	loc_355A
+	else
+	endif
 
 loc_353A:				; CODE XREF: ROM:0000352Cj
 		cmpi.w	#$94,d0	; '”'
@@ -4102,6 +4164,7 @@ loc_3546:				; CODE XREF: ROM:0000353Ej
 		bra.s	LevSel_Loop
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
+	if RemovePadding=0
 loc_354C:				; CODE XREF: ROM:00003532j
 		move.b	#$18,($FFFFF600).w
 		move.w	#$600,($FFFFFE10).w
@@ -4114,6 +4177,9 @@ loc_355A:				; CODE XREF: ROM:00003538j
 		bsr.w	PlaySound_Special
 		move.w	#0,($FFFFFFF4).w
 		rts
+	else
+	endif
+
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 loc_3570:				; CODE XREF: ROM:0000351Ej
@@ -4157,8 +4223,12 @@ PlayLevel:				; CODE XREF: ROM:000034A2j
 		bsr.w	PlaySound_Special
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-LvlSelCode_J:	dc.b   1,  2,  2,  2,  2,  1,  0,$FF; 0	; DATA XREF: ROM:Title_RegionJo
-LvlSelCode_US:	dc.b   1,  2,  2,  2,  2,  1,  0,$FF; 0	; DATA XREF: ROM:00003418o
+LvlSelCode_J:
+	if RemovePadding=0
+	   	dc.b button_up_mask, button_down_mask, button_down_mask, button_down_mask, button_down_mask, button_up_mask,  0,$FF; 0	; DATA XREF: ROM:Title_RegionJo
+	else
+	endif
+LvlSelCode_US:	dc.b button_up_mask, button_down_mask, button_down_mask, button_down_mask, button_down_mask, button_up_mask,  0,$FF; 0	; DATA XREF: ROM:00003418o
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 Demo:					; CODE XREF: ROM:00003490j
@@ -4219,17 +4289,21 @@ loc_36C0:				; CODE XREF: ROM:000036B0j
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 Demo_Levels:	dc.w  $200, $300	; 0
 		dc.w  $400, $500	; 2
+	if RemovePadding=0
 		dc.w  $500, $500	; 4
 		dc.w  $500, $500	; 6
 		dc.w  $400, $400	; 8
 		dc.w  $400, $400	; 10
+	else
+	    	even
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
 
 LevSel_Controls:			; CODE XREF: ROM:000034ECp
 		move.b	($FFFFF605).w,d1
-		andi.b	#3,d1
+		andi.b	#button_up_mask+button_down_mask,d1
 		bne.s	loc_3706
 		subq.w	#1,($FFFFFF80).w
 		bpl.s	loc_3740
@@ -4237,10 +4311,10 @@ LevSel_Controls:			; CODE XREF: ROM:000034ECp
 loc_3706:				; CODE XREF: LevSel_Controls+8j
 		move.w	#$B,($FFFFFF80).w
 		move.b	($FFFFF604).w,d1
-		andi.b	#3,d1
+		andi.b	#button_up_mask+button_down_mask,d1
 		beq.s	loc_3740
 		move.w	($FFFFFF82).w,d0
-		btst	#0,d1
+		btst	#button_up,d1
 		beq.s	loc_3726
 		subq.w	#1,d0
 		bcc.s	loc_3726
@@ -4248,7 +4322,7 @@ loc_3706:				; CODE XREF: LevSel_Controls+8j
 
 loc_3726:				; CODE XREF: LevSel_Controls+28j
 					; LevSel_Controls+2Cj
-		btst	#1,d1
+		btst	#button_down,d1
 		beq.s	loc_3736
 		addq.w	#1,d0
 		cmpi.w	#$15,d0
@@ -4267,10 +4341,10 @@ loc_3740:				; CODE XREF: LevSel_Controls+Ej
 		cmpi.w	#$14,($FFFFFF82).w
 		bne.s	locret_377A
 		move.b	($FFFFF605).w,d1
-		andi.b	#$C,d1
+		andi.b	#button_right_mask+button_left_mask,d1
 		beq.s	locret_377A
 		move.w	($FFFFFF84).w,d0
-		btst	#2,d1
+		btst	#button_left,d1
 		beq.s	loc_3762
 		subq.w	#1,d0
 		bcc.s	loc_3762
@@ -4278,7 +4352,7 @@ loc_3740:				; CODE XREF: LevSel_Controls+Ej
 
 loc_3762:				; CODE XREF: LevSel_Controls+64j
 					; LevSel_Controls+68j
-		btst	#3,d1
+		btst	#button_right,d1
 		beq.s	loc_3772
 		addq.w	#1,d0
 		cmpi.w	#$50,d0	; 'P'
@@ -4301,9 +4375,12 @@ locret_377A:				; CODE XREF: LevSel_Controls+50j
 
 LevSel_TextLoad:			; CODE XREF: ROM:000034DEp
 					; LevSel_Controls+44p ...
+	textpos:	= (VRAM_ADDR_CMD+(($E210&$3FFF)<<16)+(($E210&vram_fg)>>14))
+					; $E210 is a VRAM address
+
 		lea	(LevSel_Text).l,a1
 		lea	(VdpData).l,a6
-		move.l	#$62100003,d4
+		move.l	#textpos,d4
 		move.w	#$8680,d3
 		moveq	#$14,d1
 
@@ -4315,7 +4392,7 @@ loc_3794:				; CODE XREF: LevSel_TextLoad+26j
 		moveq	#0,d0
 		move.w	($FFFFFF82).w,d0
 		move.w	d0,d1
-		move.l	#$62100003,d4
+		move.l	#textpos,d4
 		lsl.w	#7,d0
 		swap	d0
 		add.l	d0,d4
@@ -4390,7 +4467,7 @@ loc_382E:				; CODE XREF: sub_381C+6j
 LevSel_Text:incbin	misc/LevSelText.bin
 		even
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-
+	if RemovePadding=0
 UnknownSub_1:				; ???
 		lea	($FFFF0000).l,a1
 		move.w	#$2EB,d2
@@ -4498,9 +4575,14 @@ loc_3AFC:				; CODE XREF: UnknownSub_4+12j
 		adda.w	#$80,a2	; 'Ђ'
 		rts
 ; End of function UnknownSub_4
+	else
+	endif
 
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 MusicList:	incbin	misc/MusicList1.bin
 		even
@@ -4660,7 +4742,10 @@ loc_3CDC:				; CODE XREF: ROM:00003CD8j
 
 loc_3CE6:				; CODE XREF: ROM:00003CE2j
 		lea	MusicList(pc),a1
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 		move.b	(a1,d0.w),d0
 		bsr.w	PlaySound
 		move.b	#$34,($FFFFB080).w ; '4'
@@ -4688,7 +4773,10 @@ loc_3D2A:				; CODE XREF: ROM:00003CCAj
 		bsr.w	MainLevelLoadBlock
 		jsr	LoadMap16Delta
 		bsr.w	LoadTilesFromStart
+	if RemovePadding=0
 		jsr	FloorLog_Unk
+	else
+	endif
 		bsr.w	ColIndexLoad
 		bsr.w	WaterEffects
 		move.b	#1,($FFFFB000).w
@@ -4700,7 +4788,7 @@ loc_3D6C:				; CODE XREF: ROM:00003D64j
 		tst.w	($FFFFFFE8).w
 		bne.s	LevelInit_LoadTails
 		cmpi.b	#3,($FFFFFE10).w
-		beq.s	LevelInit_SkipTails ; funny how	they skipped Tails in EHZ for the Nick Arcade show
+		beq.s	LevelInit_SkipTails
 
 LevelInit_LoadTails:			; CODE XREF: ROM:00003D70j
 		move.b	#2,($FFFFB040).w
@@ -5024,6 +5112,7 @@ locret_40F6:				; CODE XREF: ROM:000040E8j
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
+	if RemovePadding=0
 S1DynWater_LZ1:				; leftover from	Sonic 1
 		move.w	($FFFFEE00).w,d0
 		move.b	($FFFFF64D).w,d2
@@ -5081,9 +5170,12 @@ loc_4184:				; CODE XREF: ROM:00004178j
 locret_4188:				; CODE XREF: ROM:00004166j
 					; ROM:0000416Ej
 		rts
+	else
+	endif
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 DynWater_HPZ2:				; DATA XREF: ROM:DynWater_Indexo
+	if RemovePadding=0
 		move.w	($FFFFEE00).w,d0 ; leftover from Sonic 1's LZ2
 		move.w	#$328,d1
 		cmpi.w	#$500,d0
@@ -5096,10 +5188,13 @@ DynWater_HPZ2:				; DATA XREF: ROM:DynWater_Indexo
 loc_41A6:				; CODE XREF: ROM:00004196j
 					; ROM:000041A0j
 		move.w	d1,($FFFFF64A).w
+	else
+	endif
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 DynWater_HPZ3:				; DATA XREF: ROM:DynWater_Indexo
+	if RemovePadding=0
 		move.w	($FFFFEE00).w,d0 ; in fact, this is a leftover from Sonic 1's LZ3
 		move.b	($FFFFF64D).w,d2
 		bne.s	loc_41F2
@@ -5203,10 +5298,13 @@ loc_42A2:				; CODE XREF: ROM:00004268j
 		move.w	#$128,($FFFFF64A).w
 
 locret_42AE:				; CODE XREF: ROM:000042A6j
+	else
+	endif
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 DynWater_HPZ4:				; DATA XREF: ROM:DynWater_Indexo
+	if RemovePadding=0
 		move.w	#$228,d1	; in fact, this	is a leftover from Sonic 1's SBZ3
 		cmpi.w	#$F00,($FFFFEE00).w
 		bcs.s	loc_42C0
@@ -5214,9 +5312,12 @@ DynWater_HPZ4:				; DATA XREF: ROM:DynWater_Indexo
 
 loc_42C0:				; CODE XREF: ROM:000042BAj
 		move.w	d1,($FFFFF64A).w
+	else
+	endif
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
+	if RemovePadding=0
 S1_LZWindTunnels:			; leftover from	Sonic 1's LZ
 		tst.w	($FFFFFE08).w
 		bne.w	locret_43A2
@@ -5365,6 +5466,8 @@ locret_4454:				; CODE XREF: ROM:00004448j
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 byte_4456:	dc.b  $A,$F5, $A,$F6,$F5,$F4, $B,  0,  2,  7,  3,$4C,$4B,  8,  4; 0
 byte_4465:	dc.b 0			; DATA XREF: ROM:000043F2t
+	else
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -5376,6 +5479,7 @@ MoveSonicInDemo:			; CODE XREF: ROM:00003F2Cp
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
+	if RemovePadding=0
 MoveSonic_DemoRecord:			; unused subroutine for	recording demos
 		lea	($FE8000).l,a1
 
@@ -5386,7 +5490,7 @@ loc_4474:
 		cmp.b	(a1),d0
 		bne.s	loc_4490
 		addq.b	#1,1(a1)
-		cmpi.b	#$FF,1(a1)
+		cmpi.b	#-1,1(a1)
 		beq.s	loc_4490
 		bra.s	loc_44A4
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
@@ -5408,7 +5512,7 @@ loc_44A4:				; CODE XREF: MoveSonicInDemo+28j
 		cmp.b	(a1),d0
 		bne.s	loc_44CE
 		addq.b	#1,1(a1)
-		cmpi.b	#$FF,1(a1)
+		cmpi.b	#-1,1(a1)
 		beq.s	loc_44CE
 		bra.s	locret_44E2
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
@@ -5424,6 +5528,8 @@ locret_44E2:				; CODE XREF: MoveSonicInDemo+44j
 					; MoveSonicInDemo+66j
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	else
+	endif
 
 MoveDemo_On:				; CODE XREF: MoveSonicInDemo+4j
 		tst.b	($FFFFF604).w
@@ -5498,6 +5604,7 @@ Demo_Index:	dc.l Demo_S1GHZ		; DATA XREF: ROM:00003E4Eo
 		dc.l Demo_HTZ
 		dc.l Demo_S1SS		; leftover demo	from Sonic 1 Special Stage
 		dc.l Demo_S1SS		; leftover demo	from Sonic 1 Special Stage
+	if RemovePadding=0
 		dc.l $FE8000
 		dc.l $FE8000
 		dc.l $FE8000
@@ -5507,7 +5614,11 @@ Demo_Index:	dc.l Demo_S1GHZ		; DATA XREF: ROM:00003E4Eo
 		dc.l $FE8000
 		dc.l $FE8000
 		dc.l $FE8000
-Demo_S1EndIndex:dc.l $8B0837		; DATA XREF: ROM:00003E66o
+	else
+	endif
+Demo_S1EndIndex:
+	if RemovePadding=0
+		dc.l $8B0837		; DATA XREF: ROM:00003E66o
 					; garbage, leftover from Sonic 1's ending sequence demos
 		dc.l $42085C
 		dc.l $6A085F
@@ -5520,6 +5631,8 @@ Demo_S1EndIndex:dc.l $8B0837		; DATA XREF: ROM:00003E66o
 		dc.l $8CA0000
 		dc.l 0
 		dc.l 0
+	else
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -5581,7 +5694,11 @@ loc_465C:				; CODE XREF: OscillateNumInit+Ej
 
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 Osc_Data:	incbin	misc/OscillatorData.bin
-		dc.w 0
+	if RemovePadding=0
+ 	   	dc.w 0
+	else
+	    	even
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -5725,7 +5842,10 @@ j_DynamicArtCues:			; CODE XREF: ROM:00003DE8p
 					; ROM:00003F5Ep
 		jmp	DynamicArtCues
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 
 ; GameMode10
 SpecialStage:				; CODE XREF: ROM:000003ACj
@@ -6029,11 +6149,11 @@ loc_53D0:				; CODE XREF: PalCycle_S1SS+2Aj
 		move.w	d0,($FFFFF7A0).w
 		lea	(word_54FA).l,a1
 		lea	(a1,d0.w),a1
-		move.w	#$8200,d0
+		move.w	#-$7E00,d0
 		move.b	(a1)+,d0
 		move.w	d0,(a6)
 		move.b	(a1),($FFFFF616).w
-		move.w	#$8400,d0
+		move.w	#-$7C00,d0
 		move.b	(a0)+,d0
 		move.w	d0,(a6)
 		move.l	#VSRAM_ADDR_CMD,(VdpCtrl).l
@@ -6202,7 +6322,10 @@ byte_5709:	dc.b   8,  2,  4,$FF,  2,  3,  8,$FF,  4,  2,  2,  3,  8,$FD,  4,  2;
 					; DATA XREF: S1SS_BgAnimate+36o
 		dc.b   2,  3,  2,$FF,  0; 16
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -8212,7 +8335,7 @@ byte_6AD1:	dc.b   0,  0,  0,  0,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  4,  4;
 					; DATA XREF: sub_6A82:loc_6B04t
 					; ROM:0000720At
 		dc.b   4,  4,  4,  4,  4,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2; 16
-		dc.b 0
+		even
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 loc_6AF2:				; CODE XREF: sub_6A82+Cj
@@ -10854,7 +10977,10 @@ word_81EE:	dc.w 1			; DATA XREF: ROM:Map_Obj11_EHZo
 word_81F8:	dc.w 1			; DATA XREF: ROM:000081ECo
 		dc.w $F805,    0,    0,$FFF8; 0
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 15 - swinging platforms
 ;----------------------------------------------------
@@ -11220,7 +11346,10 @@ word_8648:	dc.w 4			; DATA XREF: ROM:000085D0o
 		dc.w	$A,$1012,$1009,$FFE8; 8
 		dc.w	$A,$101B,$100D,	   0; 12
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 Obj17:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
@@ -11755,7 +11884,10 @@ word_8C00:	dc.w 8			; DATA XREF: ROM:00008BECo
 		dc.w $340F,  $3A,  $1D,$FFE0; 24
 		dc.w $340F, $83A, $81D,	   0; 28
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 Obj1A:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
@@ -12221,7 +12353,10 @@ word_9340:	dc.w $C			; DATA XREF: ROM:000092FAo
 		dc.w	 5, $80C, $806,	 $10; 40
 		dc.w	 5, $808, $804,	 $20; 44
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 Obj1C:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
@@ -12796,7 +12931,10 @@ word_9A92:	dc.w 1			; DATA XREF: ROM:00009A8Ao
 word_9A9C:	dc.w 1			; DATA XREF: ROM:00009A8Co
 		dc.w $F00F,  $50,  $28,$FFF0; 0
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 28 - animals
 ;----------------------------------------------------
@@ -13311,7 +13449,10 @@ word_A0BC:	dc.w 2			; DATA XREF: ROM:0000A06Eo
 		dc.w $F805,   $A,    5,$FFF0; 0
 		dc.w $F805,   $E,    7,	   0; 4
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 1F - GHZ Crabmeat
 ;----------------------------------------------------
@@ -13865,7 +14006,10 @@ word_A7CE:	dc.w 1			; DATA XREF: ROM:0000A7B6o
 word_A7D8:	dc.w 1			; DATA XREF: ROM:0000A7B8o
 		dc.w $F805,  $33,  $19,$FFF8; 0
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 25 - Rings
 ;----------------------------------------------------
@@ -14375,7 +14519,10 @@ word_AE34:	dc.w 4			; DATA XREF: ROM:0000AD64o
 		dc.w	$F,$1044,$1022,$FFE0; 8
 		dc.w	$F,$1844,$1822,	   0; 12
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 26 - monitor
 ;----------------------------------------------------
@@ -16171,7 +16318,10 @@ word_C656:	dc.w 1			; DATA XREF: ROM:0000C620o
 		dc.w $F805,$200C,$2006,$FFF8; 0
 word_C660:	dc.w 0			; DATA XREF: ROM:0000C622o
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 36 - Spikes
 ;----------------------------------------------------
@@ -16418,7 +16568,11 @@ Map_Obj3B:	dc.w word_C8B0-Map_Obj3B ; DATA	XREF: ROM:0000C85Eo
 word_C8B0:	dc.w 2			; DATA XREF: ROM:Map_Obj3Bo
 		dc.w $F00B,    0,    0,$FFE8; 0
 		dc.w $F00B,   $C,    6,	   0; 4
-		dc.w 0
+	if RemovePadding=0
+ 	   	dc.w 0
+	else
+	    	even
+	endif
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 ;----------------------------------------------------
 ; Object 3C - GHZ smashable wall
@@ -16597,7 +16751,10 @@ word_CAF0:	dc.w 8			; DATA XREF: ROM:0000CA6Ao
 		dc.w	 5,    8,    4,	   0; 24
 		dc.w $1005,    8,    4,	   0; 28
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -18006,7 +18163,10 @@ loc_D862:				; CODE XREF: ROM:0000D842j
 		moveq	#1,d0
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -20565,7 +20725,10 @@ word_F234:	dc.w 2			; DATA XREF: ROM:0000F1C0o
 		dc.w $F00F, $824, $812,$FFF0; 0
 		dc.w $1001,  $38,  $1C,$FFFC; 4
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 40 - GHZ Motobug
 ;----------------------------------------------------
@@ -22606,7 +22769,10 @@ locret_1045E:				; CODE XREF: Sonic_RollRepel+Cj
 
 Sonic_SlopeRepel:			; CODE XREF: ROM:0000FCC4p
 					; ROM:0000FD0Ep
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 		tst.b	$38(a0)
 		bne.s	locret_1049A
 		tst.w	$2E(a0)
@@ -23405,7 +23571,10 @@ locret_10C34:				; CODE XREF: LoadSonicDynPLC+Aj
 ; End of function LoadSonicDynPLC
 
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ; START	OF FUNCTION CHUNK FOR Sonic_LevelBoundaries
 
 j_KillSonic:				; CODE XREF: Sonic_LevelBoundaries+48j
@@ -23413,7 +23582,10 @@ j_KillSonic:				; CODE XREF: Sonic_LevelBoundaries+48j
 		jmp	KillSonic
 ; END OF FUNCTION CHUNK	FOR Sonic_LevelBoundaries
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 02 - Tails
 ;----------------------------------------------------
@@ -24509,7 +24681,10 @@ locret_115D8:				; CODE XREF: Tails_RollRepel+Cj
 
 Tails_SlopeRepel:			; CODE XREF: ROM:00010E9Ap
 					; ROM:00010EE4p
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 		tst.b	$38(a0)
 		bne.s	locret_11614
 		tst.w	$2E(a0)
@@ -24903,7 +25078,10 @@ Tails_GameOver:				; CODE XREF: ROM:Obj02_Deathp
 		andi.w	#$7FFF,2(a0)
 		move.b	#$C,$3E(a0)
 		move.b	#$D,$3F(a0)
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 locret_11986:				; CODE XREF: Tails_GameOver+Cj
 		rts
@@ -25387,7 +25565,10 @@ byte_11E48:	dc.b   3,$51,$52,$53,$54,$FF; 0	; DATA XREF: ROM:00011E24o
 byte_11E4E:	dc.b   3,$55,$56,$57,$58,$FF; 0	; DATA XREF: ROM:00011E26o
 byte_11E54:	dc.b   2,$81,$82,$83,$84,$FF; 0	; DATA XREF: ROM:00011E28o
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ; START	OF FUNCTION CHUNK FOR Tails_LevelBoundaries
 
 KillTails:				; CODE XREF: Tails_LevelBoundaries+48j
@@ -25395,7 +25576,10 @@ KillTails:				; CODE XREF: Tails_LevelBoundaries+48j
 		jmp	KillSonic
 ; END OF FUNCTION CHUNK	FOR Tails_LevelBoundaries
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 0A - drowning bubbles and countdown numbers
 ;----------------------------------------------------
@@ -26877,6 +27061,7 @@ loc_13014:				; CODE XREF: FindWall2+74j
 		rts
 ; End of function FindWall2
 
+	if RemovePadding=0
 ;----------------------------------------------------
 ; leftover function from early Sonic 1/2 alpha
 ;----------------------------------------------------
@@ -26920,6 +27105,8 @@ loc_13074:				; CODE XREF: ROM:00013076j
 		move.w	(a1)+,(a2)+
 		dbf	d1,loc_13074
 		rts
+	else
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -27390,7 +27577,10 @@ ObjHitWallLeft:
 locret_134C4:				; CODE XREF: ROM:000134BEj
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 79 - lamppost
 ;----------------------------------------------------
@@ -27675,7 +27865,10 @@ word_1385E:	dc.w 1			; DATA XREF: ROM:0001384Eo
 word_13868:	dc.w 1			; DATA XREF: ROM:00013850o
 		dc.w $F40E,  $18,   $C,$FFF0; 0
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 S1Obj47:
 		moveq	#0,d0
@@ -27790,7 +27983,10 @@ word_139BC:	dc.w 2			; DATA XREF: ROM:00013996o
 		dc.w $F007,   $E,    7,$FFF0; 0
 		dc.w $F007, $80E, $807,	   0; 4
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 S1Obj64:
 		moveq	#0,d0
@@ -28139,7 +28335,10 @@ word_13E1E:	dc.w 1			; DATA XREF: ROM:00013D18o
 		dc.w $F805,  $70,  $38,$FFF8; 0
 word_13E28:	dc.w 0			; DATA XREF: ROM:00013D1Ao
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 03 - collision	index switcher (in loops)
 ;----------------------------------------------------
@@ -28538,7 +28737,10 @@ word_142C6:	dc.w 1			; DATA XREF: ROM:000142A4o
 word_142D0:	dc.w 1			; DATA XREF: ROM:000142A6o
 		dc.w $100C,$1011,$1008,$FFF0; 0
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 Obj0C:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
@@ -28632,13 +28834,19 @@ Map_Obj0C:	dc.w word_143C8-Map_Obj0C ; DATA XREF: ROM:000142F2o
 word_143C8:	dc.w 1			; DATA XREF: ROM:Map_Obj0Co
 		dc.w $F80D,    0,    0,$FFF0; 0
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 j_CalcSine:				; CODE XREF: ROM:00014374p
 					; ROM:loc_143A0p
 		jmp	(CalcSine).l
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 12 - Master Emerald from HPZ
 ;----------------------------------------------------
@@ -28682,7 +28890,10 @@ word_14444:	dc.w 2			; DATA XREF: ROM:Map_Obj12o
 		dc.w $F00F,    0,    0,$FFE0; 0
 		dc.w $F00F,  $10,    8,	   0; 4
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 13 - HPZ waterfall
 ;----------------------------------------------------
@@ -29173,7 +29384,10 @@ Obj06_PlayerDeltaYArray:dc.b  $20, $20,	$20, $20, $20, $20, $20, $20, $20, $20,	
 		dc.b  $1F, $1F,	$20, $20, $20, $20, $20, $20, $20, $20,	$20, $20, $20, $20, $20, $20; 384
 		dc.b  $20, $20,	$20, $20, $20, $20, $20, $20, $20, $20,	$20, $20, $20, $20, $20, $20; 400
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 14 - HTZ see-saw
 ;----------------------------------------------------
@@ -29556,13 +29770,19 @@ word_150F0:	dc.w 1			; DATA XREF: ROM:Map_Obj14bo
 					; ROM:000150EEo
 		dc.w $F805,$4014,$400A,$FFF8; 0
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 j_ObjectFall:				; CODE XREF: ROM:00014F36p
 					; ROM:00014F48p ...
 		jmp	ObjectFall
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 16 - the HTZ platform that goes down diagonally
 ;	      and stops	after a	while (in final, it falls)
@@ -29688,7 +29908,10 @@ word_15260:	dc.w 8			; DATA XREF: ROM:000151D8o
 		dc.w $2001,  $2E,  $17,	 $11; 24
 		dc.w  $803,   $E,    7,	 $11; 28
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 loc_152A4:				; CODE XREF: ROM:00015180j
 		jmp	DisplaySprite
@@ -29701,7 +29924,10 @@ loc_152AA:				; CODE XREF: ROM:0001517Cj
 j_SpeedToPos_0:				; CODE XREF: ROM:Obj16_Movep
 		jmp	SpeedToPos
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 19 - CPZ platforms moving side	to side
 ;----------------------------------------------------
@@ -29951,7 +30177,10 @@ loc_154C6:				; CODE XREF: ROM:00015348j
 j_SpeedToPos_1:				; CODE XREF: ROM:loc_153ECp
 		jmp	SpeedToPos
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 04 - water surface
 ;----------------------------------------------------
@@ -30179,7 +30408,10 @@ j_ModifySpriteAttr_2P_0:		; CODE XREF: ROM:000154F8p
 					; ROM:000156B4p
 		jmp	ModifySpriteAttr_2P
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 4D - Rhinobot badnik
 ;----------------------------------------------------
@@ -30376,7 +30608,11 @@ word_15B14:	dc.w 4			; DATA XREF: ROM:000159F4o
 		dc.w $F005,    4,    2,	   0; 4
 		dc.w	 9,  $28,  $14,	   0; 8
 		dc.w $FB01,  $30,  $18,	 $1A; 12
+	if RemovePadding=0
 		align 4
+	else
+	    	even
+	endif
 
 loc_15B38:				; CODE XREF: ROM:000158F6j
 		jmp	MarkObjGone
@@ -30390,7 +30626,10 @@ j_ObjectFall_0:				; CODE XREF: ROM:000158C0p
 					; ROM:00015926p
 		jmp	ObjectFall
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 52 - Piranha badnik
 ;----------------------------------------------------
@@ -30506,7 +30745,10 @@ loc_15CB4:				; CODE XREF: ROM:00015CA8j
 		move.l	$36(a0),d0
 		asr.l	#1,d0
 		move.l	d0,$36(a0)
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 loc_15CCE:				; CODE XREF: ROM:00015CC0j
 		move.w	$34(a0),d0
@@ -30572,7 +30814,11 @@ word_15D7A:	dc.w 1			; DATA XREF: ROM:00015D62o
 		dc.w $F00F,  $20,  $10,$FFF0; 0
 word_15D84:	dc.w 1			; DATA XREF: ROM:00015D64o
 		dc.w $F00F,  $30,  $18,$FFF0; 0
+	if RemovePadding=0
 		align 4
+	else
+	    	even
+	endif
 
 loc_15D90:				; CODE XREF: ROM:00015C18j
 					; ROM:00015C22j ...
@@ -30587,7 +30833,10 @@ j_AnimateSprite_1:			; CODE XREF: ROM:00015C0Cp
 j_SpeedToPos_2:				; CODE XREF: ROM:00015C10p
 		jmp	SpeedToPos
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 4F - Dinobot badnik
 ;----------------------------------------------------
@@ -30711,7 +30960,11 @@ word_15ED2:	dc.w 1			; DATA XREF: ROM:00015EC4o
 		dc.w $F00F,  $10,    8,$FFF0; 0
 word_15EDC:	dc.w 1			; DATA XREF: ROM:00015EC6o
 		dc.w $F00F,  $20,  $10,$FFF0; 0
+	if RemovePadding=0
 		align 4
+	else
+	    	even
+	endif
 
 loc_15EE8:				; CODE XREF: ROM:00015E3Aj
 		jmp	DisplaySprite
@@ -30733,7 +30986,10 @@ j_ObjectFall_1:				; CODE XREF: ROM:00015DEAp
 j_SpeedToPos_3:				; CODE XREF: ROM:loc_15E7Cp
 		jmp	SpeedToPos
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 50 - unused Seahorse badnik from HPZ
 ;----------------------------------------------------
@@ -31278,7 +31534,7 @@ off_16532:	dc.w loc_1653E-off_16532 ; DATA	XREF: ROM:off_16532o
 					; ROM:00016534o ...
 		dc.w loc_1659C-off_16532
 		dc.w loc_165C0-off_16532
-		dc.w 0
+ 	   	dc.w 0
 		dc.w Obj50_Routine08-off_16532
 		dc.w Obj50_Routine0A-off_16532
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
@@ -31529,7 +31785,10 @@ j_SpeedToPos_4:				; CODE XREF: ROM:00016034p
 					; ROM:loc_16046p ...
 		jmp	SpeedToPos
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 4B - Buzz Bomber badnik
 ;----------------------------------------------------
@@ -31767,7 +32026,11 @@ word_16A5E:	dc.w 1			; DATA XREF: ROM:00016A00o
 		dc.w $1001,  $18,   $C,	   9; 0
 word_16A68:	dc.w 1			; DATA XREF: ROM:00016A02o
 		dc.w $1001,  $1A,   $D,	   9; 0
+	if RemovePadding=0
 		align 4
+	else
+	    	even
+	endif
 
 loc_16A74:				; CODE XREF: ROM:000167C2j
 		jmp	DeleteObject
@@ -31800,7 +32063,10 @@ j_SpeedToPos_5:				; CODE XREF: ROM:loc_167AAp
 					; ROM:000168DAj
 		jmp	SpeedToPos
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 4A - Octopus badnik
 ;----------------------------------------------------
@@ -32028,7 +32294,10 @@ j_ObjectFall_3:				; CODE XREF: ROM:loc_16AC0p
 					; ROM:00016B10p
 		jmp	ObjectFall
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 4C - Bat badnik from HPZ
 ;----------------------------------------------------
@@ -32382,7 +32651,11 @@ word_171A8:	dc.w 3			; DATA XREF: ROM:0001700Ao
 		dc.w $F007,  $32,  $19,$FFF8; 0
 		dc.w $F805, $828, $814,$FFEC; 4
 		dc.w $F805, $824, $812,	   4; 8
+	if RemovePadding=0
 		align 4
+	else
+	    	even
+	endif
 
 loc_171C4:				; CODE XREF: ROM:00016DBEj
 					; ROM:00016E2Aj
@@ -32397,7 +32670,11 @@ j_AnimateSprite_6:			; CODE XREF: ROM:00016DBAp
 j_SpeedToPos_8:				; CODE XREF: ROM:00016E1Cp
 		jmp	SpeedToPos
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	    	even
+	endif
 ;----------------------------------------------------
 ; Object 4E - Aligator badnik from HPZ
 ;----------------------------------------------------
@@ -33965,7 +34242,10 @@ word_185B0:	dc.w 4			; DATA XREF: ROM:0001856Ao
 		dc.w $E805,  $24,  $12,	 $10; 8
 		dc.w $D805,  $20,  $10,	   2; 12
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 loc_185D4:				; CODE XREF: ROM:000183C0j
 					; ROM:loc_18452j ...
@@ -34249,13 +34529,19 @@ word_18C68:	dc.w $11		; DATA XREF: ROM:0001867Ao
 		dc.w	 5,  $3E,  $1F,	 $20; 60
 		dc.w	 5,  $2E,  $17,	 $30; 64
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 j_ModifySpriteAttr_2P_4:		; CODE XREF: ROM:00018610p
 					; ROM:00018636p
 		jmp	ModifySpriteAttr_2P
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 ;----------------------------------------------------
 ; Object 3D - GHZ Boss
 ;----------------------------------------------------
@@ -35214,13 +35500,16 @@ word_197C2:	dc.w 2			; DATA XREF: ROM:0001973Co
 word_197D4:	dc.w 1			; DATA XREF: ROM:0001973Eo
 		dc.w $F007,$206D,$2036,$FFF8; 0
 unk_197DE:	dc.b   0		; DATA XREF: ROM:00019740o
-		dc.b   0
+		even
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 j_ModifySpriteAttr_2P_6:		; CODE XREF: ROM:0001953Ep
 		jmp	ModifySpriteAttr_2P
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -35230,7 +35519,10 @@ TouchResponse:				; CODE XREF: ROM:0000FB08p
 
 ; FUNCTION CHUNK AT 00019B02 SIZE 00000070 BYTES
 
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 		bsr.w	loc_19B7A
 		move.w	8(a0),d2
 		move.w	$C(a0),d3
@@ -35453,8 +35745,7 @@ loc_199DC:				; CODE XREF: TouchResponse+1E4j
 		subi.w	#$100,$12(a0)
 		rts
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-Enemy_Points:
-		dc.w	10,   20,   50,	 100; 0
+Enemy_Points:	dc.w	10,   20,   50,	 100; 0
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 loc_199EC:				; CODE XREF: TouchResponse:Touch_Caterkillerj
@@ -35471,7 +35762,10 @@ loc_199F8:				; CODE XREF: TouchResponse+21Aj
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 Touch_Hurt:				; CODE XREF: TouchResponse+20Ej
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 		tst.w	$30(a0)
 		bne.s	loc_199F8
 		movea.l	a1,a2
@@ -35635,7 +35929,10 @@ Touch_E1:				; CODE XREF: TouchResponse+338j
 		rts
 ; END OF FUNCTION CHUNK	FOR TouchResponse
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 j_Sonic_ResetOnFloor:			; CODE XREF: HurtSonic+34p
 					; KillSonic+12p
@@ -36387,7 +36684,10 @@ byte_1A3B0:	dc.b 1			; DATA XREF: ROM:0001A394o
 					; ROM:0001A398o ...
 		dc.b $F8,  5,  0, $C,$F8; 0
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 09 - Sonic in Sonic 1 special stage
 ;----------------------------------------------------
@@ -37138,7 +37438,10 @@ Obj10:					; DATA XREF: ROM:Obj_Indexo
 j_ModifySpriteAttr_2P_7:		; CODE XREF: ROM:0001A3FAp
 		jmp	ModifySpriteAttr_2P
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 
@@ -37361,8 +37664,11 @@ AnimCue_Unk:	dc.w 7			; DATA XREF: ROM:DynArtCue_Indexo
 		dc.b   2		; 2
 		dc.b   3		; 3
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		cmpi.b	#2,($FFFFFE10).w
 		beq.s	loc_1AC28
+	else
+	endif
 
 locret_1AC26:				; CODE XREF: ROM:0001AC30j
 					; ROM:0001AC36j ...
@@ -37520,7 +37826,10 @@ Map16Delta_CPZ1:dc.w $1710,  $77,$62E8,$62E9,$62EA,$62EB,$62EC,$62ED,$62EE,$62EF
 		dc.w $42EF,    0,    0,$42F0,	 0,$42F2,$42F1,$42F4,$42F3,$42F6,$42F5,	   0,$42F7,    0,    0,$42F8; 96
 		dc.w	 0,$42FA,$42F9,$42FC,$42FB,$42FE,$42FD,	   0,$42FF,    0; 112
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 ;----------------------------------------------------
 ; Object 21 - SCORE, TIME, RINGS
 ;----------------------------------------------------
@@ -37663,7 +37972,10 @@ locret_1B23C:				; CODE XREF: AddPoints+1Ej
 
 HudUpdate:				; CODE XREF: DemoTime:loc_DEAp
 					; ROM:00000F7Cp
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 		lea	(VdpData).l,a6
 		tst.w	($FFFFFFFA).w
 		bne.w	loc_1B330
@@ -37694,7 +38006,10 @@ loc_1B286:				; CODE XREF: HudUpdate+2Cj
 		bne.s	loc_1B2E2
 		lea	($FFFFFE22).w,a1
 		cmpi.l	#$93B3B,(a1)+
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 		addq.b	#1,-(a1)
 		cmpi.b	#$3C,(a1) ; '<'
 		bcs.s	loc_1B2E2
@@ -38246,12 +38561,18 @@ Art_LivesNums:	dc.b   0,  0,  0,  0,  0,$66,$66,$10,  6,$61,$16,$61,  6,$61,  6,
 		dc.b   0,  0,  0,  0,  0,$66,$66,$10,  6,$61,$16,$61,  0,$66,$66,$10,  6,$61,$16,$61,  6,$61,  6,$61,  0,$66,$66,$10,  0,$11,$11,  0; 256
 		dc.b   0,  0,  0,  0,  0,$66,$66,$10,  6,$61,$16,$61,  6,$61,  6,$61,  0,$66,$66,$61,  0,$11,$16,$61,  0,$66,$66,$10,  0,$11,$11,  0; 288
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		nop
+	if RemovePadding=0
+ 	   	nop
+	else
+	endif
 
 j_ModifySpriteAttr_2P_8:		; CODE XREF: ROM:0001B058p
 		jmp	ModifySpriteAttr_2P
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 
 DebugMode:				; CODE XREF: ROM:0000FA02j
 					; ROM:0001A3C2j
@@ -38338,7 +38659,7 @@ loc_1BB86:				; CODE XREF: Debug_Control+18j
 		move.b	#1,($FFFFFE0A).w
 		addq.b	#1,($FFFFFE0B).w
 		bne.s	loc_1BB9E
-		move.b	#$FF,($FFFFFE0B).w
+		move.b	#-1,($FFFFFE0B).w
 
 loc_1BB9E:				; CODE XREF: Debug_Control+Ej
 					; Debug_Control+3Aj
@@ -38678,7 +38999,10 @@ Debug_HPZ:	dc.w $F			; DATA XREF: ROM:0001BCF4o
 j_ModifySpriteAttr_2P_1:		; CODE XREF: Debug_ShowItem+1Ap
 		jmp	ModifySpriteAttr_2P
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
 		align 4
+	else
+	endif
 MainLoadBlocks:	dc.l Nem_GHZ+$4000000	; DATA XREF: ROM:00003B9Co
 					; MainLevelLoadBlock+8o
 		dc.l Map16_GHZ+$5000000
@@ -38840,6 +39164,7 @@ PLC_HPZ2:	dc.w 1			; DATA XREF: ROM:ArtLoadCueso
 		dc.w $A000
 		dc.l Nem_Bat
 word_1C1E4:	dc.w $A600		; DATA XREF: ROM:0000C3FAo
+	if RemovePadding=0
 		dc.l Nem_Crocobot
 		dc.w $6000
 		dc.l Nem_Buzzbomber
@@ -38852,6 +39177,8 @@ word_1C1E4:	dc.w $A600		; DATA XREF: ROM:0000C3FAo
 		dc.w $A000
 		dc.l Nem_HPZ_Piranha
 		dc.w $A600
+	else
+	endif
 PLC_HTZ:	dc.w 9			; DATA XREF: ROM:ArtLoadCueso
 		dc.l Nem_EHZ
 		dc.w 0
@@ -38950,7 +39277,9 @@ PLC_HTZAnimals:	dc.w 1			; DATA XREF: ROM:ArtLoadCueso
 ; Unknown leftover art from an unknown prototype game
 ;  leftover due	to usage of a large FF padding
 ;----------------------------------------------------
-LeftoverArt_Unknown:dc.b   0,  1,  0, $D,  0,  2,  0,  2,  0,  4,  0,  0,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  4,  2,  2,  2,  2,  2,  2,  4
+LeftoverArt_Unknown:
+	if RemovePadding=0
+		dc.b   0,  1,  0, $D,  0,  2,  0,  2,  0,  4,  0,  0,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  4,  2,  2,  2,  2,  2,  2,  4
 					; DATA XREF: ROM:ArtLoadCueso
 					; ROM:ArtLoadCueso ...
 		dc.b   4,  2,  4,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  4,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2
@@ -39440,6 +39769,8 @@ LeftoverArt_Unknown:dc.b   0,  1,  0, $D,  0,  2,  0,  2,  0,  4,  0,  0,  2,  2
 		dc.b   2,  2,  4,  2,  4,  2,  2,  2,  2,  4,  2, $A,  4,  2,  2,  4,  2,  2,  2,  2,  2,  2,  2,  4,  2,  2,  2,  2,  2,  2,  2,  2
 		dc.b   2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  4,  2,  2,  6,  8,  8,  8,  8,  8,  8,  8
 		dc.b   8,  8,  6,  2,  2,  2,  4,  2
+	else
+	endif
 AngleMap_GHZ:	dc.b $FF,  0,$88,$90,$A0,$B0,$B8,$C4,  0,  0,  0,  0,$D0,  0,  0,  0; 0
 					; DATA XREF: ROM:00013058o
 		dc.b $FC,$FC,$FC,$FC,$FC,$FC,$FC,$FC,$F8,$F8,$F8,$F8,$F0,$F0,$D0,$D0; 16
@@ -41872,6 +42203,7 @@ Art_BigRing:	dc.l	     0,	       0,	 0,	   0,	    $D,	     $DD,    $EDDC,   $EDD
 		dc.l $EEDDDDDC,$EEDDDDDD,$EEDDDDDD,$EEDDDDDD,$EEEDDDDD,	$EEDDDDD, $EEDDDDD, $EEEDDDD,  $EEDDDD,	 $EEEDDD,   $EEEDD,   $EEEEE,	 $EEEE,	    $EEE,      $EE,	   0; 736
 		dc.l $66666666,$66666666,$66666666,$C666666C,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC; 752
 		dc.l $CCCCCCCC,$DCCCCCCD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE; 768
+	if RemovePadding=0
 ;
 ; leftover level layouts from a	previous build
 ;
@@ -42758,6 +43090,8 @@ Leftover_31000:	dc.w	 0,    0,    0,	   0,	 0,    0,    0,	   0,	 0,    0,    0,
 		dc.w  $888, $889, $888,	$889, $889, $889, $889,	$888, $889, $889, $889,	$889, $889, $889, $889,	$889, $889, $889, $889,	$889, $889, $889, $889,	$889, $889, $889, $889,	$889, $889, $889, $889,	$889, $889, $889, $889,	$888, $888, $888, $889,	$889, $889, $889,$4888,	$889, $889, $888, $889,	$888, $888, $889, $889,	$888, $889, $889, $889,	$888, $888, $889, $889,	$889, $888, $889, $889,	$888; 30528
 		dc.w  $888, $888, $888,	 $88, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888, $888, $888, $888,	$888; 30592
 		dc.w  $888, $889, $889,	$889, $889, $889, $889,	$888, $888, $889, $888,	$889, $889, $888, $889,	$888, $889, $889, $889,	$889, $889, $889, $889,	$889, $889, $C89, $888,	$889, $889, $889, $889,	$889, $888, $889, $C88,	$889, $889, $889, $889,	$889, $889, $889, $888,	$889, $889, $889, $889,	$889, $888, $888, $889,	$C89, $888, $888, $888,	$888, $888, $888, $889,	$889, $889, $888, $C89,	$889; 30656
+	else
+	endif
 ObjPos_Index:	dc.w ObjPos_GHZ1-ObjPos_Index,ObjPos_Null-ObjPos_Index;	0
 					; DATA XREF: ROM:0000DC74o
 					; ROM:ObjPos_Indexo ...
@@ -43832,6 +44166,7 @@ ObjPos_S1Ending:dc.w   $10, $170,$280C	; 0 ; DATA XREF: ROM:ObjPos_Indexo
 		dc.w  $DF8, $174,$280A	; 168
 		dc.w $FFFF,    0,    0	; 171
 ObjPos_Null:	dc.w $FFFF,    0,    0	; 0 ; DATA XREF: ROM:ObjPos_Indexo
+	if RemovePadding=0
 ;
 ; a symbol table. 'compiler trash'
 ;
@@ -44761,6 +45096,8 @@ Leftover_418A8:	dc.b $70,$30,  0,  0,  0,  1,$36,  6,  0,  0,  0,  4,$7F,$66,$72
 		dc.b   0,  0,  0,  0,  0,  1,$73,$3C,  0,$44,$DF,$F8,  0,  0,  3,$EC,  0,  0,  0,  0,  0,  1,$72,$F4,  0,$44,$E0,  8,  0,  0,  3,$EC,  0,  0,  0,  0,  0,  1,$80,$A2,  0,$44,$E0,$18,  0,  0,  3,$EC,  0,  0,  0,  0,  0,  1,$7D,$76,  0,$44,$E0,$28,  0,  0,  3,$EC; 59072
 		dc.b   0,  0,  0,  0,  0,  1,$85,$B0,  0,$44,$E0,$38,  0,  0,  3,$EC,  0,  0,  0,  0,  0,  1,$39,$7E,  0,$44,$E0,$48,  0,  0,  3,$EC,  0,  0,  0,  0,  0,  1,$59,$C4,  0,$44,$E0,$58,  0,  0,  3,$EC,  0,  0,  0,  0,  0,  1,$68,$84,  0,$44,$E0,$68,  0,  0,  3,$EC; 59136
 		dc.b   0,  0,  0,  0,  0,  1,$6F,$98,  0,$44,$E0,$78,  0,  0,  3,$EC,  0,  0,  0,  0,  0,  1,$6F,$3E; 59200
+	else
+	endif
 RingPos_Index:	dc.w RingPos_GHZ1-RingPos_Index; 0 ; DATA XREF:	RingPosLoad2+1Ao
 					; ROM:RingPos_Indexo ...
 		dc.w RingPos_GHZ2-RingPos_Index; 1
@@ -45459,6 +45796,7 @@ RingPos_CPZ1:	dc.w   $A8,$21B0	; 0 ; DATA XREF: ROM:RingPos_Indexo
 		dc.w  $F80, $270	; 28
 		dc.w $1270,$C1C0	; 30
 		dc.w $FFFF		; 32
+	if RemovePadding=0
 ;
 ; now this is a	bigass chunk of	leftovers
 ;
@@ -47575,7 +47913,13 @@ Leftover_50A9C:	dc.b   0,  1,$A0,$E4,  0,$44,$EB,$28,  0,  0,  3,$EC,  0,  0,  0
 		dc.b   0,$46,$FB,$84,  0,$46,$F9,$6C,  0,$46,$84,$20,  0,  0,  0,  0,  0, $A,  1,$70,  0,  0,  0,  0,  2,  0,  0,  2,$66,$6F,$78,$73,$70,$30,$36,$32,  0,  0,  0,  7,  0,$46,$F9,$CC,  0,$46,$F9,$94,  0,$46,$84,$20,  0,  0,  0,  0,  0,  2,$32,  0,  0,  0,  0,  0; 134720
 		dc.b   2,  0,  0,  2,$73,$63,$64,$74,$62,$6C,$34,  0,  0,  0,  0,$16,  0,$46,$FB,$AC,  0,$46,$F9,$BC,  0,$46,$84,$20,  0,  0,  0,  0,  0, $A,  1,$3C,  0,  0,  0,  0,  2,  0,  0,  2,$66,$6F,$78,$73,$70,$30,$36,$31,  0,  0,  0,  6,  0,$46,$FA,$1C,  0,$46,$F9,$E4; 134784
 		dc.b   0,$46,$84,$20,  0,$44,$BD,$84,  0,  2,$22,  0,  0,  0,  0,  0,  2,  0,  0,  2,$73,$63,$64,$74,$62,$6C,$33,  0,  0,  0,  0,$16,  0,$46,$FB,$D4,  0,$46,$FA, $C,  0,$46,$84,$20,  0,  0,  0,  0,  0, $A,  1,$56; 134848
+	else
+	endif
 		include sounddriver.asm
+	if RemovePadding=0
+	else
+ 	    	align $8000	; Since the DMA queue cannot cross a 32 KB boundary, used to fix it
+	endif
 Art_Sonic:	dc.l	     0,	       0,	 0,	   0,	     0,	       0,	 0,	   0,	     0,$33333000,$33344333,$33322444,$2332A244,$222BAA24,$232BAAA3,$332BB445; 0
 					; DATA XREF: LoadSonicDynPLC+3Co
 		dc.l	     0,	       0,	 0,	   0,	     0,	       0,	 0,	   0,	     0,	       0,	 0,$33000020,$44330220,$54443220,$55544320,$55554430; 16
@@ -50382,6 +50726,7 @@ Nem_Stars:	dc.b   0,$22,$80,  6,$3C,$16,$3D,$25,$1A,$35,$1C,$45,$1D,$55,$1B,$64,
 		dc.b $F2,$B3,$58,$FE,$99,$CD,$65,$66,$DB,$C0,  0,  0, $F,$5E,$63,$F6,$D0,  0,  0,$CB,$6E,$AE,$9D,$FE,$99,$CD,$53,$BA,$B6,$F0,  0,  0,$DB,$73,$AC,$7C,$FC,$A3,$FB,$6E,$B1,$B9,$68,  1,$2E,$5B,$75,$74,$EE,$A6,$E9,$8F,$3F,$8C,$FE,$52,$98,$F2,$A6,$E9,$DD,$5B,$72,$E0; 64
 		dc.b   0,  0,  0,  1,$FA,$46,$34,  0,  0,  0,  0,  0,  0,$7A,$8E,$B3,$8C,$F2,$72,$54,$7B,$29,$D6,$4F,$9F,$F6,$AD,$64,$F9,$5D,$94,$F2,$54,$78,$CF,$26,$9D,$67,$A8,  0,  0,$76,$5C,$B9,$6D,$B6,$DD,$5D,$5D,$5D,$75,$F2,$B3,$4F,$B5,$3C,$8E,$A9,$95,$35,$4D,$4E,$7D,$F9; 128
 		dc.b $33,$DF,$FB,$7D,$F9,$33,$DA,$6A,$72,$99,$53,$55,$3C,$8E,$AB,$34,$FB,$5D,$7C,$AB,$AB,$AB,$6D,$B6,$E5,$CB,$80,  0,  0,  0,$17,$F5,$8F,$E9,  0,  0,  0,  0,  0; 192
+	if RemovePadding=0
 ;
 ; some unused uncompressed art
 ;
@@ -50487,6 +50832,8 @@ Unused_Art_9E1FB:dc.b	0,  0,	0,  0,	0,  0,	0,  0,	0,  0,	0,  0,$EE,  0,	0,$EE,$E
 		dc.b $EE,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, $E,  0,  0,$E0,$EE,  0,  0,$EE,$EE,$EE; 6336
 		dc.b $EE,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,$EE,$E0,  0,  0,$EE,$EE,$EE; 6400
 		dc.b $E0		; 6464
+	else
+	endif
 Map_Tails:	dc.w word_9FC46-Map_Tails,word_9FC48-Map_Tails;	0 ; DATA XREF: ROM:00010C68o
 					; ROM:00011D94o ...
 		dc.w word_9FC5A-Map_Tails,word_9FC6C-Map_Tails;	2
@@ -51501,11 +51848,14 @@ Nem_HPZ_Various:dc.b $80,$16,$80,  3,  1,$14,  8,$26,$38,$36,$3A,$45,$1B,$56,$3D
 		dc.b $82,$CB,$8F,  3,$3C,$C2,$79,$E4,$88,$4E,  7,$4B,$2F,$D5,$F3,$EA,$CF,$6A,$3F,$A7,  3,$FC,$C0,$DF,$EC,$6C,$BB,$51,$A8,$76,$75,  0,$B0,$BA,  5,$82,  8,$20,$B1,$6A,$88,$2D,$45,$10,$FC,$28,$D6,$71,$C2,$8C,$6C,$5E,$FE,$3D,$BD,$8E,$C7,$7F,$A2,$D6,$C1,$50,$24,$82; 256
 		dc.b $A0,$49,  5,$40,$9E,$14,  9,$E1,$40,$9F,$44,$FA,$27,$D5,$FE,$21,$FE,$60,$6F,$F6,$36,$5D,$A8,$D4,$3B,$3A,$80,$58,$5D,  2,$C1,  4,$10,$58,$B5,$44,$16,$A2,$88,$7E,$14,$6B,$38,$E1,$46,$36,$2F,$7F,$1E,$DE,$C7,$7F,$1F,$A3,$85,$CF,$C8,$BC,  3,$45,$E7,$A0,$69,$C0; 320
 		dc.b $34,$CD,$1A,$64,$45,$32,$22,$99,$10,$8B,$20,$88,$F1,$83,$5C,$63,$34,$57,$18,$85,$BB,$1D,$FC,$77,$72,$40; 384
+	if RemovePadding=0
 Nem_UnusedDust:	dc.b   0,$18,$80,  5,$17,$14,  8,$25,$1B,$35,$19,$45,$1C,$56,$3A,$67,$7A,$72,  0,$83,  4,  6,$14, $A,$28,$F9,$38,$FA,$84,  3,  2,$14,  9,$25,$18,$37,$7B,$58,$F8,$85,  4,  7,$15,$16,$26,$3C,$35,$1A,$46,$3B,$58,$FB,$FF,$CF,$CE,$EB, $D,$7A,$9F,$29,$77,$4B,$B6,$9D; 0
 		dc.b $26,$5F,$77,$69,$D5,$26,$C3,$DE,$A7,$CA,$5A,$57,$69,$7C,$57,$C5,$7C,$5F,$F8,$73,$1F,$D3,$3F,$A7, $A,$BD,$B3,$CE,$A7,$C5,$A5,$FE,$5C,$7F,$D7,$FE,$B6,$5F,$E5,$4E,$B5,$8D,$7F,$D1,$3A,$79,$AC,$7F,$CE,$EC,  7,$A5,$EA,$7A,$B4,$E7,$C9,$BA,$BB,$E3,$3E,$7F,$11,$D3; 64
 		dc.b $E2,$25,$D6,$6C,$DC,$4C,$B8,$C0,  6,$EB,$2D,$8A,$85,$69,$6B,$AD,$4D,$D6,$93,$DD,$69,$3D,$D9,$77, $D,$36,$5B,$6F,$79,$FA,  0,  3,$33,$FC,$3F,$86,$F7,$DC,$FD,$AE,$D3,$AE,$D7,$DC,$F9,$86,$F8,$6B,$B6,$2B,$7F,$40,  4,$37,$A5,$F3,$9B,$2A,$DE,$93,$47,$78,$7F,$7F; 128
 		dc.b $33,$F5, $C,$9B,$94,  0,  0,$43,$AE,$6B,$6B,$B8,$5D,$C3,$2B,$26,$DC,$D6,$69,  2,$F4,$E0,  3,$F5,$68,$78,$56,$BA,$75,$76,$4F,  9,$A1,$90,$10,$9D,$42,$8B,$28,$50,$C9,$80, $D,$DB,$AF,$39,$65,$94,$F5, $A,$28,$2F,$2C,$9E,$EF,$D2,$B7,$2C,$9B,$32,  0,$1E,$AC,$B9; 192
 		dc.b $65,$CC,$43,$F5,$60,$37,$6E,$A4,$2E,$80, $B,$74,$9F,$2E,$43,$C3,$81,$D2,$7D,$BE,$D1,$74,  0,  6,$6D,$D4,$C2,$38,$83,$A4,  0,$70; 256
+	else
+	endif
 Nem_CPZ_FloatingPlatform:dc.b	0,$10,$80,$73,	0,$81,	4,  5,$15,$12,$26,$2E,$36,$3A,$46,$3B,$74,  6,$82,  5,$14,$26,$34,$36,$33,$83,	4,  2,$16,$39,$25, $F,$35,$10,$84,  4,	3,$15,$16,$26,$32,$37,$78,$46,$35,$85,	4,  4,$15,$13,$86,  5, $E,$28,$FA,$87,	6,$36,$88,  5,$11,$16,$3D,$89; 0
 					; DATA XREF: ROM:0001C12Eo
 		dc.b $27,$79,$8A,$15,$18,$28,$FB,$8B,  7,$7C,$16,$2F,$8C,  5,$15,$8D,  6,$37,$8E,  6,$38,$FF,$7E,$BA,$15,$1F,$9C,$34,$2A,$3E,$F9,$5F,$2F,$92,$BF,$BB,$EE,$F8,$B7,$DD,$7E,$70,$D0,$A8,$FC,$E1,$A1,$53,$93,$CD,$F9,$95,$1F,$9C,$34,$2A,$3D,$BF,$21,$2C,$FF,$61,$D7,$F4; 64
@@ -51615,6 +51965,7 @@ Nem_Signpost:	dc.b $80,$3A,$80,  3,  0,$15,$13,$25,$14,$36,$33,$46,$36,$56,$34,$
 		dc.b $2B,$87,$B1,$A6,$5B,$B5,$ED,$BE,$53,$A8,$90,$AD,$24,$24,$25,$49,  9,  9,  3,$12,$D6,$5A,$D4,$57,$6A,$8A,$87,$D2,$AF,$97,$6A,$2B,$DC,$F6,$A2,$C3,$A2,$FA,$62, $E,$25,$47,$3C,$E2,$54,$75,$4D,$9D,$47,$64,$6D,$14,$73,$39,$AD,$47,$43,$A5,$6A,$1B,$2B,$ED,$43,$B2; 960
 		dc.b $BE,$D4,$59,$2D,$9F,$45,$92,$D9,$F4,$5B,$2F,$6A,$2D,$95,$E7,$45,$B1,$BC,$E2,$75,$39,$1C,$96,$7F,$CE,$1E,$88,$13,$C7,$E9,$DA,$6A,$68,$15,$27,$DC,$83,$B8,$36,$8C, $F,$F6,$26,$13,$44,$22,$22,$22,$22,$22,$22,$22,$22,$22,$22,$22,$22,$6D,$19,$32,$FD,$B6,$48,$3D; 1024
 		dc.b $6E,$CB,$D4,$A9,$C1,$A1,$11,$11,$11,$11,$11,$11,$4C,  0; 1088
+	if RemovePadding=0
 Nem_Crocobot:	dc.b   0,$2C,$80,  5,$11,$16,$2A,$26,$30,$36,$33,$47,$76,$58,$EF,$67,$70,$74,  4,$81,  3,  0,$14,  6,$26,$2E,$36,$35,$48,$F2,$57,$6C,$77,$78,$82,  4,  2,$15,$13,$27,$74,$38,$F7,$83,  4,  3,$15, $B,$26,$2B,$47,$6F,$58,$F6,$84,  5,$14,$17,$6E,$85,  6,$31,$17,$6D; 0
 					; DATA XREF: ROM:0001C1E6o
 		dc.b $86,  5,$16,$17,$71,$87,  5, $F,$16,$34,$88,  5, $A,$17,$72,$89,  5,$12,$17,$7A,$8A,  5, $E,$17,$73,$8C,  6,$32,$18,$F3,$8D,  5,$10,$16,$2F,$27,$75,$38,$EE,$FF,$44,$44,$44,$44,$44,$38,$AF,$30,$63,$78,$30,$7F,$B4,$9E,$FB,$47,$F8,$56,$7C,$7F,$C3,$56,$3F,$CD; 64
@@ -51631,6 +51982,8 @@ Nem_Crocobot:	dc.b   0,$2C,$80,  5,$11,$16,$2A,$26,$30,$36,$33,$47,$76,$58,$EF,$
 		dc.b $7B,$8C,$AF,$8D,$74,$32,$84,$7D,$8A,$35,$BD,$65,$1A,$C2,$E7,$B0,$8F,$BB,$1A,$FA,$E2,$B9,$DF,$89,$CD,$AB,$26,$92,$B5,$F5,$CB,$5F,$41,$CC,$A1,$27,  7,$33,$83,$B9,$39,$52,$12, $A,$E7,$E5,$26,$44,$44,$DF,$81,$95,$C5,$51,$6A,$55,$31,$76,$69,$16,$77,$19,$60,$E1; 768
 		dc.b $25,$90,$8B,$83,$88,$C3,$E4,$E6,$9C,$94,$1C,$DD,  4,$43,$BB,$DD,$C0,$F7,$19,$5F,$1A,$E8,$65,  8,$FB,$14,$6B,$7A,$CA,$35,$85,$CF,$61,$1F,$76,$35,$F5,$C5,$73,$BF,$13,$9B,$56,$4C,$A9,$6B,$2E,$4E,$D7,$D0,$73,$28,$49,$C1,$CC,$E1,$CF,$F5,$12,$12, $E,$E5,$E5,$E8; 832
 		dc.b $22,$22,$6F,$C0,$CA,$E2,$A8,$B5,$2A,$98,$BB,$5C,$59,$B4,$8B,$37,  9,$19,$60,$E6,$59,$4A,$2E,$62,$30,$F0,$E0,$E9,$85,$33,$BD,$E5,$11,$C0; 896
+	else
+	endif
 Nem_Buzzbomber:	dc.b   0,$1C,$80,  5, $C,$15, $D,$25,$12,$35,$17,$47,$76,$57,$7A,$66,$37,$73,  0,$81,  3,  1,$14,  5,$26,$34,$37,$77,$46,$3A,$86,  5,$11,$16,$39,$28,$FA,$87,  5,$13,$88,  5, $F,$16,$36,$89,  4,  4,$15,$18,$26,$3C,$8B,  5,$16,$16,$35,$8C,  5,$10,$15,$15,$27,$7B; 0
 					; DATA XREF: ROM:0001C194o
 					; ROM:0001C1ECo ...
@@ -51657,6 +52010,7 @@ Nem_Bat:	dc.b   0,$3A,$80,  5,$14,$14,  8,$25,$15,$35,$16,$45,$12,$56,$35,$67,$7
 		dc.b $49,$F5,$9B,$29,$67,$29,$B2,$94,$FC,$F3,$97,$9E,$7A,$F3,$EF,$CC,$9C,$E5,$EE,$25,$EE,$F6,$F7,$FE, $C,$76,$18,$CA,  7,$EE,$14,$37,$4D,$38,$C2,$6D,$E1,$82,$76,$84,$13,$A8,$1F,$C9,$81,$F0,$2A,$32,$7A,$FF,  6,  6,$3F,$4D,  1,$B9,$4E,$1D,$B4,$50,$13,$68,$D0,$32; 704
 		dc.b $E2,$A3,$E2,$A3,$E2,$DE,$A4,$19,$6A,$F2,$4D,$39,$67,$24,$D3,$24,$93,$5C,$EC,$3F,$56,$20,$7B,$FE,$7B,$B5,  7,$BF,$EF,$A8,$3B,$7E,$FB,$B5,$10,$ED,$F9,$EE,$D1,$97,$A8,$E9,$EB,$96,$75,$C9,$EC,$9E,$4F,$71,$61,$36,$42,$B3,$BE,$10,$8D,$1B,$21,$17,$C6,$42,$2E,$DD; 768
 		dc.b   8,$6E,$85,$7A,$16,$E8,$5B,$21,$2C,$E4,$C8,$49,$F5,$9B,$29,$67,$29,$B2,$24,$93,$20,  0; 832
+	if RemovePadding=0
 Nem_Octopus:	dc.b   0,$3A,$80,  6,$31,$16,$2B,$26,$32,$36,$33,$48,$F3,$56,$37,$66,$30,$73,  0,$81,  3,  1,$14,  6,$26,$36,$37,$74,$58,$F6,$68,$F2,$82,  4,  4,$14,  7,$25,$11,$37,$75,$58,$F7,$83,  4,  5,$15,$16,$26,$35,$37,$72,$47,$76,$57,$77,$84,  5,$12,$16,$34,$85,  7,$73; 0
 		dc.b $86,  5,$10,$16,$38,$87,  5,$13,$88,  6,$2F,$89,  6,$2E,$8C,  5,$14,$8D,  6,$2A,$8E,  7,$7A,$17,$78,$FF,  0,  0,$30,$4C,$13,  9,$EE,$87,$14,$CD, $A,$49,$32,$42,$86,$11,$B2,$19,$6B,$A2,$95,$F7,$2A,$9D,  0,$F3,$8D,$71,$D7,$14,$EE,$9F,$F3,$FF,$1C,$ED,  9,$F6; 64
 		dc.b $FD,$34,$F9,$37,$1C,$9B,$8E,$4D,  9,$EA,$9F,$A6,$9D,$A0,$57,$F2,$FA,$A1,$EE,$87,$B8,$11,$F3,$D6,$35,$F2,$8E,$3D,$DD,$7F,$49,$AA,$69, $D,$2C,$92,$FD,$34,$AC,$9A,$43,$48,$2A,$2F,$E9,$14,$AA,$7F,$8D,$3F,$C6,$9D,$A0,$A9,$D8,$BF,$77,  0,  0,$13,  4,$C1,$30,$7D; 128
@@ -51687,6 +52041,8 @@ Nem_Triceratops:dc.b   0,$32,$80,  5,$15,$16,$30,$26,$2E,$36,$33,$47,$71,$57,$75
 		dc.b $F4,$13,$C2,$DB,$BA,$71,$EF,$DB,$BF,$6E,$F2,$EA,$6F,$97,$19,$45,$F2,$CE,$C8,$BE,$45,$6B,$C2, $A,$3A,$F0,$29,$CD,$6C,$3E,$55,$9F,$93,$33,$33,$36,  7,$F1,$BE,$9F,$BD,$9F,$F7,$67,$FD,$5E,$83,$FA,$22,$7A,$A6, $E,$A9,$89,$F9,$11,$30,$42,$EC,$26,$BB,  3,$BF,$61; 832
 		dc.b $FA,$8B,$42,$FF,$87,$2F,$3F,$3B,$AD,$FF,$EF,$FF,$7F,$EB,$E7,$FC,$9B,$7C,$BA,$78,$41,$3F,  5,$C4,$D5,$27,$41,$3F,$D4,$1A,$6D,$BE,$8F,$6F,$22, $D,$7F,$4E,$44,$EB,$D0,$4F,  3,$8C,$EE,$E9,$C7,$BF,$6E,$FD,$BB,$CB,$A9,$BE,$5C,$65,$17,$CB,$3B,$22,$F9,$15,$AF,  8; 896
 		dc.b $28,$EB,$C0,$A7,$35,$B0,$F9,$56,$7E,$4C,$CC,$CC,$CC,$CC,$CC,$CC,$CD,$76,$BE,$31,$F8,$CD,$2E,$A7,$EB,$35,$E1,$CB,$F1,$9F,$B3,$AC,$7E,$33,$4C,$F5,$B3,$33,$33,$33,$33,$75,$D3,$38,$F4,$D3, $E,$5E,$9A,$56,$9F,$BC,$FD,$9F,$A6,$97,$68,$D9,$80,  0; 960
+	else
+	endif
 Nem_Dinobot:	dc.b   0,$30,$80,  5,$14,$15,$11,$25,$16,$35,$18,$47,$73,$56,$37,$67,$72,$75,$15,$81,  3,  0,$15,$12,$26,$33,$36,$36,$58,$F8,$86,  4,  6,$17,$76,$87,  4,  5,$16,$38,$88,  6,$34,$89,  4,  7,$17,$77,$8C,  4,  4,$16,$32,$26,$3A,$37,$7A,$47,$79,$8D,  3,  1,$15,$13; 0
 					; DATA XREF: ROM:0001C1DAo
 					; ROM:0001C1FEo
@@ -51705,6 +52061,7 @@ Nem_Dinobot:	dc.b   0,$30,$80,  5,$14,$15,$11,$25,$16,$35,$18,$47,$73,$56,$37,$6
 		dc.b   1,$71,$15,$80,$B8,$A7,  8,$26,$29,$D9,  4,$C5,$3B,$20,$98,$A3,$20,$B8,$A2, $F,$DE,$8A,$7B,$11,$BC,$AD,$9F,$31,$A6,$70,$8A,$8D,  6,$B1, $A,$3C,$40,$10,$A3,$C4,  2,$67,$E2,  2,$19,$B7,$80,$83,$52,$C3,$25,$60,$B0,  5,$58,$2B,$5D,$64,$A1,$26,$A0,$A8,$4F,$6F; 832
 		dc.b $A4,$C3,$E8,$AC,$B3, $F,$A7,$1A,$4C,$77,$FC,$C3,$C9,$74,$71,$DE,$9C,$69,$28,$CF,$47,$16,$6E,$88,$8F,$64,$98,$AD,$6B,$5D,$C8,$E4,$46,$E4,$6F,$31,$CE,$63,$9C,$C7,$39,$8C,$14,$23,  5,  8,$B1,$48,$11,$19,$C1,  5,$2F,  4,$22,$81,$21,$91,$14,$96,$53,$14,$98,$43; 896
 		dc.b $2A,$31,  9,$28,$E6,$92,$8E,$64,$5B,$B9,$18,$70,$E3, $F,$2E,$6E,$37,$7A,$D6,$B5,$AF,$20; 960
+	if RemovePadding=0
 Nem_HPZ_Piranha:dc.b   0,$40,$80,  5,$10,$15,$14,$25,$12,$36,$34,$46,$30,$56,$2F,$66,$2D,$74,  3,$81,  3,  0,$15,$13,$26,$31,$37,$75,$82,  5,$11,$17,$6B,$28,$F4,$83,  6,$33,$84,  7,$73,$86,  5, $C,$17,$71,$28,$F7,$87,  4,  5,$16,$2C,$27,$74,$88,  4,  4,$15, $D,$27,$72,$37,$70; 0
 					; DATA XREF: ROM:0001C204o
 		dc.b $89,  4,  2,$16,$2A,$27,$64,$36,$36,$48,$F3,$8A,  7,$6A,$18,$F5,$27,$78,$48,$EC,$8B,  5, $E,$17,$6E,$27,$6F,$8C,  6,$2E,$18,$ED,$28,$F2,$8D,  6,$2B,$17,$65,$8E,  5, $F,$17,$77,$FF,$33,$33,$33,$33,$33,$BE,$AD,$2A,$6C,$8B,$85,  9,$B5,$F6,$D0,$92,$BF,$28,$12; 64
@@ -51773,6 +52130,8 @@ Nem_UnusedBubbler:dc.b	 0,$18,$80,  3,	 0,$14,	 9,$25,$18,$36,$38,$46,$3B,$56,$3
 		dc.b $76,$D3,$EF,$A6,$9E,$41,$93,$8B,$F5,$7D,$37,$BE,$1A,$77,  7, $C,  8,$7E,$2F,$B3,$83,$83,$E8,$E1,$D6, $F,$9D,$7E,$BA,$9A,$4E,$1A,$4F,$6C, $A,$E8,$A1,$5C,$19,$F9,$46,$24,$CB,$4B,$62,  1,$81,$4D,$18,$89,$2D,$31,$86,  9,$97, $F,$D2,$C2,$70,$BD,$2C,$B6,$71,$52; 384
 		dc.b $EC,$65,  7,$C1,  8,$38,$60,$42,$60,$F2,$E1,$B4,$E1,$D8,$E1,$67,$36,$CF,$2C,$23, $B,$D6,$D1,$DB,$E1, $D,$B1, $F,$2E,$18,$1A, $F,$C3,$43,$8A,$CF,$A3,$D1,  7,$A3,$82,$37,  4,$6E,  8,$32,$41,  4,$19,$20,$83,$24,$11,$FA,$E9,$23,$70,$41,  4,$6F,$C6,$E3,$7F,$47; 448
 		dc.b $39,$CE, $E,$64,$F0,$78,$20,$F4,$46,$F8,$20,$83,$82,$37,  6,$77,$1B,$F0,$41,  6,$48,$20,$E3,$70,$64,$82,  8,$38,$23,$70,$7B,$DF,$39,$C0; 512
+	else
+	endif
 Nem_Snail:	dc.b $80,$1A,$80,  3,  1,$14,  7,$24,  8,$34, $A,$46,$32,$56,$36,$66,$39,$74,  6,$81,  3,  0,$15,$16,$28,$FA,$82,  7,$79,$83,  6,$3A,$84,  6,$37,$85,  5,$18,$86,  6,$35,$87,  7,$77,$88,  3,  2,$17,$76,$89,  5,$12,$17,$7A,$8A,  7,$78,$8C,  5,$13,$16,$38,$28,$F8; 0
 					; DATA XREF: ROM:0001C19Ao
 					; ROM:0001C262o
@@ -51862,6 +52221,7 @@ Nem_CPZ_ProtoBoss:dc.b $80,$6F,$80,  4,	 5,$14,	 8,$24,	 7,$35,$18,$46,$2F,$55,$
 		dc.b $6F,$CD,$F9,$BF,$3C,$64,$B9,$3F,$2C,$9F,$F5,$AA,$80,$82,  8,  9,  9,$7C,$EF,$47,$47,$48,$C9,$52,$11,$F2,$54,$11,$50,$8C,$AD,$90,$59,  0, $E,$A0,  0,$21,$7A,$42,$42,$2A,$10,$8B,$3C,$4C,$59,$E6,$91,$FC,$80,  8,$E5,$7C,$ED,$38,$E8,$FC,$95,  9,$90,$96,$9D,$F3; 1216
 		dc.b $BE,$77,$CE,$C8,$1F,$C8,$59,$DF,$CB,$27,$FD,$6C,$64,$B9,$63,$9B,$F3,$7E,$6F,$CF,$19,$2E,$4F,$CB,$27,$FD,$6A,$A0,$82,  8,  8,$13,$26,$25,$F9,$42,$1F,$B8,$32,  0,  0,$CF,$A8,  4,$C2,$64,$C4,$10,  0,$EA,  0,$2F,$70,$BD,$C0,  7,$53,$A8,  1,$DC,$2F,$70,$11,$DC; 1280
 		dc.b   2,$F7,  1,$D4, $E,$A0,$77,  0,$BD,$C4,$77,  0, $B,$DC,$75,  0,$3A,$9D,$C0,  2,$A5,$90,  0,  4,  0,  0,$B2,  0,  0,  0; 1344
+	if RemovePadding=0
 Nem_BigExplosion:dc.b	0,$64,$80,  4,	5,$15,$12,$25,$15,$35,$18,$46,$35,$57,$6E,$68,$F6,$75,$13,$86,	6,$36,$17,$73,$27,$78,$37,$76,$48,$F7,$57,$7A,$76,$34,$8A,  6,$33,$17,$75,$8C,	3,  0,$14,  6,$25,$16,$37,$72,$8D,  3,	1,$14,	7,$26,$32,$36,$38,$47,$6F,$57,$77,$8E,	4,  8; 0
 		dc.b $15,$17,$27,$79,$8F,  4,  4,$15,$14,$27,$74,$FF,$D6,$98,$84,$8E,$72,$BF,$65,$4F,$49,$FE,$64,$FF,$32,$7F,$99,$3F,$CC,$91,$E9,$23,$D2,$47,$AA,$47,$BA,$A7,$9F,$12,$4F,$E7,$56,$9E,$75,$FD,$FF,$B6,$D4,$BD,$76,$8E,$74,$97,$BA,$2C,$7B,$C2,$47,$A8,$5F,$50,$BE,$A1; 64
 		dc.b $7D,$42,$FA,$84,$F7,$BA,$7B,$C2,$2F,$6B,$A2,$FF,$39,$25,$E6,$95,$A4,$E7,$39,$CE,$73,$C4,$67,$AF,$5D,$B1,$DA,$BE,$F2,$F5,$2F,$52,$CF,$DE,$51,$EF,$28,$CF,$B4,$A3,$AF,$89,$5F,$B5,$63,$B4,$82,$76,$50,$91,$D9,$52,$33,$EC,$A2,$3A,$F8,$92,$75,$DA,$36,$92,$79,$EB; 128
@@ -51889,6 +52249,8 @@ Nem_BigExplosion:dc.b	0,$64,$80,  4,	5,$15,$12,$25,$15,$35,$18,$46,$35,$57,$6E,$
 		dc.b $F7,$15,$3E,$C3,$70,$9E,$A6,$7A,$99,$CE,$73,$9C,$F5,$12,$18,$69,$CD,$44,$E6,$A2,$72,$2A,$67,$3D,$44,$D4,$61,$A4,$14,$A8,$91,$AB,$A9,$67,$50,$A1,$E4,$1E,$AF,$5F,$F6,$B3,$EE,$2A,$77,  5,$79,  9,$15,$1E,$C2,$42,$A2,$7A,$89,$CE,$73,$13,$9C,$E7,$39,$CE,$7B,$8C; 1536
 		dc.b $E6,$A2,$73,$57,$12,  4,$19, $C,$15,$63,$8B,$49,$8F,$25,$75,$32,$76,$33,$99,$F6,  7,$50,$A0,$EE,$6F,$60,$70,$CA,$F8,$CB,$73,$6A,$67,$51,$A8,$C0,$91,$13,$1E,$C7,$73,$E0,$48,$D5,$B8,$C1,$53,$B8,$3E,$A0,$C8,$C8,$8D,$CC,$A5,$4C,$99,$EA,$58,$E0,$AB,$D5,$B2,$5E; 1600
 		dc.b $F2,$70,$A7, $D,$EC,$77,$3E,$A0; 1664
+	else
+	endif
 Nem_BossShipBoost:dc.b	 0,  8,$80,  5,$1C,$15,$16,$23,	 2,$34,	 6,$45,$1B,$66,$3E,$73,	 0,$86,$15,$1E,$8C,  4,	 9,$15,$1A,$23,	 1,$35,$1D,$8E,	 4, $A,$14, $C,$8F,  4,	 7,$14,	 8,$25,$17,$FF,	 0, $D,$95,$FC,$F5,$FB,$E7,$6F,$63,$7B,$17,$EF,$9D,$7F,$3F,$64,	 0,  0,	 2,$7E,$EB,$47;	0
 					; DATA XREF: ROM:0001C296o
 		dc.b $6D,$57,$3C,$AB,$9E,$47,$6D,$D6,$90,  0,  0,$31,$69,$BA,$97,$FD,$72,$7F,$D3,$52,$FE,$33,$7E,$D9,$BF,$6C,$BF,$8C,$9E,$BD,$56,$D3,$FE,$B9,$A6,$FB,$20,  1,$3F,$3E,$B7,  5,$54,$1B,$64,$1E,$7E,$1B,$2F,$AF,$C3,$65,$F5,$90,$79,$50,$6D,  5,$3E,$B7,$20,$7C; 64
@@ -51937,6 +52299,7 @@ Nem_EHZ_Boss_Blades:dc.b   0,$14,$80,  5,$17,$14,  9,$26,$39,$35,$1A,$45,$19,$72
 		dc.b $68,$69,$F7,$4D,$67,$6E,$77,$59,$54,$AC,$A5,$35,$94,$26,$4C,$9D,$47,$F0,$5D,$32,$BA,$74,$D9,$DE,$93,$FE,$5A,$FF,$2E,$AB,$87,$B7,$99,$FB,$AE,$5F,$F7, $D,$2D,$1F,$C9,$BF,$B2,$CF,$66,$D5,$6F,$9F,$32,$EC,$A5,$59,$42,$64,$CA,$14,$7F,  6,$13,$26,$57,$4D,$FB,$1C; 64
 		dc.b $BC,$32,$D7,$CB,$D9,$F8,$A5,$98,$FA,$89,$87,$FD,$33,$DD,$FF,$8C,$FF,$7F,$A7,$68,$9F,$74,$D6,$76,$E7,$75,$95,$53,$8B,$43,$29,$C3,$C6,$27, $F,$18,$9C,$56,$33,$BD,$26,$87,$BF,$CB,$AA,$E1,$ED,$E6,$5F,$8A,$E7,$EB,$ED,$A6,$A3,$F7,$37,$F6,$59,$EC,$DA,$AD,$F3,$E6; 128
 		dc.b $53,$5A,$13,$4E,$1E,$31,$38,$78,$C4,$E2,$AE,$A7,$79,$B5,$2D,$7C,$BD,$9F,$8A,$40,  0,  5,$FA,$EC,  0,  0,  0,$3A,$EC,  0,  0,  0,$3A,$EC,  0,  0,  0,$3A,$EC,  0,  0,  0,$3A,$EC,  0,  0,  0,$3A,$EC,  0,  0,  0; 192
+	if RemovePadding=0
 S1Nem_Ballhog:	dc.b $80,$2F,$80,  3,  1,$14,  6,$25, $A,$35,$11,$45,$14,$56,$2F,$66,$36,$75, $B,$81,  3,  0,$16,$2E,$27,$76,$38,$F7,$82,  5,$16,$18,$F5,$83,  4,  4,$15,$13,$26,$37,$38,$EF,$48,$EE,$78,$F4,$84,  6,$34,$86,  6,$35,$18,$F2,$87,  5, $F,$16,$31,$27,$78,$38,$F3,$88; 0
 		dc.b   5, $E,$16,$32,$26,$38,$89,  5,$10,$16,$33,$8A,  6,$30,$17,$74,$8B,  5,$12,$18,$F6,$8D,  7,$72,$17,$75,$8E,  7,$73,$8F,  5,$15,$FF,$A3,$F5,$7D,$F5,$E7,$B0,$BC,$5E,$FA,$FE,$32,$FD,$2F,$76,$9B, $B,$45,$D5,$5A,$DF,$55,$C7,  3,$AF,$2A,$7E,$53,$9C,$50,$41,$65; 64
 		dc.b $EA,$16,$E9,$CF,$28,$6F,$62,$3F,$19,$CB,$12,$3A,$DC,$CF,$60,$C1,$9E,$17,$4F,$50,$A1,$66,$B7,$6B,$2D,$67,$1B,$2A,$CA,$FD,$17,$33,$6C,$7F,$58,$6A,$7F,$2B,$23,$22,$2A,$B3,$76,$1A,$F5,$FC,$62,$5A, $F,$3F,$9E,$36,$38,$7E,$17,$9D,$E2,$42,$F1,$80,$DA,$BF,$85,$B1; 128
@@ -51952,6 +52315,8 @@ S1Nem_Ballhog:	dc.b $80,$2F,$80,  3,  1,$14,  6,$25, $A,$35,$11,$45,$14,$56,$2F,
 		dc.b $BF,$56,$BA,$25,$27, $E,$E2, $C,$1E,$E6,$83,$88,$AB,$8C,$3F,$3E,$32,$30,$AD,$CE,$20,$C3,$5C,$67,$66,$ED,$DC,$AD,$EE,$48,$82,$F2,$87,  6,$7C,$6A,$1E,$A0,$74,$7B,$3C,$21,$7B,$3C,$4C,$E3,$A8,$9A,$86,$E5,  8,$DE,$33,$BD,$22,$81,$74,$40,$BA,$25,$26,$E8,$A6,$54; 768
 		dc.b $85,$C5,$C1,$BF,$5E,$2A,$E0,$AA,$8A,$AD,$C0,$F9,$43,$20,$DF,$C1,$59,$CE,$39,$E4,$A8,$65,$18,$39,$74,$83,$96,$B5,$DF,  7,$2F,$68,$3B,$68,$65,$7E,$79,$5F,$9A,$F3,$BF,$2C,$EF,$CA,$11,$C8,$BA, $C,$EF,$CF,$39,$65,$D0,$2E,$FC,$F3,$A9,$92,$D6,$CE,$82,$E8,$E8,$47; 832
 		dc.b $28,$2B,$2C,$E3,$9A,$D7,$1E,$B1,$EB,$35,$72,$9C,$79,$22,$D4,$87,$92,$2E,$28,$B5,$9E,$48,$BD,$B9,$26,$DC,$A7,$7F,$59,$DF,$D5,$7D,$6F,$9F,$5A,$21,$4E,$4A,$4B,$A7,$C9,$87,$40,$8B,$4E,$44,$74,  8,$A4,$B9,$29,$35,$B2,$72,$5D,$13,$94,$67,$C9,$53,$EB,$1E,$B7,$80; 896
+	else
+	endif
 Nem_Crabmeat:	dc.b   0,$44,$80,  5,$12,$15, $F,$25,$10,$35,$15,$46,$35,$56,$38,$67,$72,$74,  2,$81,  3,  0,$15,$14,$27,$78,$86,  6,$32,$17,$77,$87,  4,  6,$16,$34,$27,$76,$88,  5, $E,$15,$16,$89,  4,  4,$15,$13,$27,$7A,$8A,  6,$36,$17,$73,$8B,  5,$18,$17,$74,$8C,  6,$2F,$16; 0
 		dc.b $2E,$26,$33,$37,$75,$47,$79,$8D,  4,  3,$15,$11,$28,$F6,$38,$F7,$8E,  4,  5,$16,$37,$FF,$22,$E5,$7F,  6,$B5,$31,$C5,$F4,$D6,$FF,$10,$3B,$A9,  8,$DC,$21,$1C,$E0,$6A,$77,$54,$D4,$EF,$A9,$AC,$75,$35,$3D,$62,$BC,$8C,$A5,$99,$C3,$3E,$77,$9C,$97,$3E,$71,$92,$E7; 64
 		dc.b $B5,$E6,$F5,$EA,$6F,$5E,$A7,$49,$2E,$67,$E1,$6E,$8F,$85,$BA,$37,  5,$F7,$FE,$E2,$C6,$E3,$DE,$F5,$F6,$59,$FE,$B8,$D5,$3F,$50,$A7,$BC,$DD,$91,$11,$48,$F9,$1F,$28,$F1,$1E, $D,$B2,$6A,$B7,$E9,$9A,$1D,$E9,$94,$1B,$2A,$34, $D,$B2,$6A,$9A,$3B,$53,$4D,$24,$B8,$D8; 128
@@ -51987,6 +52352,7 @@ Nem_GHZBuzzbomber:dc.b $80,$37,$80,  4,	 3,$14,	 5,$24,	 8,$34,	 7,$45,$15,$56,$
 		dc.b   7,$A3,$10, $B,$35,$6E,$97,$1D, $F,$D7,$35,$FD,$F0,$7F,$DF,$2F,$3F,$47,$43,$BB,$A3,$2C,$C0,$52,$6A,  7,$26,$A0,$72,$6A,$44,$DA,$8F,$75,$2B,$CC,  0,  3,$F3,$7E,$77,$45,$2E,$9D,$49,$E8,$C4,  0,$AD,$18,$81,$56,$97,$4D,$F9,$DD,$B7,$30,  7,$3D,$AE,$E6,$F3,$BA; 768
 		dc.b $95,$20,$4D,$40,  5,$49,$A8,$E5,$59,$DD,$48,$BB,$9B,$F3,  3,$15,$A6,$1B,$BC,$6A,$C7,$76,$17,$56,$3B,$B0,$B4,$C3,$77,$AE,  0,$AD,$3F,$3B,$FA,$C5,$69,$FA,$EE,$AD,$17,$2B,$47,$A9,$FA,$EF,$4F,$CE,$FE,$B0,  0,$17,$BE,$FC,$6D,$80,  0,  2,$BB,$9F,$74,$E3,$29,$F7; 832
 		dc.b $AE,$1F,$22,$C0,  2,$B9,$16,  6,$2B,$94,$FB,$BE,$E9,$ED,$B8,  1,$BB,$69,$EE,$7E,$F3,$CA,$B8,$18,$2C,$80,$15,$C1,$64,$F8,$AF,$79,$E5,$13,$DC,$FB,$86,$C0; 896
+	if RemovePadding=0
 Nem_UnknownGroundExplosion:dc.b	$80,$24,$80,  4,  6,$14,  8,$24,  9,$34, $C,$45,$16,$55,$1A,$65,$1B,$73,  0,$81,  4,  7,$16,$3C,$86,  5,$17,$17,$7A,$87,  4, $A,$17,$7B,$8A,  8,$F8,$8B,  5,$1C,$18,$F9,$8C,  3,  2,$16,$3B,$8D,  3,  1,$16,$3A,$FF,  0,  0,  5,$AF,$BF,$5B,$F4,$33,$F3,$4D,$7C; 0
 		dc.b $76,$FC,$D6,$71,$D9, $B,$53,$A1,$B5,$65,$4B,$77,$D2,  8,  0,  0,  0,$47,$33,$93,$C8,$E6,$3F,$CC,$5F,$8F,$1E,$16,$3D,$BB,$2B,$76,$C8,$69,$5B,$BD,$28,$56,$ED,$96,$DF,$F5,$92,$6B,$C6,$4C,$59,$7B,$F5,$F0,$DC,$6F,$E6,$70,  0,  0, $D,$CD,$F0,$5F,$57,$17,$9E,$42; 64
 		dc.b $9F,$99,$FC,$D7,$2A,$CF,$4A,$53,$52,$C4,$FB,$A5,$67,$DD,$2D,$56,$F8,  0,  2,$DD,$D9,$57,$C6,$2A,$38,$98,$E2,$6F,$8D,$55,$96,$93,$53,$DA,$9C,$21,$6A,$D2,$67,$59,$CC,$53,$EE,$DC,$6A,$65,$9C,$6B,$EE,$AE,$EA,$79,$14,$E6,$6E,$FF,$A7,$92,$D7,$F3,$3F,$5A,  8,$FD; 128
@@ -52023,6 +52389,8 @@ S1Nem_LZBurrobot:dc.b	0,$5A,$80,  5,$10,$15,$12,$25,$14,$36,$31,$47,$6F,$56,$35,
 		dc.b $4D,$A9,$D4,$68,$6F,$42,$31,$4D,$B1,$37,$91,$BD,  6,$A4,$63,$BA,$B4,$EE,$AC,$1F,$DD,$58,$57,$77,$3E,$F7,$78,$3A,$21,$D5,$FD,$70,$88,$F5,$DA,$3E,$4D,$10,$9D,$62,$20,$DD,$D6, $F,$F2,$22, $A,$5E,$D7,$44,$14,$FD,$3A,  7,  3,$D4,$3A, $F,$3C,$3A,$7F,  6,  3,$F5; 1600
 		dc.b $C2,  2,$5B,$48,$66,$33, $A,$AA,$AB,$9B,$B3,$76,$6E,$F1,$DE,$32,$F1,$93,$1F,$E1,$30,$9F,$22,$85,$8E,$11,$69,$8E,$81,$8E,$11,$B3,$C3,  2,$23,$67,$E0,$70,$4D,$C0,$DC,  8,$B3,$C1,$43,$85,$9E, $A,$6D,$B9,$D8,$20,$23,$70,$38,$4F,$F8,$2F,$1E,$62, $F,$77,$95,$2A; 1664
 		dc.b $AA,$AA,$AA,$BB,$DB,$DD,$B1,$C2,$6D,$43,$C0,$49,$32,$14,  9,$24,$3D,$52,$64,$64,$29,$20,$5A,$62,$53,  5,  4,$B0,$28,$28, $A, $C,$4A, $D,$E4,$6A,$15,$55,$55,$57,$30,  0; 1728
+	else
+	endif
 Nem_GHZ_Piranha:dc.b $80,$20,$80,  4,  2,$14,  5,$24, $A,$35,$12,$45,$17,$56,$36,$65,$18,$74,  3,$81,  3,  0,$17,$7B,$82,  7,$7A,$83,  5,$19,$84,  5,$1A,$85,  6,$37,$86,  5,$16,$87,  4,  7,$16,$3A,$88,  4,  4,$16,$3B,$89,  5,$13,$8A,  8,$F9,$8B,  6,$39,$8C,  6,$38,$8D,  6,$3C; 0
 					; DATA XREF: ROM:0001C0E8o
 					; ROM:0001C11Ao
@@ -52035,6 +52403,7 @@ Nem_GHZ_Piranha:dc.b $80,$20,$80,  4,  2,$14,  5,$24, $A,$35,$12,$45,$17,$56,$36
 		dc.b $EF,$34,$33,$68,$B8,$8F,$C9,$DF,$26,$59,$20,$A2,$77,  5,$18,$B2,$E4,$81,$6F,$81,$1B,$69,$21,$73,$48,$22,$E2,$59,$90,$85,$CF,$14,$22,$5F,$B8,$F8,$EF,$F4,$25,$D9, $F,$FC,$7F,$C4,$FF,$3B,$74,$5F,$25,$B9,  2,$F2,$40,$C8,$48,$49,$D7,$F5,$6A,$CE,$5F,$96,$1C,$96; 448
 		dc.b $99,$E8,$53,$74,$40,$D4,$47,$E8,$7E,$56,$6D,$FA,$9A,$41,$FA,$33,$5D,$63,$B5,$DF,$95,$E2,$10,$83,$2F,$C9,  2,$D6,$E5,$AA,$E6,$4D,$32,$65,$D4,$B7,$2D,$1D,$33,$97,  9,$7E,$3D,$F7,$41,$7D,$A2,$F5,$65,  8,$5F,$9E,$8F,$CB,$38,$7A,$F8,$6E,$BF,$70,$BF,$9E,$FD,$8F; 512
 		dc.b $EE,$25,$FB,$13,$33,$33,$33,$37,$C3,$5B,$11,$63,$C4,$5A,$42,  8,$4A,$6D,$B2,  2,$67,$A4,$C0,$4C,  4,$26,$79,  4,$C0,$4C,  3,$37,$33,$33,$35,$7C,$33,$ED,$37,$D8; 576
+	if RemovePadding=0
 Nem_S1LZJaws:	dc.b $80,$20,$80,  3,  0,$14,  4,$24,  6,$35, $F,$45,$18,$55,$14,$66,$39,$74,  2,$81,  4,  3,$15,$16,$26,$35,$82,  5,$15,$17,$77,$83,  5, $E,$16,$34,$84,  6,$37,$85,  7,$74,$17,$76,$86,  5,$10,$16,$32,$26,$36,$37,$78,$87,  5,$12,$17,$7B,$28,$F9,$88,  4,  5,$18; 0
 		dc.b $F3,$89,  6,$38,$8A,  7,$75,$18,$F4,$8B,  6,$2F,$8C,  5,$11,$18,$F5,$8D,  6,$33,$18,$F2,$8E,  5,$13,$8F,  6,$2E,$FF,$E5,$52,$3E,$53,$59,$88,$9B,$E4, $C,$87,$67,$43,$81,$98,$34,$9A,$A6,$7C,$1E,$E8,$ED,$FB,$47,$3F,$31,$2D,$64,$FF,$91,$6A,$DF,$DE,$F1,$E8,$73; 64
 		dc.b $49,$F7,$BD,$2C, $D,$66,$20,$93,$CD,$70,$BB,$89,$22,$8C,$D5,$EB,$C4,$69,$BA,$49,$B3,$BD,$25,  6,$94,$12,$F6,$8F,$5F,$26,$8A,$6A,$87,$FA,$CC,$6B,$EB,$94,$73,$98,$B2,$75,$37,$4D,$24,$42,$CF,$81,$F5, $E,$98,$F7,$77,$4D,$E6,$24,$14,$1F,  2,$42,$E0,$7D,$74,$FC; 128
@@ -52067,6 +52436,8 @@ Nem_S1SYZRoller:dc.b $80,$50,$80,  3,  1,$14,  5,$24,  6,$34,  7,$45,$14,$55,$18
 		dc.b $8D,$38,$9F,$45,$99,  4,$18,$9B,  5,$14,$AB,$84,$78,$68,$58,$35,$5F,$5C,$E0,$FA,$BC,$FD,$5A,$64,$2C,$73,$6E,$11,$1F,$DD,$32,$4F,$74,$69,$3F,$EB,$37,$E5,$8F,$CE,$EB,$2C,$F7,$FD,$72,$22,$7E,$C9,$FF,$63,$CB,$AA,$C3,$CE,$F3,$30,$60,$87,$86,$14,$86,$E0,$88,$9D; 1152
 		dc.b $4D,$48,$30,$41, $D, $B,$5A,  6,$E5,$49,$2D,$54,$62,$71,$75,$1D,$1A,$57,$9E,$26,$C1,$44,$CD,$5E,$61,$44,$19,$AF,$ED,$D8,$4C,$C1,$9A,$83,$14, $B,$57,$AE,  2,$2E,$47,$FB,$87,$23,$AB,$FE,$B8,$FE,$F9,$11,$11,$1F,$AA,$75,$C4,$C7,$5C, $C,$56,$7D,$68, $C,$EE,$D0; 1216
 		dc.b $30, $C,$CC,$E8,$20,$DD,$64,$BC,$F1, $F,$22,$29,$58,$33,$6E,$67,$A0,$C4,$38,$CC,$34,$B1,  9,$40,$65,$41,$2C,$6F,$9E,$B4,$CA,$F8,$D5,$11,$33,  0; 1280
+	else
+	endif
 Nem_Motobug:	dc.b   0,$1D,$80,  4,  6,$15,$11,$25,$16,$36,$32,$46,$2E,$57,$6A,$67,$75,$74,  4,$81,  3,  0,$15,$12,$26,$2B,$37,$6B,$47,$77,$57,$78,$82,  7,$71,$27,$73,$83,  6,$2A,$18,$F5,$84,  8,$F4,$85,  7,$72,$86,  5, $E,$16,$34,$87,  4,  5,$16,$36,$27,$74,$88,  4,  3,$15; 0
 					; DATA XREF: ROM:0001C10Co
 		dc.b $14,$89,  4,  2,$15, $F,$27,$76,$57,$7B,$8A,  7,$6E,$8B,  5,$13,$8C,  5,$10,$16,$33,$28,$F2,$48,$F8,$58,$F3,$8D,  6,$2F,$16,$30,$8E,  7,$70,$8F,  7,$6F,$16,$31,$FF,$44,$44,$BB,$1D,$43,$16,$FD,$7C,$46,$F6,$AE,$1E,$A3,$21, $F,$41,$6E,$35, $F,$CA,$D9,$6A,$F4; 64
@@ -52079,6 +52450,7 @@ Nem_Motobug:	dc.b   0,$1D,$80,  4,  6,$15,$11,$25,$16,$36,$32,$46,$2E,$57,$6A,$6
 		dc.b $FF,$C5,$C5,$8C,$F1,$99, $F,$D5,$E3,$FA,$BC,$2B,$E4,$E2,$A8,$4E,$5C,$88,$55,$5F,$2F,$D1,$FE,$BB,$97,$AF,$7D,$F5,$4B,$F7,$33,$91,$7E,$E2,$F0,$54,$E9,$FF,$13,$86,$FF,$8F,$F8,$F8,$23,$F6,$A1,$F4,$D8,$31,$F4,$94,$57,$5D,$81,$90,$CB,$F5,  3,$2A, $B,$8C,$6A,$31; 512
 		dc.b $A8,$C2,$22,$75,$FD,$46,$B6,$57,$77,$67,$28,$2A,$D9,$C2,$2F, $C,$E1,$91,$22,$22,$25,$94,$AE,$5A,$16,$46,$46,$57,$3D,$13,$52,$BE,$DB,$15,$1E,$DD,$28,$FD,$8D,$4D,$E6,$BF,$C8,$23,$2A,$15,$1E,$D4,$ED,$91,$50,$AE,$36,$2B,$19,$58,$AC,$6C,$4C,$4C,$7A,$89,$9E,$C5; 576
 		dc.b $62,$C8,$98,$A2,$4C,$5A,$89,$8A,$20,  0; 640
+	if RemovePadding=0
 Nem_S1Newtron:	dc.b   0,$55,$80,  4,  3,$15, $F,$25,$10,$36,$31,$46,$34,$58,$F4,$67,$72,$73,  0,$81,  4,  2,$15,$11,$26,$2C,$36,$33,$47,$70,$78,$F2,$82,  4,  6,$16,$2B,$28,$EF,$37,$74,$83,  5,$13,$16,$2E,$28,$F1,$84,  6,$2A,$16,$2F,$85,  5,$14,$17,$6C,$86,  7,$76,$16,$32,$87; 0
 		dc.b   5, $E,$17,$71,$28,$EE,$88,  4,  5,$17,$6A,$28,$F0,$89,  4,  4,$17,$6B,$38,$F3,$8A,  8,$EB,$18,$F5,$8B,  7,$6F,$38,$F6,$8C,  6,$2D,$18,$EA,$27,$6E,$8D,  5,$12,$16,$30,$27,$6D,$8E,  7,$73,$FF,$18,$C8,$E4,$21,$23,$A8,$E8,$20,$C7,$33,$EC,$20,$C7,$33,$98,$83; 64
 		dc.b $1B,$1C,$84,$18,$C8,$E4,$34,$23,$60,  1,$CC,$FA,$CF,$79,$EF,  7,$51,$CC,$E6,$7B,$C1,$D0,$E6,$73,$36,  7,$23,$B4,$E4,$73,  7,$69,$F6,$3B,$4E,$40,$ED,$3B,$4C,$8E,$40,$E4,$76,$9C,$8C,$80,  7,$BC,$FA,$C6,$9B,$CF,$79,$91,$B8,$1E,$F3,$43,$53,$98,$32,$34,$32,$3A; 128
@@ -52168,6 +52540,8 @@ S1Nem_Caterkiller:dc.b $80,$10,$80,  3,	 0,$14,	 3,$24,	 2,$35,$13,$46,$36,$56,$
 		dc.b $D2,$31,  8,$5F,$24,$93,$C9,$20,$B2,$CD,$F9,$E8,$7E,$58,$64,$FE,$C7,$E5,$49,$78,$8E,$3B,$CE,$BB, $C,$77, $F,$1A,$F2,$DC,$EF,$2B,$1B,  4,$9A,$15,$46,$14,$20,$E9,$2E,  8,$77, $C,$17,$E8,$8B,$12,$2F,$9B,$83,$8E,$AE,$B1,$F7,$CB,$EA,$5F,$9C,$B0,$6D,$7E,$FB,$42; 256
 		dc.b $CB,$E1,$3A,$73,$E4,$FF,$5E,$4B,$35,$AD,$3F,$82,$FE,  5,$FD,$F7,$87,$47,$FD,$7C,$E9,$77,$34,$1F,$13,$FA,$3C,$4F,$E8,$F0,$55,$52,$41,$5E, $B,$F3,$D5,$D1,$3F,$DF, $A,$CA,$7F,$9B,$37,$50,$8A,$6C,$87,$7A,$77,$7C,$FF,$58,$68,$BB,$71,$44,$52,$6A, $A,$27,$7C,$6E; 320
 		dc.b $5B,$D6,$82,$82,$E7,$F1,$68,$7F,$AE,$5A,$17,$E7,$BE,$A6; 384
+	else
+	endif
 Nem_S1TitleCard:dc.b $80,$80,$80,  4,  9,$14,  7,$24,  8,$35,$16,$45,$17,$55,$19,$65,$18,$73,  1,$81,  3,  0,$16,$34,$26,$39,$83,  6,$36,$86,  4,  6,$17,$76,$27,$7A,$87,  3,  2,$16,$3A,$27,$77,$37,$78,$47,$79,$88,  6,$37,$89,  6,$35,$8A,  8,$F7,$8E,  4, $A,$18,$F6,$8F,  6,$38; 0
 					; DATA XREF: ROM:00003B54o
 					; ROM:0000523Eo ...
@@ -52262,6 +52636,7 @@ Nem_S1BonusPoints:dc.b	 0,$24,$80,  5,$15,$15,$13,$24,	 8,$35,$16,$57,$78,$76,$2
 		dc.b $82,$74,$64,$DC,$F5,$E9,$BF,$84,$6D,$BF,$F8,$1F,$17,$5D,$8F,$12,$31,$6E,$D2,$EB,$3C,$FB,$48,$C7,$EF,$EF,$90,$97, $B,$F5,$3E,$92,$CE,$FD,$4F,$69,$67,$7E,$BB,$99,$3F,$98,$58,$2A,$10,$40,$4C,$41,  1,$31,  4,  4,$C4,$10,$13,$10,$40,$54,$2C,$17,$F3,$13,$77,$EF; 640
 		dc.b $33,$DF,$D2,$AB,$2D,$A1,$76,$BA,$EB,$A3,$16,$D0,$E7,$C4,$EB,$C4,$E7,$DC,$E3,$43,$B7,$93,$AE,$BD,$CE,$6C,$A0,$E1,$94,$EC,$CB,$FC,  6,$50,$70,$CA,$76,$65,$7C,$A1,$96,$93,$65,$FD,$E5,$59,$5F,$25,$9B,$2B,$AC,$32,$B4,$7E,$B9,$B2,$9F,$EB,$A9,$95,$B9,$6F,$1C,$DD; 704
 		dc.b $50,  0		; 768
+	if RemovePadding=0
 S1Nem_SonicContinue:dc.b $80,$25,$80,  3,  1,$15,$14,$25, $F,$36,$2E,$46,$32,$56,$38,$66,$2F,$73,  2,$81,  3,  0,$16,$37,$27,$72,$48,$F6,$82,  5,$13,$83,  5,$1A,$18,$F3,$84,  8,$F7,$86,  4,  8,$17,$7A,$47,$78,$87,  5,$15,$17,$75,$88,  4,  6,$17,$76,$89,  5, $E,$38,$EF,$8A,  6,$36; 0
 		dc.b $8B,  6,$33,$17,$74,$8C,  5,$12,$18,$EE,$28,$F2,$8D,  7,$73,$8E,  5,$18,$8F,  5,$16,$FF,$49,$2C,$BF,$44,$FF,$C9,$6F,  7,$F2,$51,$5F,$42,$62,  7,  1,$5E,$32,$98,$A8,$CA,$63,$D6,$EF,$FC,$90,$FD,$35,$DF,$A2,$17,$CD,$24,$7F,$E5,$ED,$FF,$6E,$49,$24,$95,$F1,$CA; 64
 		dc.b $E1,$FE,$6F,$D9,$7E,$C6,$EF,$D9,$25,$FF,$2F,$FB,$7F,$C5,$24,$92,$4B,$FE,$3F,$F6,$FF,$92,$4A,$E1,$2C,$84,$A7,$27,$89,$27,$E0,$89,$2B,$B4,$84,$AE,$CC,$2B,$B4,$7A,$65,$32,$2F,  9,$FA,$B8,$4B,$46,$67,$9E,  8,$B6,$87,$3E,$CE,  7,$B8,$B1,$73,$64,$C5,$DE,$CE,$4A; 128
@@ -52282,6 +52657,8 @@ S1Nem_MiniSonic:dc.b $80,$1E,$80,  4,  5,$14,  4,$24,  8,$35,$13,$45,$18,$56,$35
 		dc.b $34,$F0,$E9,$5F,$CA,$B6,$78,$E3,$9D,$33,$41,$76,$D7,$DD,$E1,$33,$5C,$EF,$90,$8C,$FB,$7C,$D6,$72,$13,$17,$DD,$C5,$FE,$13,$DC,$AB,$A2,$FB,$FC,$E0,$BB,$F7,$B8,$FD,$1C,$75,$FA,$74,$A5,$9E,$51,$E5,  4,$A7,$44,$11,$D7,$E6,$5D,$1A,$74,$56,$D6,$8A,$31,$46,$A0,$CA; 384
 		dc.b $88,$35, $B,$CC,$30,$C3,  8,  8,$DE,$7E,$6E,$8F,$CD,$5A,$E4,$CC,$56,$E5, $B,$7F,$E7,$34,$6E,  2,$59,$25,$72,$DE,$F6,$BF,$4E,$C9,$7D,$55,$C6,$36,$1D,$B6,$9E,$99,$8C,$5F,$EF,$96,$CA,$BD,$6B,$F9,$7D,$9B,$CA,$59,$6A,$30,$16,$A9,$46,$50,$B6,$86,$B3,$70,$DA,$B2; 448
 		dc.b $D5,$1A,  4,$F6,$2A,$CB,$54,$E5,$6A,$F4,$FD,$62,$E7,$DB,$45,  8,$2B,$A3,$AF,$1F,$94,$D3,$C3,$A5,$7F,$2A,$D9,$E3,$8E,$74,$CD,  5,$DB,$5F,$77,$84,$CD,$73,$BE,$42,$33,$ED,$F3,$77,$87,$49, $B,$FA,$71,$7D,$DF,$95,$D9,$D7,$DC,$BA,$B9,  0; 512
+	else
+	endif
 Nem_Bunny:	dc.b   0,$12,$80,  5,$12,$15,$1A,$25,$13,$35,$19,$45,$17,$55,$1C,$66,$3C,$78,$FA,$81,  4, $A,$86,  3,  3,$15,$18,$26,$3B,$38,$FB,$87,  3,  0,$16,$3A,$88,  3,  2,$14,  8,$25,$16,$35,$1B,$47,$7C,$89,  3,  1,$16,$3D,$FF,$95,$8E,$7E,$64,$EE,$F6,$37,$31,$7B,$64,$A6; 0
 					; DATA XREF: ROM:0001C2C6o
 					; ROM:0001C30Co
@@ -53041,6 +53418,7 @@ Map16_GHZ:	incbin	Lvl_maps/blocks/GHZ.bin
 		even
 Nem_GHZ:	incbin	art/Leveltiles/GHZ.bin
 		even
+	if RemovePadding=0
 Nem_GHZ2:	dc.b $81,$CD,$80,  3,  1,$14,  4,$25,$12,$34,  7,$46,$31,$56,$26,$66,$35,$73,  0,$81,  4,  5,$15,$11,$28,$F4,$37,$75,$82,  5,$14,$16,$2B,$77,$73,$83,  4,  6,$16,$2E,$38,$F7,$84,  7,$76,$17,$78,$85,  7,$6F,$16,$34,$86,  7,$71,$78,$F6,$87,  6,$36,$17,$6E,$88,  6; 0
 		dc.b $33,$17,$70,$89,  6,$2F,$17,$72,$8A,  6,$2A,$18,$F3,$8B,  6,$32,$17,$74,$8C,  6,$30,$18,$F2,$8D,  6,$27,$18,$F5,$8E,  5,$10,$18,$EF,$8F,  5,$16,$18,$EE,$FF,  0,  0,  0,$D6,$D8,$F7,$2B,$DA,$2F,  5,$C6,$1E,$F3,$7A,$C0,$C1,$8C,$F3,$4F,$2B,$41,$A7,$95,$92,$79; 64
 		dc.b $59,$21,$2B,$4D,$69,$AD,$35,$B5,$EA,$3D,  0,  0,$6A,$D3,$34,$F3,$4E,$9F,$CE,  0, $D,$7F,$5F,$2A,$58,$C4,$D2,$D3,$C5,$2D,$3C,$5E,$21,$3F,$79,$2C, $F,$EB,$53, $F,$59,$41,$67,$C6,$9A,$CE,  0,  0,$4D,$69,$AC,$7D,$12,$D8,$AD,$A6,$84,$D0,$9A,$18,$C1,$B1,$9C,$CF; 128
@@ -53131,6 +53509,8 @@ Nem_GHZ2:	dc.b $81,$CD,$80,  3,  1,$14,  4,$25,$12,$34,  7,$46,$31,$56,$26,$66,$
 		dc.b $3E,  6,$AB,$BF,$1E,$3B,$27,$A2,$50,$A9,$E1,$5A,$2E,$F9,$F0,$9B,$88,$D7,$8C,$DD,$82,$98,$E5,$E9,$BB,$95,$48,$A9,$C9,$33,$56,$A8,$D4,$99,$9A,$92,$AE,$5C,$2A,$BC,$D5,$5F, $B,$EA,$BD,$7A,$25,$F5,$5F,$92,$79,$F4,$96,$77,$74,$CF,$2A,$B3,$E4,$78,$65,$53,$FE,$A3; 5568
 		dc.b $93,$E7,$46,$A6,$4F,$E7,$D0, $C,$7F,$53,$FA,$84,$FD,$4F,  6,$D7,$29,$74,$AB,$1C,$AB,$CF,$1B,$F8,  0,$73,$D5,$B2,$F3,$7E,$9E,$60,  0,$FF,$A9,$FD,$52,$7E,$A7,$D3,$84,$BF,$57,$C0,  0,$1F,$87,$27,$E1,$7B,$6B,$50,  0, $B,$F5,$6F,$D5,$BD,$5F,$AB,  0,$63,$E7,$96; 5632
 		dc.b $35,$51,$B3,$E5,$2F,$D4,$72,  0,  0,  0,$7E,$9E,$6F,$95,$1A,$99,$BF,$2E,  0,  0,$25,$FA,$9E,  7,$95,$D4,$6C,$CF,$2F,$3E,$84,  0; 5696
+	else
+	endif
 UnkComp_Map128_GHZ:dc.b	 $A,$E3,$D1,$A3,$E8,$FA,$3F,$E8,$FF,$A1,$F4,$5D,$17,$44,$8F,$A2,$E8,$B1,$FF,$47,$F4,$7F,$47,$D1,$D1,$A3,$44,$51,$A2,$42,$8F,$D1,$23,$FF,$FC, $F,$F1,$8F,$9C,$4C,$7A,$31,$D1,$A3,$F4,$42,$87,$42,$8D,$17,$46,$8D,$12,$34,$68,$F4,$68,$E8,$D1,$A3,$46,$95,$3F,$D3; 0
 					; DATA XREF: ROM:0001BFF4o
 					; ROM:0001C054o
@@ -53298,6 +53678,7 @@ UnkComp_Map128_GHZ:dc.b	 $A,$E3,$D1,$A3,$E8,$FA,$3F,$E8,$FF,$A1,$F4,$5D,$17,$44,
 		dc.b $2C,  4,$61,  2,  5,$18,  2,$1A,$FE,  0,  4,$62,  2,  0,$FC,$86,$FC, $A,$84,  6, $C,$F2,  8, $A,$F8,  7,$84,  4,  6,$84, $E,  8,$16, $A,  8,$7A,$82,  6, $C, $A,$74,  2, $A,  1,$2D,$74,  2, $A,$82,$78,  7,$82,  2,$70,  7,$FA,  4,  5, $E,$74,$6C,  2,  6,$F4; 10368
 		dc.b $72,  6,$F6,$90,$92, $A, $A,$7E,  4, $A,$C4,  6,$80,$24,$1E, $B,$1C,  7,$90, $C,  4, $C,$78,$38,  5,  4,$74,$FA,  6,$3C,$82,$8E,$5E,$7E, $D,$2A,$E6,$14,  5,  7,  5,$88,$92,$34,$84, $F,  6,$80,  4,$FC,$86,$1D,  2,  4, $C,  8,$1B,$80,$F6,$7E,  8,  0,$F6,$7E; 10432
 		dc.b   9,$32,$80,$F4,$82,  7,$86,  2,$68,  5,$80,$9A,$FE, $A,$9A,  6,$EA,  8,  8,  6,  6,$8C,  6,$72,$8C,$FE,  7,  0,$7F,  0,$7F,  0,$7F,  0,$7F,  0, $B,$FA,  0,  0; 10496
+	if RemovePadding=0
 ;
 ; yet another leftover chunk
 ;
@@ -55349,6 +55730,9 @@ Leftover_E166F:	dc.b   0,$6A,$FC,$AA,  2,$A9,$AA,$FC,$99,$FE,$90,$BC,  2,$99,$90
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 125184
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 125248
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,  0,  0; 125312
+	else
+	endif
+EndOfROM:
 ; end of 'ROM'
 
 

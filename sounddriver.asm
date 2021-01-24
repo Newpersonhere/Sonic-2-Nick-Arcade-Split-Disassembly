@@ -56,9 +56,12 @@ sub_71B4C:				; CODE XREF: ROM:loc_B5Cp
 ; FUNCTION CHUNK AT 00071E50 SIZE 000000B2 BYTES
 
 		FastPauseZ80
+	if RemovePadding=0
 		nop
 		nop
 		nop
+	else
+	endif
 
 loc_71B5A:				; CODE XREF: sub_71B4C+16j
 		btst	#0,(Z80BusReq).l
@@ -66,11 +69,14 @@ loc_71B5A:				; CODE XREF: sub_71B4C+16j
 		btst	#7,(Z80_DACStatus).l
 		beq.s	loc_71B82
 		ResumeZ80
+	if RemovePadding=0
 		nop
 		nop
 		nop
 		nop
 		nop
+	else
+	endif
 		bra.s	sub_71B4C
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
@@ -632,7 +638,7 @@ loc_71F8E:				; CODE XREF: Sound_ChkValue+3Ej
 loc_71F98:
 		bra.w	Sound_E0
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
-		bra.w	loc_71FAC
+		bra.w	Sound_E1
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 		bra.w	Sound_E2
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
@@ -643,8 +649,8 @@ loc_71F98:
 ; ---------------------------------------------------------------------------
 ; Play "Say-gaa" PCM sound
 ; ---------------------------------------------------------------------------
-
-loc_71FAC:				; CODE XREF: Sound_ChkValue+50j
+; loc_71FAC
+Sound_E1:				; CODE XREF: Sound_ChkValue+50j
 		move.b	#$88,(Z80_DACSample).l
 		ResumeZ80
 		move.w	#$11,d1
@@ -1054,7 +1060,10 @@ locret_723C6:				; CODE XREF: Sound_ChkValue+3C4j
 ; End of function Sound_ChkValue
 
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+	if RemovePadding=0
 		dc.l $FFF100, $FFF1F0, $FFF250,	$FFF310, $FFF340, $FFF370
+	else
+	endif
 
 ; ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ S U B	R O U T	I N E ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
 
@@ -1507,9 +1516,12 @@ sub_7272E:				; CODE XREF: sub_71CCA+A2Ej
 		btst	#7,d2
 		bne.s	sub_7272E
 		move.b	d0,(YM2612_a0).l
+	if RemovePadding=0
 		nop
 		nop
 		nop
+	else
+	endif
 
 loc_72746:				; CODE XREF: sub_7272E+22j
 		move.b	(YM2612_a0).l,d2
@@ -1537,9 +1549,12 @@ sub_72764:				; CODE XREF: sub_72764+Aj
 		btst	#7,d2
 		bne.s	sub_72764
 		move.b	d0,(YM2612_a1).l
+	if RemovePadding=0
 		nop
 		nop
 		nop
+	else
+	endif
 
 loc_7277C:				; CODE XREF: sub_72764+22j
 		move.b	(YM2612_a0).l,d2
@@ -2505,7 +2520,7 @@ SegaPCM_End
 		even
 
 		if SegaPCM_End-SegaPCM>$8000
-			inform 3,"Sega sound must fit within $8000 bytes, but you have a $%h byte Sega sound.",SegaPCM_End-SegaPCM
+			inform 3,"Sega sound must fit within a Z80 Bank ($8000 bytes/32 KB), but you have a $%h byte Sega sound. That will not fit within a bank and break the driver!",SegaPCM_End-SegaPCM
 		endc
 		if SegaPCM_End-SegaPCM>Size_of_SegaPCM
 			inform 3,"Size_of_SegaPCM = $%h, but you have a $%h byte Sega sound.",Size_of_SegaPCM,SegaPCM_End-SegaPCM
