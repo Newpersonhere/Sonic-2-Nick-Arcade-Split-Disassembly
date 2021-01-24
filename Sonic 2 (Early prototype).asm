@@ -1,10 +1,12 @@
+; ----------------------------------------------------
+;    Sonic 2 (Nick Arcade prototype) disassembly
+;         Original from December 3rd, 2006
+;        Updated since January 15th 2021 by
+;          RepellantMold and AlexField442.
 ;
-;----------------------------------------------------
-; Sonic	2 (Early prototype) disassembly
-; Dec 03, 2006
-;
-; Thanks to Hivebrain, Rika_Chou
-;----------------------------------------------------
+;       Thanks to Hivebrain and Rika Chou for
+;       helping the original text disassembly
+; ----------------------------------------------------
 
 		include "macros.asm"
 		include Equates.asm
@@ -38,7 +40,7 @@ ROMStart:	dc.l 0			; ROM start location
 ROMEnd:		dc.l $7FFFF		; ROM end location (leftover from Sonic	1)
 RAMStart:	dc.l $FF0000		; RAM start location
 RAMEnd:		dc.l $FFFFFF		; RAM end location
-SRAMSupport:	dc.l $20202020
+SRAMSupport:	dc.l $20202020		; SRAM support (none)
 		dc.l $20202020
 		dc.l $20202020
 		dc.l $20202020
@@ -100,8 +102,6 @@ Z80InitLoop:				; CODE XREF: ROM:00000258j
 
 ClearRAMLoop:				; CODE XREF: ROM:loc_264j
 		move.l	d0,-(a6)
-
-loc_264:
 		dbf	d6,ClearRAMLoop
 		move.l	(a5)+,(a4)
 		move.l	(a5)+,(a4)
@@ -226,7 +226,7 @@ ChksumChkLoop:				; CODE XREF: ROM:00000336j
 ClearSomeRAMLoop:			; CODE XREF: ROM:00000350j
 		move.l	d7,(a6)+
 		dbf	d6,ClearSomeRAMLoop
-		move.b	($A10001).l,d0
+		move.b	(Z80Version).l,d0
 		andi.b	#$C0,d0
 		move.b	d0,($FFFFFFF8).w
 		move.l	#'init',($FFFFFFFC).w
@@ -260,7 +260,7 @@ GameModeArray:
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 		bra.w	Level
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
-		bra.w	GameMode10
+		bra.w	SpecialStage
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 ;----------------------------------------------------
 ;
@@ -900,7 +900,7 @@ VBlank:					; DATA XREF: ROM:00000000o
 		tst.w	($FFFFF644).w
 		beq.w	locret_1184
 		tst.w	($FFFFFFE8).w
-		beq.w	VBlank_Not2pMode
+		beq.w	VBl_Not2PMode
 		move.w	#0,($FFFFF644).w
 		move.l	a5,-(sp)
 		move.l	d0,-(sp)
@@ -937,7 +937,7 @@ locret_1184:				; CODE XREF: ROM:000010F8j
 		rte
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
-VBlank_Not2pMode:			; CODE XREF: ROM:00001100j
+VBl_Not2PMode:				; CODE XREF: ROM:00001100j
 		disable_ints
 		move.w	#0,($FFFFF644).w
 		movem.l	a0-a1,-(sp)
@@ -1024,9 +1024,9 @@ VDPRegSetup:				; CODE XREF: ROM:0000037Cp
 		lea	(VDPRegSetup_Array).l,a2
 		moveq	#$12,d7
 
-VDPRegSetup_Loop:			; CODE XREF: VDPRegSetup+16j
+.Loop:					; CODE XREF: VDPRegSetup+16j
 		move.w	(a2)+,(a0)
-		dbf	d7,VDPRegSetup_Loop
+		dbf	d7,.Loop
 		move.w	(VDPReg_01).l,d0
 		move.w	d0,($FFFFF60C).w
 		move.w	#VDPREG_HRATE+223,($FFFFF624).w
@@ -1037,9 +1037,9 @@ VDPRegSetup_Loop:			; CODE XREF: VDPRegSetup+16j
 		move.l	#CRAM_ADDR_CMD,(VdpCtrl).l
 		move.w	#$3F,d7	; '?'
 
-VDPRegSetup_ClearCRAM:			; CODE XREF: VDPRegSetup+4Aj
+.ClearCRAM:				; CODE XREF: VDPRegSetup+4Aj
 		move.w	d0,(a1)
-		dbf	d7,VDPRegSetup_ClearCRAM
+		dbf	d7,.ClearCRAM
 		clr.l	($FFFFF616).w
 		clr.l	($FFFFF61A).w
 		move.l	d1,-(sp)
@@ -1050,10 +1050,10 @@ VDPRegSetup_ClearCRAM:			; CODE XREF: VDPRegSetup+4Aj
 		move.l	#VRAM_DMA_CMD,(a5)
 		move.w	#0,(VdpData).l
 
-VDPRegSetup_DMAWait:			; CODE XREF: VDPRegSetup+80j
+.DMAWait:				; CODE XREF: VDPRegSetup+80j
 		move.w	(a5),d1
 		btst	#1,d1
-		bne.s	VDPRegSetup_DMAWait
+		bne.s	.DMAWait
 
 loc_12FE:
 		move.w	#VDPREG_INCR+2,(a5)
@@ -1081,10 +1081,10 @@ ClearScreen:				; CODE XREF: ROM:000030FCp
 		move.l	#$40000083,(a5)
 		move.w	#0,(VdpData).l
 
-ClearScreen_DMAWait:			; CODE XREF: ClearScreen+28j
+.DMAWait:				; CODE XREF: ClearScreen+28j
 		move.w	(a5),d1
 		btst	#1,d1
-		bne.s	ClearScreen_DMAWait
+		bne.s	.DMAWait
 		move.w	#VDPREG_INCR+2,(a5)
 		lea	(VdpCtrl).l,a5
 		move.w	#VDPREG_INCR+1,(a5)
@@ -1093,10 +1093,10 @@ ClearScreen_DMAWait:			; CODE XREF: ClearScreen+28j
 		move.l	#$60000083,(a5)
 		move.w	#0,(VdpData).l
 
-ClearScreen_DMA2Wait:			; CODE XREF: ClearScreen+56j
+.DMA2Wait:				; CODE XREF: ClearScreen+56j
 		move.w	(a5),d1
 		btst	#1,d1
-		bne.s	ClearScreen_DMA2Wait
+		bne.s	.DMA2Wait
 		move.w	#VDPREG_INCR+2,(a5)
 		clr.l	($FFFFF616).w
 		clr.l	($FFFFF61A).w
@@ -1104,16 +1104,16 @@ ClearScreen_DMA2Wait:			; CODE XREF: ClearScreen+56j
 		moveq	#0,d0
 		move.w	#$A0,d1	; ' '
 
-ClearScreen_ClearBuffer1:		; CODE XREF: ClearScreen+70j
+.ClearBuffer1:				; CODE XREF: ClearScreen+70j
 		move.l	d0,(a1)+
-		dbf	d1,ClearScreen_ClearBuffer1
+		dbf	d1,.ClearBuffer1
 		lea	($FFFFE000).w,a1
 		moveq	#0,d0
 		move.w	#$100,d1
 
-ClearScreen_ClearBuffer2:		; CODE XREF: ClearScreen+80j
+.ClearBuffer2:				; CODE XREF: ClearScreen+80j
 		move.l	d0,(a1)+
-		dbf	d1,ClearScreen_ClearBuffer2
+		dbf	d1,.ClearBuffer2
 		rts
 ; End of function ClearScreen
 
@@ -1125,16 +1125,16 @@ SoundDriverLoad:			; CODE XREF: ROM:00000380p
 					; ROM:000031F4p
 		nop
 		FastPauseZ80
-		move.w	#$100,(Z80Reset).l
+		resetZ80
 		lea	(Kos_Z80).l,a0
 		lea	(Z80Ram).l,a1
 		bsr.w	KosDec
-		move.w	#0,(Z80Reset).l
+		resetZ80a
 		nop
 		nop
 		nop
 		nop
-		move.w	#$100,(Z80Reset).l
+		resetZ80
 		ResumeZ80
 		rts
 ; End of function SoundDriverLoad
@@ -1229,15 +1229,15 @@ ShowVDPGraphics:			; CODE XREF: ROM:00003138p
 		lea	(VdpData).l,a6
 		move.l	#$800000,d4
 
-ShowVDPGraphics_LineLoop:		; CODE XREF: ShowVDPGraphics+1Aj
+.LineLoop:				; CODE XREF: ShowVDPGraphics+1Aj
 		move.l	d0,4(a6)
 		move.w	d1,d3
 
-ShowVDPGraphics_TileLoop:		; CODE XREF: ShowVDPGraphics+14j
+.TileLoop:				; CODE XREF: ShowVDPGraphics+14j
 		move.w	(a1)+,(a6)
-		dbf	d3,ShowVDPGraphics_TileLoop
+		dbf	d3,.TileLoop
 		add.l	d4,d0
-		dbf	d2,ShowVDPGraphics_LineLoop
+		dbf	d2,.LineLoop
 		rts
 ; End of function ShowVDPGraphics
 
@@ -1249,7 +1249,7 @@ DMA_68KtoVRAM:				; CODE XREF: LoadSonicDynPLC+48p
 					; LoadTailsDynPLC+48p ...
 		movea.l	($FFFFDCFC).w,a1
 		cmpa.w	#$DCFC,a1
-		beq.s	DMA_68KtoVRAM_NoDMA
+		beq.s	.NoDMA
 		move.w	#VDPREG_DMALEN_L,d0
 		move.b	d3,d0
 		move.w	d0,(a1)+
@@ -1277,10 +1277,10 @@ DMA_68KtoVRAM:				; CODE XREF: LoadSonicDynPLC+48p
 		move.l	d2,(a1)+
 		move.l	a1,($FFFFDCFC).w
 		cmpa.w	#$DCFC,a1
-		beq.s	DMA_68KtoVRAM_NoDMA
+		beq.s	.NoDMA
 		move.w	#0,(a1)
 
-DMA_68KtoVRAM_NoDMA:			; CODE XREF: DMA_68KtoVRAM+8j
+.NoDMA:					; CODE XREF: DMA_68KtoVRAM+8j
 					; DMA_68KtoVRAM+56j
 		rts
 ; End of function DMA_68KtoVRAM
@@ -1294,17 +1294,17 @@ Process_DMA:				; CODE XREF: ROM:00000D9Cp
 		lea	(VdpCtrl).l,a5
 		lea	($FFFFDC00).w,a1
 
-Process_DMA_Loop:			; CODE XREF: Process_DMA+20j
+.Loop:					; CODE XREF: Process_DMA+20j
 		move.w	(a1)+,d0
-		beq.s	Process_DMA_End
+		beq.s	.End
 		move.w	d0,(a5)
 		rept 6
 		move.w	(a1)+,(a5)
 		endr
 		cmpa.w	#$DCFC,a1
-		bne.s	Process_DMA_Loop
+		bne.s	.Loop
 
-Process_DMA_End:			; CODE XREF: Process_DMA+Cj
+.End:					; CODE XREF: Process_DMA+Cj
 		move.w	#0,($FFFFDC00).w
 		move.l	#$FFFFDC00,($FFFFDCFC).w
 		rts
@@ -3540,7 +3540,7 @@ PalPointers:	dc.l Pal_SegaBG		; DATA XREF: PalLoad1o	PalLoad2o ...
 		dc.l Pal_Title
 		dc.w $FB00
 		dc.w $1F
-		dc.l Pal_LevelSelect
+		dc.l Pal_LevSel
 		dc.w $FB00
 		dc.w $1F
 		dc.l Pal_SonicTails
@@ -3598,7 +3598,7 @@ Pal_SegaBG:	incbin	palettes/SEGAbg.bin
 		even
 Pal_Title:	incbin	palettes/Titlescreen.bin
 		even
-Pal_LevelSelect:incbin	palettes/LevelSelect.bin
+Pal_LevSel:	incbin	palettes/LevelSelect.bin
 		even
 Pal_SonicTails:	incbin	palettes/SonicandTails.bin
 		even
@@ -3986,13 +3986,13 @@ TitleScreen_Loop:			; CODE XREF: ROM:0000349Aj
 		tst.b	($FFFFFFF8).w
 		bpl.s	Title_RegionJ
 		lea	(LvlSelCode_US).l,a0
-		bra.s	LevelSelectCheat
+		bra.s	LevSelCheat
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
 Title_RegionJ:				; CODE XREF: ROM:00003416j
 		lea	(LvlSelCode_J).l,a0
 
-LevelSelectCheat:			; CODE XREF: ROM:0000341Ej
+LevSelCheat:			; CODE XREF: ROM:0000341Ej
 		move.w	($FFFFFFE4).w,d0
 		adda.w	d0,a0
 		move.b	($FFFFF605).w,d0
@@ -4049,30 +4049,30 @@ Title_CheckLvlSel:			; CODE XREF: ROM:0000365Cj
 		moveq	#0,d0
 		move.w	#$DF,d1	; 'ß'
 
-LevelSelect_ClearScroll:		; CODE XREF: ROM:000034B8j
+LevSel_ClearScroll:		; CODE XREF: ROM:000034B8j
 		move.l	d0,(a1)+
-		dbf	d1,LevelSelect_ClearScroll
+		dbf	d1,LevSel_ClearScroll
 		move.l	d0,($FFFFF616).w
 		disable_ints
 		lea	(VdpData).l,a6
 		move.l	#$60000003,(VdpCtrl).l
 		move.w	#$3FF,d1
 
-LevelSelect_ClearVRAM:			; CODE XREF: ROM:000034DAj
+LevSel_ClearVRAM:			; CODE XREF: ROM:000034DAj
 		move.l	d0,(a6)
-		dbf	d1,LevelSelect_ClearVRAM
-		bsr.w	LevelSelect_TextLoad
+		dbf	d1,LevSel_ClearVRAM
+		bsr.w	LevSel_TextLoad
 
-LevelSelect_Loop:			; CODE XREF: ROM:000034F8j
+LevSel_Loop:			; CODE XREF: ROM:000034F8j
 					; ROM:00003500j ...
 		move.b	#4,($FFFFF62A).w
 		bsr.w	DelayProgram
-		bsr.w	LevelSelect_Controls
+		bsr.w	LevSel_Controls
 		bsr.w	RunPLC
 		tst.l	($FFFFF680).w
-		bne.s	LevelSelect_Loop
+		bne.s	LevSel_Loop
 		andi.b	#$F0,($FFFFF605).w
-		beq.s	LevelSelect_Loop
+		beq.s	LevSel_Loop
 		move.w	#0,($FFFFFFE8).w
 		btst	#4,($FFFFF604).w
 		beq.s	loc_3516
@@ -4095,11 +4095,11 @@ loc_353A:				; CODE XREF: ROM:0000352Cj
 		cmpi.w	#$94,d0	; '”'
 		bcs.s	loc_3546
 		cmpi.w	#$A0,d0	; ' '
-		bcs.s	LevelSelect_Loop
+		bcs.s	LevSel_Loop
 
 loc_3546:				; CODE XREF: ROM:0000353Ej
 		bsr.w	PlaySound_Special
-		bra.s	LevelSelect_Loop
+		bra.s	LevSel_Loop
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
 loc_354C:				; CODE XREF: ROM:00003532j
@@ -4118,10 +4118,10 @@ loc_355A:				; CODE XREF: ROM:00003538j
 
 loc_3570:				; CODE XREF: ROM:0000351Ej
 		add.w	d0,d0
-		move.w	LevelSelect_LevelOrder(pc,d0.w),d0
-		bmi.w	LevelSelect_Loop
+		move.w	LevSel_LevelOrder(pc,d0.w),d0
+		bmi.w	LevSel_Loop
 		cmpi.w	#$700,d0
-		bne.s	LevelSelect_Level
+		bne.s	LevSel_Level
 		move.b	#$10,($FFFFF600).w
 		clr.w	($FFFFFE10).w
 		move.b	#3,($FFFFFE12).w
@@ -4132,16 +4132,11 @@ loc_3570:				; CODE XREF: ROM:0000351Ej
 		move.l	#$1388,($FFFFFFC0).w
 		rts
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
-LevelSelect_LevelOrder:dc.w	0,    1,    2  ; 0
-		dc.w  $200, $201, $202	; 3
-		dc.w  $400, $401, $402	; 6
-		dc.w  $100, $101, $102	; 9
-		dc.w  $300, $301, $302	; 12
-		dc.w  $500, $501, $103	; 15
-		dc.w  $502, $700,$8000	; 18
+LevSel_LevelOrder:incbin	misc/LS_LevOrd.bin
+		even
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
-LevelSelect_Level:			; CODE XREF: ROM:0000357Ej
+LevSel_Level:			; CODE XREF: ROM:0000357Ej
 		andi.w	#$3FFF,d0
 		move.w	d0,($FFFFFE10).w
 
@@ -4232,14 +4227,14 @@ Demo_Levels:	dc.w  $200, $300	; 0
 ; ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ S U B	R O U T	I N E ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
 
 
-LevelSelect_Controls:			; CODE XREF: ROM:000034ECp
+LevSel_Controls:			; CODE XREF: ROM:000034ECp
 		move.b	($FFFFF605).w,d1
 		andi.b	#3,d1
 		bne.s	loc_3706
 		subq.w	#1,($FFFFFF80).w
 		bpl.s	loc_3740
 
-loc_3706:				; CODE XREF: LevelSelect_Controls+8j
+loc_3706:				; CODE XREF: LevSel_Controls+8j
 		move.w	#$B,($FFFFFF80).w
 		move.b	($FFFFF604).w,d1
 		andi.b	#3,d1
@@ -4251,8 +4246,8 @@ loc_3706:				; CODE XREF: LevelSelect_Controls+8j
 		bcc.s	loc_3726
 		moveq	#$14,d0
 
-loc_3726:				; CODE XREF: LevelSelect_Controls+28j
-					; LevelSelect_Controls+2Cj
+loc_3726:				; CODE XREF: LevSel_Controls+28j
+					; LevSel_Controls+2Cj
 		btst	#1,d1
 		beq.s	loc_3736
 		addq.w	#1,d0
@@ -4260,15 +4255,15 @@ loc_3726:				; CODE XREF: LevelSelect_Controls+28j
 		bcs.s	loc_3736
 		moveq	#0,d0
 
-loc_3736:				; CODE XREF: LevelSelect_Controls+34j
-					; LevelSelect_Controls+3Cj
+loc_3736:				; CODE XREF: LevSel_Controls+34j
+					; LevSel_Controls+3Cj
 		move.w	d0,($FFFFFF82).w
-		bsr.w	LevelSelect_TextLoad
+		bsr.w	LevSel_TextLoad
 		rts
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
-loc_3740:				; CODE XREF: LevelSelect_Controls+Ej
-					; LevelSelect_Controls+1Ej
+loc_3740:				; CODE XREF: LevSel_Controls+Ej
+					; LevSel_Controls+1Ej
 		cmpi.w	#$14,($FFFFFF82).w
 		bne.s	locret_377A
 		move.b	($FFFFF605).w,d1
@@ -4281,8 +4276,8 @@ loc_3740:				; CODE XREF: LevelSelect_Controls+Ej
 		bcc.s	loc_3762
 		moveq	#$4F,d0	; 'O'
 
-loc_3762:				; CODE XREF: LevelSelect_Controls+64j
-					; LevelSelect_Controls+68j
+loc_3762:				; CODE XREF: LevSel_Controls+64j
+					; LevSel_Controls+68j
 		btst	#3,d1
 		beq.s	loc_3772
 		addq.w	#1,d0
@@ -4290,29 +4285,29 @@ loc_3762:				; CODE XREF: LevelSelect_Controls+64j
 		bcs.s	loc_3772
 		moveq	#0,d0
 
-loc_3772:				; CODE XREF: LevelSelect_Controls+70j
-					; LevelSelect_Controls+78j
+loc_3772:				; CODE XREF: LevSel_Controls+70j
+					; LevSel_Controls+78j
 		move.w	d0,($FFFFFF84).w
-		bsr.w	LevelSelect_TextLoad
+		bsr.w	LevSel_TextLoad
 
-locret_377A:				; CODE XREF: LevelSelect_Controls+50j
-					; LevelSelect_Controls+5Aj
+locret_377A:				; CODE XREF: LevSel_Controls+50j
+					; LevSel_Controls+5Aj
 		rts
-; End of function LevelSelect_Controls
+; End of function LevSel_Controls
 
 
 ; ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ S U B	R O U T	I N E ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
 
 
-LevelSelect_TextLoad:			; CODE XREF: ROM:000034DEp
-					; LevelSelect_Controls+44p ...
-		lea	(LevelSelect_Text).l,a1
+LevSel_TextLoad:			; CODE XREF: ROM:000034DEp
+					; LevSel_Controls+44p ...
+		lea	(LevSel_Text).l,a1
 		lea	(VdpData).l,a6
 		move.l	#$62100003,d4
 		move.w	#$8680,d3
 		moveq	#$14,d1
 
-loc_3794:				; CODE XREF: LevelSelect_TextLoad+26j
+loc_3794:				; CODE XREF: LevSel_TextLoad+26j
 		move.l	d4,4(a6)
 		bsr.w	sub_381C
 		addi.l	#$800000,d4
@@ -4324,7 +4319,7 @@ loc_3794:				; CODE XREF: LevelSelect_TextLoad+26j
 		lsl.w	#7,d0
 		swap	d0
 		add.l	d0,d4
-		lea	(LevelSelect_Text).l,a1
+		lea	(LevSel_Text).l,a1
 		lsl.w	#3,d1
 		move.w	d1,d0
 		add.w	d1,d1
@@ -4338,7 +4333,7 @@ loc_3794:				; CODE XREF: LevelSelect_TextLoad+26j
 		bne.s	loc_37E6
 		move.w	#$C680,d3
 
-loc_37E6:				; CODE XREF: LevelSelect_TextLoad+64j
+loc_37E6:				; CODE XREF: LevSel_TextLoad+64j
 		move.l	#$6C300003,(VdpCtrl).l
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0	; '€'
@@ -4348,14 +4343,14 @@ loc_37E6:				; CODE XREF: LevelSelect_TextLoad+64j
 		move.b	d2,d0
 		bsr.w	sub_3808
 		rts
-; End of function LevelSelect_TextLoad
+; End of function LevSel_TextLoad
 
 
 ; ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ S U B	R O U T	I N E ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
 
 
-sub_3808:				; CODE XREF: LevelSelect_TextLoad+80p
-					; LevelSelect_TextLoad+86p
+sub_3808:				; CODE XREF: LevSel_TextLoad+80p
+					; LevSel_TextLoad+86p
 		andi.w	#$F,d0
 		cmpi.b	#$A,d0
 		bcs.s	loc_3816
@@ -4371,8 +4366,8 @@ loc_3816:				; CODE XREF: sub_3808+8j
 ; ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ S U B	R O U T	I N E ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
 
 
-sub_381C:				; CODE XREF: LevelSelect_TextLoad+1Cp
-					; LevelSelect_TextLoad+56p
+sub_381C:				; CODE XREF: LevSel_TextLoad+1Cp
+					; LevSel_TextLoad+56p
 		moveq	#$17,d2
 
 loc_381E:				; CODE XREF: sub_381C+Cj sub_381C+16j
@@ -4392,7 +4387,7 @@ loc_382E:				; CODE XREF: sub_381C+6j
 ; End of function sub_381C
 
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
-LevelSelect_Text:incbin	misc/LevSelText.bin
+LevSel_Text:incbin	misc/LevSelText.bin
 		even
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
@@ -5732,7 +5727,8 @@ j_DynamicArtCues:			; CODE XREF: ROM:00003DE8p
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 		align 4
 
-GameMode10:				; CODE XREF: ROM:000003ACj
+; GameMode10
+SpecialStage:				; CODE XREF: ROM:000003ACj
 		move.w	#$CA,d0	; 'Ê'
 		bsr.w	PlaySound_Special
 		bsr.w	Pal_MakeFlash
@@ -6101,18 +6097,10 @@ word_547A:	dc.w  $300, $792, $300,	$790, $300, $78E, $300,	$78C, $300, $78B, $30
 		dc.w  $300, $690, $300,	$692, $702, $624, $704,	$630,$FF06, $63C,$FF06,	$63C, $704, $630, $702,	$624; 48
 word_54FA:	dc.w $1001,$1800,$1801,$2000,$2001,$2800,$2801;	0
 					; DATA XREF: PalCycle_S1SS+3Co
-Pal_S1SSCyc1:	dc.w  $400, $600, $620,	$624, $664, $666, $600,	$820, $A64, $A68, $AA6,	$AAA, $800, $C42, $E86,	$ECA; 0
-					; DATA XREF: PalCycle_S1SS+72o
-		dc.w  $EEC, $EEE, $400,	$420, $620, $620, $864,	$666, $420, $620, $842,	$842, $A86, $AAA, $620,	$842; 16
-		dc.w  $A64, $C86, $EA8,	$EEE; 32
-Pal_S1SSCyc2:	dc.w  $EEA, $EE0, $AA0,	$880, $660, $440, $EE0,	$AA0, $440, $AA0, $AA0,	$AA0, $860, $860, $860,	$640; 0
-					; DATA XREF: PalCycle_S1SS+96o
-		dc.w  $640, $640, $400,	$400, $400, $AEC, $6EA,	$4C6, $2A4,  $82,  $60,	$6EA, $4C6,  $60, $4C6,	$4C6; 16
-		dc.w  $4C6, $484, $484,	$484, $442, $442, $442,	$400, $400, $400, $ECC,	$E8A, $C68, $A46, $824,	$602; 32
-		dc.w  $E8A, $C68, $602,	$C68, $C68, $C68, $846,	$846, $846, $624, $624,	$624, $400, $400, $400,	$AEC; 48
-		dc.w  $8CA, $6A8, $486,	$264,  $42, $8CA, $6A8,	 $42, $6A8, $6A8, $6A8,	$684, $684, $684, $442,	$442; 64
-		dc.w  $442, $400, $400,	$400, $EEC, $CCA, $AA8,	$886, $664, $442, $CCA,	$AA8, $442, $AA8, $AA8,	$AA8; 80
-		dc.w  $864, $864, $864,	$642, $642, $642, $400,	$400, $400; 96
+Pal_S1SSCyc1:	incbin	palettes/SpecialStage_Cycle1.bin
+		even
+Pal_S1SSCyc2:	incbin	palettes/SpecialStage_Cycle2.bin
+		even
 
 ; ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ S U B	R O U T	I N E ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
 
@@ -9168,35 +9156,35 @@ MainLevelLoadBlock:			; CODE XREF: ROM:00003D3Ep
 		addq.l	#4,a2
 		movea.l	(a2)+,a0
 		tst.b	($FFFFFE10).w
-		beq.s	MainLevelLoadBlock_Convert16
-		bra.s	MainLevelLoadBlock_Convert16
+		beq.s	.Convert16
+		bra.s	.Convert16
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
-MainLevelLoadBlock_Skip16Convert:	; leftover from	a previous build
+.Skip16Convert:				; leftover from	a previous build
 		lea	($FFFF9000).w,a1
 		move.w	#0,d0
 		bsr.w	EniDec
 		bra.s	loc_72C2
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
-MainLevelLoadBlock_Convert16:		; CODE XREF: MainLevelLoadBlock+1Cj
+.Convert16:				; CODE XREF: MainLevelLoadBlock+1Cj
 					; MainLevelLoadBlock+1Ej
 		lea	($FFFF9000).w,a1
 		move.w	#$BFF,d2
 
-MainLevelLoadBlock_ConvertLoop:		; CODE XREF: MainLevelLoadBlock+4Ej
+.ConvertLoop:				; CODE XREF: MainLevelLoadBlock+4Ej
 		move.w	(a0)+,d0
 		tst.w	($FFFFFFE8).w
-		beq.s	MainLevelLoadBlock_Not2p
+		beq.s	.Not2p
 		move.w	d0,d1
 		andi.w	#$F800,d0
 		andi.w	#$7FF,d1
 		lsr.w	#1,d1
 		or.w	d1,d0
 
-MainLevelLoadBlock_Not2p:		; CODE XREF: MainLevelLoadBlock+3Cj
+.Not2p:					; CODE XREF: MainLevelLoadBlock+3Cj
 		move.w	d0,(a1)+
-		dbf	d2,MainLevelLoadBlock_ConvertLoop
+		dbf	d2,.ConvertLoop
 
 loc_72C2:				; CODE XREF: MainLevelLoadBlock+2Cj
 		cmpi.b	#5,($FFFFFE10).w
@@ -21568,7 +21556,8 @@ Obj01_Modes:	dc.w Obj01_MdNormal-Obj01_Modes	; DATA XREF: ROM:Obj01_Modeso
 		dc.w Obj01_MdJump-Obj01_Modes
 		dc.w Obj01_MdRoll-Obj01_Modes
 		dc.w Obj01_MdJump2-Obj01_Modes
-MusicList_Sonic:dc.b $81,$82,$83,$84,$85,$86; 0	; DATA XREF: Sonic_Display:loc_FB66t
+MusicList_Sonic:incbin	misc/MusicList2.bin
+		even	
 
 ; ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ S U B	R O U T	I N E ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
 
@@ -23491,7 +23480,8 @@ Obj02_Modes:	dc.w Obj02_MdNormal-Obj02_Modes	; DATA XREF: ROM:Obj02_Modeso
 		dc.w Obj02_MdJump-Obj02_Modes
 		dc.w Obj02_MdRoll-Obj02_Modes
 		dc.w Obj02_MdJump2-Obj02_Modes
-MusicList_Tails:dc.b $81,$82,$83,$84,$85,$86; 0	; DATA XREF: Tails_Display:loc_10D54t
+MusicList_Tails:incbin	misc/MusicList2.bin
+		even
 
 ; ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ S U B	R O U T	I N E ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
 

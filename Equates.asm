@@ -35,9 +35,9 @@ VRAM_DMA_CMD:   equ $40000080
 CRAM_DMA_CMD:   equ $C0000080
 VSRAM_DMA_CMD:  equ $40000090
 
-VRAM_SIZE:    equ 65536
-CRAM_SIZE:    equ 128
-VSRAM_SIZE:   equ 80
+VRAM_SIZE:    	equ 65536
+CRAM_SIZE:    	equ 128
+VSRAM_SIZE:   	equ 80
 
 GFXMODE_256x224:      equ %00000000
 GFXMODE_320x224:      equ %10000001
@@ -75,12 +75,12 @@ YM2612_d1:	equ $A04003
 PSGinput:	equ $C00011
 
 ; Controller stuff
-IoCtrl1:      equ $A10009  ; I/O control port 1P
-IoCtrl2:      equ $A1000B  ; I/O control port 2P
-IoCtrlExt:    equ $A1000D  ; I/O control port modem
-IoData1:      equ $A10003  ; I/O data port 1P
-IoData2:      equ $A10005  ; I/O data port 2P
-IoDataExt:    equ $A10007  ; I/O data port modem
+IoCtrl1:      	equ $A10009  ; I/O control port 1P
+IoCtrl2:      	equ $A1000B  ; I/O control port 2P
+IoCtrlExt:    	equ $A1000D  ; I/O control port modem
+IoData1:      	equ $A10003  ; I/O data port 1P
+IoData2:      	equ $A10005  ; I/O data port 2P
+IoDataExt:    	equ $A10007  ; I/O data port modem
 
 ; VRAM data
 vram_fg:	equ $C000	; foreground namespace
@@ -88,3 +88,5 @@ vram_bg:	equ $E000	; background namespace
 vram_sonic:	equ $F000	; Sonic graphics
 vram_sprites:	equ $F800	; sprite table
 vram_hscroll:	equ $FC00	; horizontal scroll table
+
+Size_of_SegaPCM:		equ $6978
