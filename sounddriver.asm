@@ -9,24 +9,16 @@ Go_PSGIndex:	dc.l PSG_Index		; DATA XREF: sub_72926+14r
 ; ---------------------------------------------------------------------------
 PSG_Index:	dc.l PSG1, PSG2, PSG3, PSG4, PSG5, PSG6, PSG7, PSG8, PSG9
 					; DATA XREF: ROM:Go_PSGIndexo
-PSG1:		dc.b   0,  0,  0,  1,  1,  1,  2,  2,  2,  3,  3,  3,  4,  4,  4,  5,  5,  5,  6,  6,  6,  7,$80; 0
-					; DATA XREF: ROM:PSG_Indexo
-PSG2:		dc.b   0,  2,  4,  6,  8,$10,$80; 0 ; DATA XREF: ROM:PSG_Indexo
-PSG3:		dc.b   0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7,$80; 0
-					; DATA XREF: ROM:PSG_Indexo
-PSG4:		dc.b   0,  0,  2,  3,  4,  4,  5,  5,  5,  6,$80; 0
-					; DATA XREF: ROM:PSG_Indexo
-PSG6:		dc.b   3,  3,  3,  2,  2,  2,  2,  1,  1,  1,  0,  0,  0,  0,$80; 0
-					; DATA XREF: ROM:PSG_Indexo
-PSG5:		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  3,  3,  3,  4,$80; 0
-					; DATA XREF: ROM:PSG_Indexo
-PSG7:		dc.b   0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  3,  3,  3,  4,  4,  4,  5,  5,  5,  6,  7,$80; 0
-					; DATA XREF: ROM:PSG_Indexo
-PSG8:		dc.b   0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,  5,  5,  6,  6,  6,  6,  6,  7,  7,  7,$80; 0
-					; DATA XREF: ROM:PSG_Indexo
-PSG9:		dc.b   0,  1,  2,  3,  4,  5,  6,  7,  8,  9, $A, $B, $C, $D, $E, $F,$80; 0
-					; DATA XREF: ROM:PSG_Indexo
-byte_71A94:	dc.b   7,$72,$73,$26,$15,  8,$FF,  5; 0	; DATA XREF: ROM:off_719A0o
+PSG1:		incbin	"sound/psg/psg1.bin"
+PSG2:		incbin	"sound/psg/psg2.bin"
+PSG3:		incbin	"sound/psg/psg3.bin"
+PSG4:		incbin	"sound/psg/psg4.bin"
+PSG6:		incbin	"sound/psg/psg6.bin"
+PSG5:		incbin	"sound/psg/psg5.bin"
+PSG7:		incbin	"sound/psg/psg7.bin"
+PSG8:		incbin	"sound/psg/psg8.bin"
+PSG9:		incbin	"sound/psg/psg9.bin"
+byte_71A94:	dc.b   7,$72,$73,$26,$15,  8,-1,  5; 0	; DATA XREF: ROM:off_719A0o
 ; ---------------------------------------------------------------------------
 ; Music	Pointers
 ; ---------------------------------------------------------------------------
@@ -36,7 +28,7 @@ MusicIndex:	dc.l Music81, Music82, Music83,	Music84, Music85, Music86
 		dc.l Music8D, Music8E, Music8F,	Music90, Music91, Music92
 		dc.l Music93
 ; ---------------------------------------------------------------------------
-; Type of sound	being played ($90 = music; $70 = normal	sound effect)
+; Type of sound	being played ($90 = music, $70 = normal	sound effect)
 ; ---------------------------------------------------------------------------
 SoundTypes:	dc.b $90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90; 0
 					; DATA XREF: ROM:Go_SoundTypeso
