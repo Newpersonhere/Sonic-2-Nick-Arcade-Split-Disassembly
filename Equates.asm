@@ -152,7 +152,6 @@ layer_plus  = 		$3F ; always same as layer+1 ?? used for collision somehow
 y_pixel =		2+x_pos ; and 3+x_pos ; y coordinate for objects using screen-space coordinate system
 x_pixel =		x_pos ; and 1+x_pos ; x coordinate for objects using screen-space coordinate system
 parent =		$3E ; and $3F ; address of object that owns or spawned this one, if applicable
-; TODO: $2C is often parent instead (see LoadChildObject); consider defining parent2 = $2C and changing some objoff_2Cs to that
 ; ---------------------------------------------------------------------------
 ; when childsprites are activated (i.e. bit #6 of render_flags set)
 mainspr_mapframe	= $B
