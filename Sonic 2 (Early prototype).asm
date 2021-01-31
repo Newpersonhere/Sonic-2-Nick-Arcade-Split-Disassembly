@@ -1,23 +1,23 @@
-; ----------------------------------------------------
-;    Sonic 2 (Nick Arcade prototype) disassembly
-;         Original from December 3rd, 2006
-;        Updated since January 15th 2021 by
-;          RepellantMold and AlexField442.
-;
-;       Thanks to Hivebrain and Rika Chou for
-;       helping the original text disassembly
-; ----------------------------------------------------
+;/----------------------------------------------------\
+;|    Sonic 2 (Nick Arcade prototype) disassembly     |
+;|        Original from December 3rd, 2006            |
+;|        Updated since January 15th 2021 by          |
+;|         RepellantMold and AlexField442.            |
+;|                                                    |
+;|      Thanks to Hivebrain and Rika Chou for         |
+;|   helping the original text disassembly by drx     |
+;|    (which was made on November 7th, 2006, this-    |
+;|      -diassembly is based on this version.)        |
+;\____________________________________________________/
 
 		include "macros.asm"
-		include Equates.asm
-; Assembly options
+		include "Equates.asm"
+
+; Assembly option
 RemovePadding = 0
 ; If this is set to 1, this removes unnecessary 'nops' also removes leftovers.
 
-     	      	 org 0
-
-; Segment type:	Pure code
-; segment "ROM"
+     	     	org 0		; to make sure the start of the ROM is always 0
 Header:		dc.l $FFFFFE00,EntryPoint,BusError,AddressError; 0 ; test Port A Ctrl
 		dc.l IllegalInstr,ZeroDivide,ChkInstr,TrapvInstr; 4
 		dc.l PriviledgeViolation,Trace,Line1010Emu,Line1111Emu;	8
@@ -34,27 +34,27 @@ Header:		dc.l $FFFFFE00,EntryPoint,BusError,AddressError; 0 ; test Port A Ctrl
 		dc.l ErrorTrap,ErrorTrap,ErrorTrap,ErrorTrap; 52
 		dc.l ErrorTrap,ErrorTrap,ErrorTrap,ErrorTrap; 56
 		dc.l ErrorTrap,ErrorTrap,ErrorTrap,ErrorTrap; 60
-Console:	dc.b 'SEGA MEGA DRIVE ' ; Console name
-Date:		dc.b '(C)SEGA 1991.APR' ; Release date (leftover from Sonic 1)
-Title_Local:	dc.b 'SONIC THE             HEDGEHOG 2                ' ; Domestic name
-Title_In:	dc.b 'SONIC THE             HEDGEHOG 2                ' ; International name
-Serial:		dc.b 'GM 00004049-01'   ; Serial/version number (leftover from Sonic 1)
+		dc.b 'SEGA MEGA DRIVE ' ; Console name
+		dc.b '(C)SEGA 1991.APR' ; Release date (leftover from Sonic 1)
+		dc.b 'SONIC THE             HEDGEHOG 2                ' ; Domestic name
+		dc.b 'SONIC THE             HEDGEHOG 2                ' ; International name
+		dc.b 'GM 00004049-01'   ; Serial/version number (leftover from Sonic 1)
 Checksum:	dc.w $AFC7		; ROM Checksum (leftover from Sonic 1)
-IOSupport:	dc.b 'J               ' ; I/O support
+		dc.b 'J               ' ; I/O support (3-button controller)
 ROMStart:	dc.l Header		; ROM start location
 	if RemovePadding=0
 ROMEnd:		dc.l $7FFFF		; ROM end location (leftover from Sonic	1)
 	else
 ROMEnd:		dc.l EndOfROM-1		; ROM end location
 	endif
-RAMStart:	dc.l $FF0000		; RAM start location
-RAMEnd:		dc.l $FFFFFF		; RAM end location
-SRAMSupport:	dc.l $20202020		; SRAM support (none)
+		dc.l $FF0000		; RAM start location
+		dc.l $FFFFFF		; RAM end location
+		dc.l $20202020		; SRAM support (none)
 		dc.l $20202020
 		dc.l $20202020
 		dc.l $20202020
-Notes:		dc.b '                                                '
-Region:		dc.b 'JUE             '
+		dc.b '                                                ' ; Notes
+		dc.b 'JUE             '	; Region coding (Japan, America, Europe)
 EndOfHeader:
 
 	if RemovePadding=0
@@ -67,17 +67,16 @@ EndOfHeader:
 	    	opt osq+
 	    	opt omq+
 	endif
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 ErrorTrap:				; CODE XREF: ROM:00000204j
 					; DATA XREF: ROM:00000000o ..
 	if RemovePadding=0
 		nop
 		nop
-	else
 	endif
 		bra.s	ErrorTrap
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 EntryPoint:				; DATA XREF: ROM:00000000o
 		tst.l	($A10008).l	; test Port A Ctrl
@@ -150,7 +149,7 @@ PSGInitLoop:				; CODE XREF: ROM:00000284j
 
 PortC_OK:				; DATA XREF: ROM:PortA_OKt
 		bra.s	GameProgram
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 InitValues:	dc.w VDPREG_MODE1	; DATA XREF: ROM:00000216t
 		dc.w $3FFF
 		dc.w $100
@@ -218,7 +217,7 @@ InitValues:	dc.w VDPREG_MODE1	; DATA XREF: ROM:00000216t
 		dc.l VSRAM_ADDR_CMD		; value	for VSRAM write	mode
 
 		dc.b  $9F, $BF,	$DF, $FF; 0 ; values for PSG channel volumes
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 GameProgram:				; CODE XREF: ROM:PortC_OKj
 		tst.w	(VdpCtrl).l
@@ -243,7 +242,6 @@ ChksumChkLoop:				; CODE XREF: ROM:00000336j
 		cmp.w	(a1),d1
 		nop
 		nop
-	else
 	endif
 		lea	($FFFFFE00).w,a6
 		moveq	#0,d7
@@ -275,19 +273,15 @@ MainGameLoop:				; CODE XREF: ROM:0000039Aj
 		andi.w	#$1C,d0
 		jsr	GameModeArray(pc,d0.w)
 		bra.s	MainGameLoop
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 GameModeArray:
-		bra.w	SegaScreen
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		bra.w	TitleScreen
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		bra.w	Level
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		bra.w	Level
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-		bra.w	SpecialStage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+		bra.w	SegaScreen	; $00
+		bra.w	TitleScreen	; $04
+		bra.w	Level		; $08
+		bra.w	Level		; $0C
+		bra.w	SpecialStage	; $10
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 ;----------------------------------------------------
 ;
@@ -309,67 +303,66 @@ ChksumErr_RedFill:			; CODE XREF: ROM:000003C8j
 
 ChksumErr_InfLoop:			; CODE XREF: ROM:ChksumErr_InfLoopj
 		bra.s	ChksumErr_InfLoop
-	else
 	endif
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 BusError:				; DATA XREF: ROM:00000000o
 		move.b	#2,($FFFFFC44).w
 		bra.s	ErrorMsg_TwoAddresses
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 AddressError:				; DATA XREF: ROM:00000000o
 		move.b	#4,($FFFFFC44).w
 		bra.s	ErrorMsg_TwoAddresses
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 IllegalInstr:				; DATA XREF: ROM:00000000o
 		move.b	#6,($FFFFFC44).w
 		addq.l	#2,2(sp)
 		bra.s	ErrorMessage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 ZeroDivide:				; DATA XREF: ROM:00000000o
 		move.b	#8,($FFFFFC44).w
 		bra.s	ErrorMessage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 ChkInstr:				; DATA XREF: ROM:00000000o
 		move.b	#$A,($FFFFFC44).w
 		bra.s	ErrorMessage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 TrapvInstr:				; DATA XREF: ROM:00000000o
 		move.b	#$C,($FFFFFC44).w
 		bra.s	ErrorMessage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 PriviledgeViolation:			; DATA XREF: ROM:00000000o
 		move.b	#$E,($FFFFFC44).w
 		bra.s	ErrorMessage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Trace:					; DATA XREF: ROM:00000000o
 		move.b	#$10,($FFFFFC44).w
 		bra.s	ErrorMessage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Line1010Emu:				; DATA XREF: ROM:00000000o
 		move.b	#$12,($FFFFFC44).w
 		addq.l	#2,2(sp)
 		bra.s	ErrorMessage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Line1111Emu:				; DATA XREF: ROM:00000000o
 		move.b	#$14,($FFFFFC44).w
 		addq.l	#2,2(sp)
 		bra.s	ErrorMessage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 ErrorException:				; DATA XREF: ROM:00000000o
 		move.b	#0,($FFFFFC44).w
 		bra.s	ErrorMessage
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 ErrorMsg_TwoAddresses:			; CODE XREF: ROM:000003D4j
 					; ROM:000003DCj
@@ -384,7 +377,7 @@ ErrorMsg_TwoAddresses:			; CODE XREF: ROM:000003D4j
 		move.l	($FFFFFC40).w,d0
 		bsr.w	ShowErrAddress
 		bra.s	ErrorMsg_Wait
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 ErrorMessage:				; CODE XREF: ROM:000003E8j
 					; ROM:000003F0j ...
@@ -400,7 +393,7 @@ ErrorMsg_Wait:				; CODE XREF: ROM:00000458j
 		enable_ints
 		rte
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ShowErrorMsg:				; CODE XREF: ROM:00000444p
@@ -431,18 +424,16 @@ Error_CharsLoop:			; CODE XREF: ShowErrorMsg+44j
 		rts
 ; End of function ShowErrorMsg
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-ErrorText:	dc.w ErrText_Exept-ErrorText ; DATA XREF: ROM:ErrorTexto
-					; ROM:000004CCo ...
-					; "ERROR EXCEPTION    "
-		dc.w ErrText_BusErr-ErrorText ;	"BUS ERROR	    "
-		dc.w ErrText_AddrErr-ErrorText ; "ADDRESS ERROR	     "
+; ---------------------------------------------------------------------------
+ErrorText:	dc.w ErrText_Exept-ErrorText	; "ERROR EXCEPTION    "
+		dc.w ErrText_BusErr-ErrorText 	;	"BUS ERROR	    "
+		dc.w ErrText_AddrErr-ErrorText 	; "ADDRESS ERROR	     "
 		dc.w ErrText_IllInstr-ErrorText	; "ILLEGAL INSTRUCTION"
-		dc.w ErrText_ZeroDiv-ErrorText ; "@ERO DIVIDE	     "
+		dc.w ErrText_ZeroDiv-ErrorText 	; "@ERO DIVIDE	     "
 		dc.w ErrText_ChkInstr-ErrorText	; "CHK INSTRUCTION    "
-		dc.w ErrText_TrapV-ErrorText ; "TRAPV INSTRUCTION  "
+		dc.w ErrText_TrapV-ErrorText 	; "TRAPV INSTRUCTION  "
 		dc.w ErrText_PrivViol-ErrorText	; "PRIVILEGE VIOLATION"
-		dc.w ErrText_Trace-ErrorText ; "TRACE		   "
+		dc.w ErrText_Trace-ErrorText 	; "TRACE		   "
 		dc.w ErrText_Line1010-ErrorText	; "LINE	1010 EMULATOR "
 		dc.w ErrText_Line1111-ErrorText	; "LINE	1111 EMULATOR "
 ErrText_Exept:	dc.b 'ERROR EXCEPTION    ' ; DATA XREF: ROM:ErrorTexto
@@ -458,7 +449,7 @@ ErrText_Line1010:dc.b 'LINE 1010 EMULATOR ' ; DATA XREF: ROM:000004DCo
 ErrText_Line1111:dc.b 'LINE 1111 EMULATOR ' ; DATA XREF: ROM:000004DEo
 		 even
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ShowErrAddress:				; CODE XREF: ROM:0000044Cp
@@ -474,7 +465,7 @@ ShowErrAddress_DigitLoop:		; CODE XREF: ShowErrAddress+Aj
 ; End of function ShowErrAddress
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ShowErrDigit:				; CODE XREF: ShowErrAddress+8p
@@ -491,7 +482,7 @@ ShowErrDigit_NoOverflow:		; CODE XREF: ShowErrDigit+Aj
 ; End of function ShowErrDigit
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Error_WaitForC:				; CODE XREF: ROM:ErrorMsg_Waitp
@@ -502,10 +493,10 @@ Error_WaitForC:				; CODE XREF: ROM:ErrorMsg_Waitp
 		rts
 ; End of function Error_WaitForC
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Art_Text:	incbin	art/text.bin
 		even
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 HBlank:					; DATA XREF: ROM:00000000o
 		movem.l	d0-a6,-(sp)
@@ -541,7 +532,7 @@ loc_B62:				; CODE XREF: ROM:00000DE2j
 		addq.l	#1,($FFFFFE0C).w
 		movem.l	(sp)+,d0-a6
 		rte
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_B6C:	dc.w loc_B86-off_B6C,loc_CAA-off_B6C; 0	; DATA XREF: ROM:off_B6Co
 					; ROM:off_B6C+2o ...
 		dc.w loc_CBC-off_B6C,loc_CD2-off_B6C; 2
@@ -550,7 +541,7 @@ off_B6C:	dc.w loc_B86-off_B6C,loc_CAA-off_B6C; 0	; DATA XREF: ROM:off_B6Co
 		dc.w loc_CD8-off_B6C,loc_F98-off_B6C; 8
 		dc.w loc_CAE-off_B6C,loc_FA4-off_B6C; 10
 		dc.w loc_EA2-off_B6C	; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B86:				; CODE XREF: ROM:00000B10j
 					; DATA XREF: ROM:off_B6Co
@@ -586,7 +577,7 @@ loc_BBE:				; CODE XREF: ROM:00000BB4j
 		move.w	#$80,($FFFFF640).w ; 'Ђ'
 		move.w	($FFFFF640).w,(a5)
 		bra.s	loc_C26
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C02:				; CODE XREF: ROM:00000BDAj
 		lea	(VdpCtrl).l,a5
@@ -602,7 +593,7 @@ loc_C26:				; CODE XREF: ROM:00000C00j
 		move.w	#VDPREG_PLANEA+$30,(VdpCtrl).l
 		ResumeZ80
 		bra.w	loc_B5C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C3E:				; CODE XREF: ROM:00000BA4j
 		move.w	(VdpCtrl).l,d0
@@ -630,7 +621,7 @@ loc_C7C:
 		move.w	#$83,($FFFFF640).w ; 'ѓ'
 		move.w	($FFFFF640).w,(a5)
 		bra.w	loc_B5C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CAA:				; DATA XREF: ROM:off_B6Co
 		bsr.w	sub_103C
@@ -642,7 +633,7 @@ loc_CAE:				; DATA XREF: ROM:off_B6Co
 
 locret_CBA:				; CODE XREF: ROM:00000CB2j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CBC:				; DATA XREF: ROM:off_B6Co
 		bsr.w	sub_103C
@@ -653,12 +644,12 @@ loc_CBC:				; DATA XREF: ROM:off_B6Co
 
 locret_CD0:				; CODE XREF: ROM:00000CC8j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CD2:				; DATA XREF: ROM:off_B6Co
 		bsr.w	sub_103C
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CD8:				; DATA XREF: ROM:off_B6Co
 		cmpi.b	#$10,($FFFFF600).w
@@ -679,7 +670,7 @@ loc_CFE:
 		move.w	#$80,($FFFFF640).w ; 'Ђ'
 		move.w	($FFFFF640).w,(a5)
 		bra.s	loc_D48
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D24:				; CODE XREF: ROM:00000CFCj
 		lea	(VdpCtrl).l,a5
@@ -724,7 +715,7 @@ loc_D60:
 		addq.l	#4,sp
 		bra.w	loc_B62
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 DemoTime:				; CODE XREF: ROM:00000DD8j
@@ -740,7 +731,7 @@ DemoTime_End:				; CODE XREF: DemoTime+12j
 		rts
 ; End of function DemoTime
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E02:				; CODE XREF: ROM:00000CDEj
 					; DATA XREF: ROM:off_B6Co
@@ -776,7 +767,7 @@ loc_E02:				; CODE XREF: ROM:00000CDEj
 
 locret_EA0:				; CODE XREF: ROM:00000E98j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_EA2:				; DATA XREF: ROM:off_B6Co
 		PauseZ80
@@ -791,7 +782,7 @@ loc_EA2:				; DATA XREF: ROM:off_B6Co
 		move.w	#$80,($FFFFF640).w ; 'Ђ'
 		move.w	($FFFFF640).w,(a5)
 		bra.s	loc_F08
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_EE4:				; CODE XREF: ROM:00000EBCj
 		lea	(VdpCtrl).l,a5
@@ -828,20 +819,20 @@ loc_F08:				; CODE XREF: ROM:00000EE2j
 		jsr	HudUpdate
 		bsr.w	sub_1732
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F88:				; DATA XREF: ROM:off_B6Co
 		bsr.w	sub_103C
 		addq.b	#1,($FFFFF628).w
 		move.b	#$E,($FFFFF62A).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F98:				; DATA XREF: ROM:off_B6Co
 		bsr.w	sub_103C
 		move.w	($FFFFF624).w,(a5)
 		bra.w	sub_1732
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_FA4:				; DATA XREF: ROM:off_B6Co
 		PauseZ80
@@ -875,7 +866,7 @@ loc_FA4:				; DATA XREF: ROM:off_B6Co
 locret_103A:				; CODE XREF: ROM:00001032j
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_103C:				; CODE XREF: ROM:loc_CAAp ROM:loc_CBCp ...
@@ -891,7 +882,7 @@ sub_103C:				; CODE XREF: ROM:loc_CAAp ROM:loc_CBCp ...
 		move.w	#$80,($FFFFF640).w ; 'Ђ'
 		move.w	($FFFFF640).w,(a5)
 		bra.s	loc_10A2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_107E:				; CODE XREF: sub_103C+1Aj
 		lea	(VdpCtrl).l,a5
@@ -921,7 +912,7 @@ loc_10A2:				; CODE XREF: sub_103C+40j
 		rts
 ; End of function sub_103C
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 VBlank:					; DATA XREF: ROM:00000000o
 		tst.w	($FFFFF644).w
@@ -962,7 +953,7 @@ loc_1166:				; CODE XREF: ROM:00001170j
 
 locret_1184:				; CODE XREF: ROM:000010F8j
 		rte
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 VBl_Not2PMode:				; CODE XREF: ROM:00001100j
 		disable_ints
@@ -979,7 +970,7 @@ VBl_Not2PMode:				; CODE XREF: ROM:00001100j
 		tst.b	($FFFFF64F).w
 		bne.s	loc_11F8
 		rte
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11F8:				; CODE XREF: ROM:000011F4j
 		clr.b	($FFFFF64F).w
@@ -989,7 +980,7 @@ loc_11F8:				; CODE XREF: ROM:000011F4j
 		movem.l	(sp)+,d0-a6
 		rte
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 JoypadInit:				; CODE XREF: ROM:00000384p
@@ -1003,7 +994,7 @@ JoypadInit:				; CODE XREF: ROM:00000384p
 ; End of function JoypadInit
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ReadJoypads:				; CODE XREF: Error_WaitForCp
@@ -1015,7 +1006,7 @@ ReadJoypads:				; CODE XREF: Error_WaitForCp
 ; End of function ReadJoypads
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Joypad_Read:				; CODE XREF: ReadJoypads+Ap
@@ -1041,7 +1032,7 @@ Joypad_Read:				; CODE XREF: ReadJoypads+Ap
 ; End of function Joypad_Read
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 VDPRegSetup:				; CODE XREF: ROM:0000037Cp
@@ -1088,7 +1079,7 @@ loc_12FE:
 		rts
 ; End of function VDPRegSetup
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 VDPRegSetup_Array:dc.w VDPREG_MODE1+%00000100		; DATA XREF: VDPRegSetup+Co
 VDPReg_01:	dc.w VDPREG_MODE2+%00110100,VDPREG_PLANEA+(vram_fg>>10),VDPREG_WINDOW+($A000>>10),VDPREG_PLANEB+(vram_bg>>13); 0	; DATA XREF: VDPRegSetup+1Ar
 		dc.w VDPREG_SPRITE+(vram_sprites>>9),$8600,VDPREG_BGCOL,$8800; 4
@@ -1096,7 +1087,7 @@ VDPReg_01:	dc.w VDPREG_MODE2+%00110100,VDPREG_PLANEA+(vram_fg>>10),VDPREG_WINDOW
 		dc.w VDPREG_HSCROLL+(vram_hscroll>>10),$8E00,VDPREG_INCR+2,VDPREG_SIZE+%0000001; 12
 		dc.w VDPREG_WINX,VDPREG_WINY	; 16
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ClearScreen:				; CODE XREF: ROM:000030FCp
@@ -1145,14 +1136,13 @@ ClearScreen:				; CODE XREF: ROM:000030FCp
 ; End of function ClearScreen
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 SoundDriverLoad:			; CODE XREF: ROM:00000380p
 					; ROM:000031F4p
 	if RemovePadding=0
 		nop
-	else
 	endif
 		FastPauseZ80
 		resetZ80
@@ -1165,7 +1155,6 @@ SoundDriverLoad:			; CODE XREF: ROM:00000380p
 		nop
 		nop
 		nop
-	else
 	endif
 		resetZ80
 		ResumeZ80
@@ -1173,7 +1162,7 @@ SoundDriverLoad:			; CODE XREF: ROM:00000380p
 ; End of function SoundDriverLoad
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PlaySound:				; CODE XREF: ROM:00003CF0p
@@ -1183,7 +1172,7 @@ PlaySound:				; CODE XREF: ROM:00003CF0p
 ; End of function PlaySound
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PlaySound_Special:			; CODE XREF: ROM:000030BCp
@@ -1192,20 +1181,19 @@ PlaySound_Special:			; CODE XREF: ROM:000030BCp
 		rts
 ; End of function PlaySound_Special
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 PlaySound_Unk:
 		move.b	d0,($FFFFF00C).w
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pause:					; CODE XREF: ROM:Level_MainLoopp
 					; ROM:loc_516Ap ...
 	if RemovePadding=0
 		nop
-	else
 	endif
 		tst.b	($FFFFFE12).w
 		beq.s	Unpause
@@ -1228,10 +1216,9 @@ Pause_Loop:				; CODE XREF: Pause+5Aj
 		move.b	#4,($FFFFF600).w
 	if RemovePadding=0
 		nop
-	else
 	endif
 		bra.s	loc_1464
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Pause_CheckBC:				; CODE XREF: Pause+38j
 		btst	#4,($FFFFF604).w
@@ -1251,7 +1238,7 @@ Unpause:				; CODE XREF: Pause+6j
 
 Pause_DoNothing:			; CODE XREF: Pause+14j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1472:				; CODE XREF: Pause+4Aj	Pause+52j
 		move.w	#1,($FFFFF63A).w
@@ -1260,7 +1247,7 @@ loc_1472:				; CODE XREF: Pause+4Aj	Pause+52j
 ; End of function Pause
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ShowVDPGraphics:			; CODE XREF: ROM:00003138p
@@ -1281,7 +1268,7 @@ ShowVDPGraphics:			; CODE XREF: ROM:00003138p
 ; End of function ShowVDPGraphics
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 DMA_68KtoVRAM:				; CODE XREF: LoadSonicDynPLC+48p
@@ -1325,7 +1312,7 @@ DMA_68KtoVRAM:				; CODE XREF: LoadSonicDynPLC+48p
 ; End of function DMA_68KtoVRAM
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Process_DMA:				; CODE XREF: ROM:00000D9Cp
@@ -1350,7 +1337,7 @@ Process_DMA:				; CODE XREF: ROM:00000D9Cp
 ; End of function Process_DMA
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 NemDec:				; CODE XREF: RunPLC_ROM+28p
@@ -1359,7 +1346,7 @@ NemDec:				; CODE XREF: RunPLC_ROM+28p
 		lea	(NemDec_Output).l,a3
 		lea	(VdpData).l,a4
 		bra.s	loc_154C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 NemDec_ToRAM:
 		movem.l	d0-a1/a3-a5,-(sp)
@@ -1389,7 +1376,7 @@ loc_155A:				; CODE XREF: NemDec+24j
 ; End of function NemDec
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_157A:				; CODE XREF: NemDec+42p
@@ -1426,7 +1413,7 @@ loc_15B2:				; CODE XREF: sub_157A:loc_15C0j
 		subq.w	#1,d3
 		bne.s	loc_15C0
 		jmp	(a3)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 NemDec3:				; CODE XREF: ROM:000015F8j
 					; ROM:00001604j ...
@@ -1436,7 +1423,7 @@ NemDec3:				; CODE XREF: ROM:000015F8j
 loc_15C0:				; CODE XREF: sub_157A+3Ej
 		dbf	d0,loc_15B2
 		bra.s	sub_157A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15C6:				; CODE XREF: sub_157A+Cj
 		subq.w	#6,d6
@@ -1461,7 +1448,7 @@ loc_15D4:				; CODE XREF: sub_157A+52j
 		bra.s	loc_15B0
 ; End of function sub_157A
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 NemDec_Output:			; DATA XREF: NemDec:loc_1534o
 					; RunPLC+10t
@@ -1470,7 +1457,7 @@ NemDec_Output:			; DATA XREF: NemDec:loc_1534o
 		move.w	a5,d4
 		bne.s	NemDec3
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 NemDec_Output_XOR:
 		eor.l	d4,d2
@@ -1479,7 +1466,7 @@ NemDec_Output_XOR:
 		move.w	a5,d4
 		bne.s	NemDec3
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 NemDec_OutputRAM:			; DATA XREF: NemDec+16o
 		move.l	d4,(a4)+
@@ -1487,7 +1474,7 @@ NemDec_OutputRAM:			; DATA XREF: NemDec+16o
 		move.w	a5,d4
 		bne.s	NemDec3
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 NemDec_OutputRAM_XOR:
 		eor.l	d4,d2
@@ -1497,7 +1484,7 @@ NemDec_OutputRAM_XOR:
 		bne.s	NemDec3
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 NemDec4:				; CODE XREF: NemDec+34p RunPLC+2Ap
@@ -1507,7 +1494,7 @@ loc_1620:				; CODE XREF: NemDec4+12j
 		cmpi.b	#-1,d0
 		bne.s	loc_1628
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1628:				; CODE XREF: NemDec4+6j
 		move.w	d0,d7
@@ -1532,7 +1519,7 @@ loc_162A:				; CODE XREF: NemDec4+38j
 		add.w	d0,d0
 		move.w	d7,(a1,d0.w)
 		bra.s	loc_162A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1658:				; CODE XREF: NemDec4+2Ej
 		move.b	(a0)+,d0
@@ -1550,7 +1537,7 @@ loc_1664:				; CODE XREF: NemDec4+4Cj
 ; End of function NemDec4
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LoadPLC:				; CODE XREF: ROM:00003BACp
@@ -1569,7 +1556,7 @@ loc_1688:				; CODE XREF: LoadPLC+1Ej
 		beq.s	loc_1690
 		addq.w	#6,a2
 		bra.s	loc_1688
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1690:				; CODE XREF: LoadPLC+1Aj
 		move.w	(a1)+,d0
@@ -1586,7 +1573,7 @@ loc_169C:				; CODE XREF: LoadPLC+22j
 ; End of function LoadPLC
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LoadPLC2:				; CODE XREF: ROM:000033C0p
@@ -1614,7 +1601,7 @@ loc_16C8:				; CODE XREF: LoadPLC2+1Cj
 ; End of function LoadPLC2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ClearPLC:				; CODE XREF: LoadPLC2+14p
@@ -1629,7 +1616,7 @@ loc_16D4:				; CODE XREF: ClearPLC+8j
 ; End of function ClearPLC
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 RunPLC:					; CODE XREF: Pal_FadeTo+2Ep
@@ -1642,7 +1629,6 @@ RunPLC:					; CODE XREF: Pal_FadeTo+2Ep
 		lea	NemDec_Output(pc),a3
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 		lea	($FFFFAA00).w,a1
 		move.w	(a0)+,d2
@@ -1671,7 +1657,7 @@ locret_1730:				; CODE XREF: RunPLC+4j	RunPLC+Aj
 ; End of function RunPLC
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_1732:				; CODE XREF: ROM:00000CC0p
@@ -1683,7 +1669,7 @@ sub_1732:				; CODE XREF: ROM:00000CC0p
 		move.w	($FFFFF684).w,d0
 		addi.w	#$120,($FFFFF684).w
 		bra.s	loc_1766
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_174E:				; CODE XREF: DemoTime+Ap
 		tst.w	($FFFFF6F8).w
@@ -1727,7 +1713,7 @@ loc_179A:				; CODE XREF: sub_1732+7Aj
 
 locret_17CA:				; CODE XREF: sub_1732+4j sub_1732+20j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17CC:				; CODE XREF: sub_1732+74j
 		lea	($FFFFF680).w,a0
@@ -1740,7 +1726,7 @@ loc_17D2:				; CODE XREF: sub_1732+A4j
 ; End of function sub_1732
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 RunPLC_ROM:				; CODE XREF: ROM:0000508Ep
@@ -1765,7 +1751,7 @@ loc_17EE:				; CODE XREF: RunPLC_ROM+2Cj
 ; End of function RunPLC_ROM
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 EniDec:				; CODE XREF: ROM:00003124p
@@ -1808,7 +1794,7 @@ loc_1848:				; CODE XREF: EniDec+34j
 		jmp	loc_18A4(pc,d1.w)
 ; End of function EniDec
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1858:				; CODE XREF: ROM:0000185Cj
 					; ROM:loc_18A4j ...
@@ -1816,14 +1802,14 @@ loc_1858:				; CODE XREF: ROM:0000185Cj
 		addq.w	#1,a2
 		dbf	d2,loc_1858
 		bra.s	loc_182E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1862:				; CODE XREF: ROM:00001864j
 					; ROM:000018A8j ...
 		move.w	a4,(a1)+
 		dbf	d2,loc_1862
 		bra.s	loc_182E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_186A:				; CODE XREF: ROM:000018ACj
 		bsr.w	sub_18CC
@@ -1832,7 +1818,7 @@ loc_186E:				; CODE XREF: ROM:00001870j
 		move.w	d1,(a1)+
 		dbf	d2,loc_186E
 		bra.s	loc_182E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1876:				; CODE XREF: ROM:000018AEj
 		bsr.w	sub_18CC
@@ -1842,7 +1828,7 @@ loc_187A:				; CODE XREF: ROM:0000187Ej
 		addq.w	#1,d1
 		dbf	d2,loc_187A
 		bra.s	loc_182E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1884:				; CODE XREF: ROM:000018B0j
 		bsr.w	sub_18CC
@@ -1852,7 +1838,7 @@ loc_1888:				; CODE XREF: ROM:0000188Cj
 		subq.w	#1,d1
 		dbf	d2,loc_1888
 		bra.s	loc_182E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1892:				; CODE XREF: ROM:000018B2j
 		cmpi.w	#$F,d2
@@ -1863,25 +1849,25 @@ loc_1898:				; CODE XREF: ROM:0000189Ej
 		move.w	d1,(a1)+
 		dbf	d2,loc_1898
 		bra.s	loc_182E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18A4:
 		bra.s	loc_1858
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.s	loc_1858
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.s	loc_1862
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.s	loc_1862
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.s	loc_186A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.s	loc_1876
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.s	loc_1884
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.s	loc_1892
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18B4:				; CODE XREF: ROM:00001896j
 		subq.w	#1,a0
@@ -1899,7 +1885,7 @@ loc_18C6:				; CODE XREF: ROM:000018C2j
 		movem.l	(sp)+,d0-d7/a1-a5
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_18CC:				; CODE XREF: ROM:loc_186Ap
@@ -1969,7 +1955,7 @@ loc_1934:				; CODE XREF: sub_18CC:loc_195Aj
 		lsl.w	#8,d5
 		move.b	(a0)+,d5
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1946:				; CODE XREF: sub_18CC+50j
 		beq.s	loc_1958
@@ -1980,7 +1966,7 @@ loc_1946:				; CODE XREF: sub_18CC+50j
 		add.w	d3,d1
 		move.w	a5,d0
 		bra.s	sub_197C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1958:				; CODE XREF: sub_18CC:loc_1946j
 		moveq	#$10,d6
@@ -1989,13 +1975,13 @@ loc_195A:
 		bra.s	loc_1934
 ; End of function sub_18CC
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		dc.w	 1,    3,    7,	  $F; 0
 		dc.w   $1F,  $3F,  $7F,	 $FF; 4
 		dc.w  $1FF, $3FF, $7FF,	$FFF; 8
 		dc.w $1FFF,$3FFF,$7FFF,$FFFF; 12
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_197C:				; CODE XREF: EniDec:loc_1848p
@@ -2012,7 +1998,7 @@ locret_198A:				; CODE XREF: sub_197C+6j
 ; End of function sub_197C
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 KosDec:				; CODE XREF: SoundDriverLoad+1Ep
@@ -2041,7 +2027,7 @@ loc_19AA:				; CODE XREF: KosDec+10j
 		bcc.s	loc_19B2
 		move.b	(a0)+,(a1)+
 		bra.s	loc_1998
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19B2:				; CODE XREF: KosDec+20j
 		moveq	#0,d3
@@ -2078,7 +2064,7 @@ loc_19EC:				; CODE XREF: KosDec+52j
 		moveq	#-1,d2
 		move.b	(a0)+,d2
 		bra.s	loc_1A0C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19F6:				; CODE XREF: KosDec+3Cj
 		move.b	(a0)+,d0
@@ -2098,7 +2084,7 @@ loc_1A0C:				; CODE XREF: KosDec+68j
 		move.b	d0,(a1)+
 		dbf	d3,loc_1A0C
 		bra.s	loc_1998
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A18:				; CODE XREF: KosDec+7Aj
 		move.b	(a0)+,d1
@@ -2107,7 +2093,7 @@ loc_1A18:				; CODE XREF: KosDec+7Aj
 		beq.w	loc_1998
 		move.b	d1,d3
 		bra.s	loc_1A0C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A28:				; CODE XREF: KosDec+8Ej
 		addq.l	#2,sp
@@ -2118,7 +2104,7 @@ loc_1A28:				; CODE XREF: KosDec+8Ej
 ; Chameleon decompression routine (from Kid Chameleon - Used for Green Hill's chunks)
 ;----------------------------------------------------
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ChameleonDec:				; CODE XREF: MainLevelLoadBlock:loc_732Cp
@@ -2162,7 +2148,7 @@ loc_1A78:				; CODE XREF: ChameleonDec+48j
 		cmp.w	a2,d7
 		bls.s	loc_1ACC
 		bra.w	loc_1BD6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A84:				; CODE XREF: ChameleonDec+40j
 		lsl.w	#3,d1
@@ -2175,7 +2161,7 @@ loc_1A84:				; CODE XREF: ChameleonDec+40j
 		add.b	d1,d1
 		bcs.s	loc_1AAE
 		bra.s	loc_1AB0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A98:				; CODE XREF: ChameleonDec+64j
 		add.b	d1,d1
@@ -2203,30 +2189,30 @@ loc_1AB0:				; CODE XREF: ChameleonDec+6Aj
 		cmp.w	a2,d7
 		bls.s	loc_1AD4
 		bra.w	loc_1DCC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1ABE:				; CODE XREF: ChameleonDec+74j
 		move.w	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1AC4:				; CODE XREF: ChameleonDec+78j
 		move.w	#$FFFF,d0
 		moveq	#1,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1ACC:				; CODE XREF: ChameleonDec+52j
 		move.w	#1,d0
 		moveq	#5,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1AD4:				; CODE XREF: ChameleonDec+8Cj
 		move.w	#1,d0
 		moveq	#1,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1ADC:				; CODE XREF: ChameleonDec+3Aj
 		move.b	(a1)+,(a2)+
@@ -2250,7 +2236,7 @@ loc_1AF2:				; CODE XREF: ChameleonDec+C2j
 		cmp.w	a2,d7
 		bls.s	loc_1B46
 		bra.w	loc_1C52
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1AFE:				; CODE XREF: ChameleonDec+BAj
 		lsl.w	#3,d1
@@ -2263,7 +2249,7 @@ loc_1AFE:				; CODE XREF: ChameleonDec+BAj
 		add.b	d1,d1
 		bcs.s	loc_1B28
 		bra.s	loc_1B2A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B12:				; CODE XREF: ChameleonDec+DEj
 		add.b	d1,d1
@@ -2291,30 +2277,30 @@ loc_1B2A:				; CODE XREF: ChameleonDec+E4j
 		cmp.w	a2,d7
 		bls.s	loc_1B4E
 		bra.w	loc_1A62
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B38:				; CODE XREF: ChameleonDec+EEj
 		move.w	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B3E:				; CODE XREF: ChameleonDec+F2j
 		move.w	#$FFFF,d0
 		moveq	#0,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B46:				; CODE XREF: ChameleonDec+CCj
 		move.w	#1,d0
 		moveq	#4,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B4E:				; CODE XREF: ChameleonDec+106j
 		move.w	#1,d0
 		moveq	#0,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B56:				; CODE XREF: ChameleonDec+B4j
 		move.b	(a1)+,(a2)+
@@ -2338,7 +2324,7 @@ loc_1B6C:				; CODE XREF: ChameleonDec+13Cj
 		cmp.w	a2,d7
 		bls.s	loc_1BC4
 		bra.w	loc_1CD0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B78:				; CODE XREF: ChameleonDec+134j
 		lsl.w	#3,d1
@@ -2352,7 +2338,7 @@ loc_1B78:				; CODE XREF: ChameleonDec+134j
 		add.b	d1,d1
 		bcs.s	loc_1BA6
 		bra.s	loc_1BA8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B8E:				; CODE XREF: ChameleonDec+158j
 		move.b	(a0)+,d1
@@ -2381,30 +2367,30 @@ loc_1BA8:				; CODE XREF: ChameleonDec+160j
 		cmp.w	a2,d7
 		bls.s	loc_1BCC
 		bra.w	loc_1ADE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BB6:				; CODE XREF: ChameleonDec+16Cj
 		move.w	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BBC:				; CODE XREF: ChameleonDec+170j
 		move.w	#$FFFF,d0
 		moveq	#7,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BC4:				; CODE XREF: ChameleonDec+146j
 		move.w	#1,d0
 		moveq	#3,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BCC:				; CODE XREF: ChameleonDec+184j
 		move.w	#1,d0
 		moveq	#7,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BD4:				; CODE XREF: ChameleonDec+12Ej
 		move.b	(a1)+,(a2)+
@@ -2428,7 +2414,7 @@ loc_1BEA:				; CODE XREF: ChameleonDec+1BAj
 		cmp.w	a2,d7
 		bls.s	loc_1C40
 		bra.w	loc_1D4E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BF6:				; CODE XREF: ChameleonDec+1B2j
 		lsl.w	#3,d1
@@ -2442,7 +2428,7 @@ loc_1BF6:				; CODE XREF: ChameleonDec+1B2j
 		add.b	d1,d1
 		bcs.s	loc_1C22
 		bra.s	loc_1C24
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1C0C:				; CODE XREF: ChameleonDec+1D8j
 		add.b	d1,d1
@@ -2470,30 +2456,30 @@ loc_1C24:				; CODE XREF: ChameleonDec+1DEj
 		cmp.w	a2,d7
 		bls.s	loc_1C48
 		bra.w	loc_1B58
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1C32:				; CODE XREF: ChameleonDec+1E8j
 		move.w	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1C38:				; CODE XREF: ChameleonDec+1ECj
 		move.w	#$FFFF,d0
 		moveq	#6,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1C40:				; CODE XREF: ChameleonDec+1C4j
 		move.w	#1,d0
 		moveq	#2,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1C48:				; CODE XREF: ChameleonDec+200j
 		move.w	#1,d0
 		moveq	#6,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1C50:				; CODE XREF: ChameleonDec+1ACj
 		move.b	(a1)+,(a2)+
@@ -2517,7 +2503,7 @@ loc_1C66:				; CODE XREF: ChameleonDec+236j
 		cmp.w	a2,d7
 		bls.s	loc_1CBE
 		bra.w	loc_1DCC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1C72:				; CODE XREF: ChameleonDec+22Ej
 		lsl.w	#2,d1
@@ -2532,7 +2518,7 @@ loc_1C72:				; CODE XREF: ChameleonDec+22Ej
 		add.b	d1,d1
 		bcs.s	loc_1CA0
 		bra.s	loc_1CA2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1C8A:				; CODE XREF: ChameleonDec+256j
 		add.b	d1,d1
@@ -2560,30 +2546,30 @@ loc_1CA2:				; CODE XREF: ChameleonDec+25Cj
 		cmp.w	a2,d7
 		bls.s	loc_1CC6
 		bra.w	loc_1BD6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1CB0:				; CODE XREF: ChameleonDec+266j
 		move.w	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1CB6:				; CODE XREF: ChameleonDec+26Aj
 		move.w	#$FFFF,d0
 		moveq	#5,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1CBE:				; CODE XREF: ChameleonDec+240j
 		move.w	#1,d0
 		moveq	#1,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1CC6:				; CODE XREF: ChameleonDec+27Ej
 		move.w	#1,d0
 		moveq	#5,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1CCE:				; CODE XREF: ChameleonDec+228j
 		move.b	(a1)+,(a2)+
@@ -2607,7 +2593,7 @@ loc_1CE4:				; CODE XREF: ChameleonDec+2B4j
 		cmp.w	a2,d7
 		bls.s	loc_1D3C
 		bra.w	loc_1A62
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1CF0:				; CODE XREF: ChameleonDec+2ACj
 		add.w	d1,d1
@@ -2622,7 +2608,7 @@ loc_1CF0:				; CODE XREF: ChameleonDec+2ACj
 		add.b	d1,d1
 		bcs.s	loc_1D1E
 		bra.s	loc_1D20
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1D08:				; CODE XREF: ChameleonDec+2D4j
 		add.b	d1,d1
@@ -2650,30 +2636,30 @@ loc_1D20:				; CODE XREF: ChameleonDec+2DAj
 		cmp.w	a2,d7
 		bls.s	loc_1D44
 		bra.w	loc_1C52
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1D2E:				; CODE XREF: ChameleonDec+2E4j
 		move.w	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1D34:				; CODE XREF: ChameleonDec+2E8j
 		move.w	#$FFFF,d0
 		moveq	#4,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1D3C:				; CODE XREF: ChameleonDec+2BEj
 		move.w	#1,d0
 		moveq	#8,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1D44:				; CODE XREF: ChameleonDec+2FCj
 		move.w	#1,d0
 		moveq	#4,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1D4C:				; CODE XREF: ChameleonDec+2A6j
 		move.b	(a1)+,(a2)+
@@ -2698,7 +2684,7 @@ loc_1D64:				; CODE XREF: ChameleonDec+334j
 		cmp.w	a2,d7
 		bls.s	loc_1DBA
 		bra.w	loc_1ADE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1D70:				; CODE XREF: ChameleonDec+32Aj
 		move.b	(a0)+,d1
@@ -2712,7 +2698,7 @@ loc_1D70:				; CODE XREF: ChameleonDec+32Aj
 		add.b	d1,d1
 		bcs.s	loc_1D9C
 		bra.s	loc_1D9E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1D86:				; CODE XREF: ChameleonDec+352j
 		add.b	d1,d1
@@ -2740,30 +2726,30 @@ loc_1D9E:				; CODE XREF: ChameleonDec+358j
 		cmp.w	a2,d7
 		bls.s	loc_1DC2
 		bra.w	loc_1CD0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1DAC:				; CODE XREF: ChameleonDec+362j
 		move.w	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1DB2:				; CODE XREF: ChameleonDec+366j
 		move.w	#$FFFF,d0
 		moveq	#3,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1DBA:				; CODE XREF: ChameleonDec+33Ej
 		move.w	#1,d0
 		moveq	#7,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1DC2:				; CODE XREF: ChameleonDec+37Aj
 		move.w	#1,d0
 		moveq	#3,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1DCA:				; CODE XREF: ChameleonDec+324j
 		move.b	(a1)+,(a2)+
@@ -2788,7 +2774,7 @@ loc_1DE2:				; CODE XREF: ChameleonDec+3B2j
 		cmp.w	a2,d7
 		bls.s	loc_1E36
 		bra.w	loc_1B58
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1DEE:				; CODE XREF: ChameleonDec+3AAj
 		lsl.w	#3,d1
@@ -2801,7 +2787,7 @@ loc_1DEE:				; CODE XREF: ChameleonDec+3AAj
 		add.b	d1,d1
 		bcs.s	loc_1E18
 		bra.s	loc_1E1A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1E02:				; CODE XREF: ChameleonDec+3CEj
 		add.b	d1,d1
@@ -2829,30 +2815,30 @@ loc_1E1A:				; CODE XREF: ChameleonDec+3D4j
 		cmp.w	a2,d7
 		bls.s	loc_1E3E
 		bra.w	loc_1D4E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1E28:				; CODE XREF: ChameleonDec+3DEj
 		move.w	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1E2E:				; CODE XREF: ChameleonDec+3E2j
 		move.w	#$FFFF,d0
 		moveq	#2,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1E36:				; CODE XREF: ChameleonDec+3BCj
 		move.w	#1,d0
 		moveq	#6,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1E3E:				; CODE XREF: ChameleonDec+3F6j
 		move.w	#1,d0
 		moveq	#2,d2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1E46:				; CODE XREF: ChameleonDec+3A2j
 		move.b	(a1)+,(a2)+
@@ -2860,7 +2846,7 @@ loc_1E46:				; CODE XREF: ChameleonDec+3A2j
 ; End of function ChameleonDec
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PalCycle_Load:				; CODE XREF: ROM:00003F62p
@@ -2872,9 +2858,9 @@ PalCycle_Load:				; CODE XREF: ROM:00003F62p
 		jmp	PalCycle(pc,d0.w)
 ; End of function PalCycle_Load
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 PalCycle:	dc.w PalCycle_GHZ-PalCycle ; DATA XREF:	ROM:PalCycleo
 					; ROM:00001E62o ...
 		dc.w PalCycle_CPZ-PalCycle
@@ -2883,7 +2869,7 @@ PalCycle:	dc.w PalCycle_GHZ-PalCycle ; DATA XREF:	ROM:PalCycleo
 		dc.w PalCycle_HPZ-PalCycle
 		dc.w PalCycle_HTZ-PalCycle
 		dc.w PalCycle_GHZ-PalCycle
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 ;-------------------------------
 ; Leftover palette cycling subroutine
@@ -2893,9 +2879,8 @@ PalCycle:	dc.w PalCycle_GHZ-PalCycle ; DATA XREF:	ROM:PalCycleo
 PalCycle_S1TitleScreen:
 		lea	(Pal_S1TitleCyc?).l,a0
 		bra.s	loc_1E7C
-	else
 	endif
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 PalCycle_GHZ:				; DATA XREF: ROM:PalCycleo
 					; ROM:00001E6Co
@@ -2915,7 +2900,7 @@ loc_1E7C:				; CODE XREF: ROM:00001E74j
 
 locret_1EA2:				; CODE XREF: ROM:00001E80j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 PalCycle_CPZ:				; DATA XREF: ROM:00001E62o
 					; ROM:00001E64o
@@ -2950,7 +2935,7 @@ loc_1EF4:				; CODE XREF: ROM:00001EECj
 
 locret_1F14:				; CODE XREF: ROM:00001EA8j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 PalCycle_HPZ:				; DATA XREF: ROM:00001E68o
 		subq.w	#1,($FFFFF634).w
@@ -2973,7 +2958,7 @@ loc_1F38:				; CODE XREF: ROM:00001F30j
 
 locret_1F56:				; CODE XREF: ROM:00001F1Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 PalCycle_EHZ:				; DATA XREF: ROM:00001E66o
 		lea	(Pal_EHZCyc).l,a0
@@ -2989,7 +2974,7 @@ PalCycle_EHZ:				; DATA XREF: ROM:00001E66o
 
 locret_1F84:				; CODE XREF: ROM:00001F62j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 PalCycle_HTZ:				; DATA XREF: ROM:00001E6Ao
 		lea	(Pal_HTZCyc1).l,a0
@@ -3006,13 +2991,12 @@ PalCycle_HTZ:				; DATA XREF: ROM:00001E6Ao
 
 locret_1FB8:				; CODE XREF: ROM:00001F90j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Pal_HTZCyc2:	incbin	palettes/HTZcycle2.bin
 		even
 	if RemovePadding=0
 Pal_S1TitleCyc?:incbin	palettes/S1TScycle.bin
 		even
-	else
 	endif
 Pal_GHZCyc:	incbin	palettes/GHZcycle.bin
 		even
@@ -3031,7 +3015,7 @@ Pal_HPZCyc1:	incbin	palettes/HPZcycle1.bin
 Pal_HPZCyc2:	incbin	palettes/HPZcycle2.bin
 		even
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_FadeTo:				; CODE XREF: ROM:0000327Cp
@@ -3061,7 +3045,7 @@ loc_216C:				; CODE XREF: Pal_FadeTo+32j
 ; End of function Pal_FadeTo
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_FadeIn:				; CODE XREF: Pal_FadeTo+2Cp
@@ -3095,7 +3079,7 @@ locret_21C0:				; CODE XREF: Pal_FadeIn+20j
 ; End of function Pal_FadeIn
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_AddColor:				; CODE XREF: Pal_FadeIn:loc_2198p
@@ -3110,7 +3094,7 @@ Pal_AddColor:				; CODE XREF: Pal_FadeIn:loc_2198p
 		bhi.s	Pal_AddGreen
 		move.w	d1,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Pal_AddGreen:				; CODE XREF: Pal_AddColor+10j
 		move.w	d3,d1
@@ -3119,12 +3103,12 @@ Pal_AddGreen:				; CODE XREF: Pal_AddColor+10j
 		bhi.s	Pal_AddRed
 		move.w	d1,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Pal_AddRed:				; CODE XREF: Pal_AddColor+1Ej
 		addq.w	#2,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Pal_NoAdd:				; CODE XREF: Pal_AddColor+6j
 		addq.w	#2,a0
@@ -3132,7 +3116,7 @@ Pal_NoAdd:				; CODE XREF: Pal_AddColor+6j
 ; End of function Pal_AddColor
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_FadeFrom:				; CODE XREF: ROM:000030C4p
@@ -3150,7 +3134,7 @@ loc_21F8:				; CODE XREF: Pal_FadeFrom+1Aj
 ; End of function Pal_FadeFrom
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_FadeOut:				; CODE XREF: Pal_FadeFrom+14p
@@ -3177,7 +3161,7 @@ loc_2234:				; CODE XREF: Pal_FadeOut+28j
 ; End of function Pal_FadeOut
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_DecColor:				; CODE XREF: Pal_FadeOut:loc_221Ep
@@ -3189,7 +3173,7 @@ Pal_DecColor:				; CODE XREF: Pal_FadeOut:loc_221Ep
 		beq.s	Pal_DecGreen
 		subq.w	#2,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Pal_DecGreen:				; CODE XREF: Pal_DecColor+Aj
 		move.w	d2,d1
@@ -3197,7 +3181,7 @@ Pal_DecGreen:				; CODE XREF: Pal_DecColor+Aj
 		beq.s	Pal_DecBlue
 		subi.w	#$20,(a0)+ ; ' '
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Pal_DecBlue:				; CODE XREF: Pal_DecColor+16j
 		move.w	d2,d1
@@ -3205,7 +3189,7 @@ Pal_DecBlue:				; CODE XREF: Pal_DecColor+16j
 		beq.s	Pal_NoDec
 		subi.w	#$200,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Pal_NoDec:				; CODE XREF: Pal_DecColor+2j
 					; Pal_DecColor+24j
@@ -3214,7 +3198,7 @@ Pal_NoDec:				; CODE XREF: Pal_DecColor+2j
 ; End of function Pal_DecColor
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_MakeWhite:				; CODE XREF: ROM:00005166p
@@ -3241,7 +3225,7 @@ loc_2290:				; CODE XREF: Pal_MakeWhite+34j
 ; End of function Pal_MakeWhite
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_WhiteToBlack:			; CODE XREF: Pal_MakeWhite+2Ep
@@ -3275,7 +3259,7 @@ locret_22E4:				; CODE XREF: Pal_WhiteToBlack+20j
 ; End of function Pal_WhiteToBlack
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_DecColor2:				; CODE XREF: Pal_WhiteToBlack:loc_22BCp
@@ -3291,7 +3275,7 @@ Pal_DecColor2:				; CODE XREF: Pal_WhiteToBlack:loc_22BCp
 		bcs.s	loc_22FE
 		move.w	d1,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_22FE:				; CODE XREF: Pal_DecColor2+Ej
 					; Pal_DecColor2+12j
@@ -3302,13 +3286,13 @@ loc_22FE:				; CODE XREF: Pal_DecColor2+Ej
 		bcs.s	loc_230E
 		move.w	d1,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_230E:				; CODE XREF: Pal_DecColor2+1Ej
 					; Pal_DecColor2+22j
 		subq.w	#2,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_2312:				; CODE XREF: Pal_DecColor2+6j
 		addq.w	#2,a0
@@ -3316,7 +3300,7 @@ loc_2312:				; CODE XREF: Pal_DecColor2+6j
 ; End of function Pal_DecColor2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_MakeFlash:				; CODE XREF: ROM:00005024p
@@ -3334,7 +3318,7 @@ loc_2320:				; CODE XREF: Pal_MakeFlash+1Aj
 ; End of function Pal_MakeFlash
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_ToWhite:				; CODE XREF: Pal_MakeFlash+14p
@@ -3363,7 +3347,7 @@ loc_235C:				; CODE XREF: Pal_ToWhite+28j
 ; End of function Pal_ToWhite
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Pal_AddColor2:				; CODE XREF: Pal_ToWhite:loc_2346p
@@ -3377,7 +3361,7 @@ Pal_AddColor2:				; CODE XREF: Pal_ToWhite:loc_2346p
 		beq.s	loc_237C
 		addq.w	#2,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_237C:				; CODE XREF: Pal_AddColor2+12j
 		move.w	d2,d1
@@ -3388,7 +3372,7 @@ loc_237C:				; CODE XREF: Pal_AddColor2+12j
 loc_2388:
 		addi.w	#$20,(a0)+ ; ' '
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_238E:				; CODE XREF: Pal_AddColor2+22j
 		move.w	d2,d1
@@ -3397,7 +3381,7 @@ loc_238E:				; CODE XREF: Pal_AddColor2+22j
 		beq.s	loc_23A0
 		addi.w	#$200,(a0)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_23A0:				; CODE XREF: Pal_AddColor2+6j
 					; Pal_AddColor2+34j
@@ -3406,7 +3390,7 @@ loc_23A0:				; CODE XREF: Pal_AddColor2+6j
 ; End of function Pal_AddColor2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PalCycle_Sega:				; CODE XREF: ROM:000031A0p
@@ -3423,7 +3407,7 @@ loc_23BA:				; CODE XREF: PalCycle_Sega+1Ej
 		subq.w	#1,d1
 		addq.w	#2,d0
 		bra.s	loc_23BA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_23C4:				; CODE XREF: PalCycle_Sega:loc_23BAj
 					; PalCycle_Sega+36j
@@ -3457,7 +3441,7 @@ loc_23FC:				; CODE XREF: PalCycle_Sega+4Ej
 		move.w	d0,($FFFFF632).w
 		moveq	#1,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_2404:				; CODE XREF: PalCycle_Sega+4j
 		subq.b	#1,($FFFFF634).w
@@ -3469,7 +3453,7 @@ loc_2404:				; CODE XREF: PalCycle_Sega+4j
 		bcs.s	loc_2422
 		moveq	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_2422:				; CODE XREF: PalCycle_Sega+78j
 		move.w	d0,($FFFFF632).w
@@ -3499,13 +3483,13 @@ loc_2456:				; CODE XREF: PalCycle_Sega+64j
 		rts
 ; End of function PalCycle_Sega
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Pal_Sega1:	dc.w  $EEE, $EEA, $EE4,	$EC0, $EE4, $EEA; 0 ; DATA XREF: PalCycle_Sega+Ao
 Pal_Sega2:	dc.w  $EEC, $EEA, $EEA,	$EEA, $EEA, $EEA, $EEC,	$EEA, $EE4, $EC0, $EC0,	$EC0, $EEC, $EEA, $EE4,	$EC0; 0
 					; DATA XREF: PalCycle_Sega+82o
 		dc.w  $EA0, $E60, $EEA,	$EE4, $EC0, $EA0, $E80,	$E00; 16
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PalLoad1:				; CODE XREF: ROM:00003278p
@@ -3525,7 +3509,7 @@ loc_24AA:				; CODE XREF: PalLoad1+16j
 ; End of function PalLoad1
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PalLoad2:				; CODE XREF: ROM:0000316Cp
@@ -3544,7 +3528,7 @@ loc_24C2:				; CODE XREF: PalLoad2+12j
 ; End of function PalLoad2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PalLoad3_Water:				; CODE XREF: ROM:loc_3CB6p
@@ -3563,7 +3547,7 @@ loc_24DE:				; CODE XREF: PalLoad3_Water+16j
 ; End of function PalLoad3_Water
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PalLoad4_Water:				; CODE XREF: ROM:loc_3EC4p
@@ -3581,7 +3565,7 @@ loc_24FA:				; CODE XREF: PalLoad4_Water+16j
 		rts
 ; End of function PalLoad4_Water
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 PalPointers:	dc.l Pal_SegaBG		; DATA XREF: PalLoad1o	PalLoad2o ...
 		dc.w $FB00
 		dc.w $1F
@@ -3643,7 +3627,6 @@ PalPointers:	dc.l Pal_SegaBG		; DATA XREF: PalLoad1o	PalLoad2o ...
 		dc.l Pal_S1Ending
 		dc.w $FB00
 		dc.w $1F
-	else
 	endif
 Pal_SegaBG:	incbin	palettes/SEGAbg.bin
 		even
@@ -3685,15 +3668,15 @@ Pal_S1Continue:
 Pal_S1Ending:
 	     	incbin	palettes/Ending.bin
 		even
-	else
 	endif
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 DelayProgram:				; CODE XREF: Pause+28p	Pal_FadeTo+28p	...
@@ -3706,7 +3689,7 @@ loc_2C88:				; CODE XREF: DelayProgram+8j
 ; End of function DelayProgram
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PseudoRandomNumber:			; CODE XREF: ROM:00009C04p
@@ -3731,7 +3714,7 @@ loc_2C9C:				; CODE XREF: PseudoRandomNumber+4j
 ; End of function PseudoRandomNumber
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 CalcSine:				; CODE XREF: S1SS_BgAnimate+46p
@@ -3745,11 +3728,11 @@ CalcSine:				; CODE XREF: S1SS_BgAnimate+46p
 		rts
 ; End of function CalcSine
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Sine_Data:	incbin	Collision/sinewave.bin
 		even
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 CalcAngle:				; CODE XREF: Sonic_Floor+24p
@@ -3779,7 +3762,7 @@ loc_2F70:				; CODE XREF: CalcAngle+1Cj
 		moveq	#0,d0
 		move.b	AngleData(pc,d4.w),d0
 		bra.s	loc_2F8C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_2F82:				; CODE XREF: CalcAngle+24j
 		lsl.l	#8,d3
@@ -3802,7 +3785,7 @@ loc_2F98:				; CODE XREF: CalcAngle+40j
 loc_2FA4:				; CODE XREF: CalcAngle+4Cj
 		movem.l	(sp)+,d3-d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_2FAA:				; CODE XREF: CalcAngle+Ej
 		move.w	#$40,d0	; '@'
@@ -3810,13 +3793,12 @@ loc_2FAA:				; CODE XREF: CalcAngle+Ej
 		rts
 ; End of function CalcAngle
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 AngleData:	incbin	Collision/anglemap.bin
 		even
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 
 SegaScreen:				; CODE XREF: ROM:GameModeArrayj
@@ -3895,12 +3877,11 @@ Sega_WaitEnd:				; CODE XREF: ROM:000031D4j
 Sega_GoToTitleScreen:			; CODE XREF: ROM:000031CCj
 		move.b	#4,($FFFFF600).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	dc.w 0
-	else
 	endif
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 TitleScreen:				; CODE XREF: ROM:000003A0j
 		move.b	#$E4,d0
@@ -3975,7 +3956,6 @@ loc_32C4:				; CODE XREF: ROM:000032C6j
 		dbf	d1,loc_32C4
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 		move.b	#0,($FFFFFE30).w
 		move.w	#0,($FFFFFE08).w
@@ -4056,7 +4036,7 @@ TitleScreen_Loop:			; CODE XREF: ROM:0000349Aj
 		bpl.s	Title_RegionJ
 		lea	(LvlSelCode_US).l,a0
 		bra.s	LevSelCheat
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Title_RegionJ:				; CODE XREF: ROM:00003416j
 		lea	(LvlSelCode_J).l,a0
@@ -4087,7 +4067,7 @@ Title_Cheat_PlayRing:			; CODE XREF: ROM:0000344Ej
 		move.b	#$B5,d0
 		bsr.w	PlaySound_Special
 		bra.s	Title_Cheat_CountC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Title_Cheat_NoMatch:			; CODE XREF: ROM:00003436j
 		tst.b	d0
@@ -4160,7 +4140,6 @@ loc_3516:				; CODE XREF: ROM:0000350Ej
 		beq.s	loc_354C
 		cmpi.w	#$9E,d0	; 'ћ'
 		beq.s	loc_355A
-	else
 	endif
 
 loc_353A:				; CODE XREF: ROM:0000352Cj
@@ -4172,14 +4151,14 @@ loc_353A:				; CODE XREF: ROM:0000352Cj
 loc_3546:				; CODE XREF: ROM:0000353Ej
 		bsr.w	PlaySound_Special
 		bra.s	LevSel_Loop
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 	if RemovePadding=0
 loc_354C:				; CODE XREF: ROM:00003532j
 		move.b	#$18,($FFFFF600).w
 		move.w	#$600,($FFFFFE10).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_355A:				; CODE XREF: ROM:00003538j
 		move.b	#$1C,($FFFFF600).w
@@ -4187,10 +4166,9 @@ loc_355A:				; CODE XREF: ROM:00003538j
 		bsr.w	PlaySound_Special
 		move.w	#0,($FFFFFFF4).w
 		rts
-	else
 	endif
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_3570:				; CODE XREF: ROM:0000351Ej
 		add.w	d0,d0
@@ -4207,10 +4185,10 @@ loc_3570:				; CODE XREF: ROM:0000351Ej
 		move.l	d0,($FFFFFE26).w
 		move.l	#$1388,($FFFFFFC0).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 LevSel_LevelOrder:incbin	misc/LS_LevOrd.bin
 		even
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 LevSel_Level:			; CODE XREF: ROM:0000357Ej
 		andi.w	#$3FFF,d0
@@ -4232,14 +4210,14 @@ PlayLevel:				; CODE XREF: ROM:000034A2j
 		move.b	#$E0,d0
 		bsr.w	PlaySound_Special
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 LvlSelCode_J:
 	if RemovePadding=0
 	   	dc.b button_up_mask, button_down_mask, button_down_mask, button_down_mask, button_down_mask, button_up_mask,  0,$FF; 0	; DATA XREF: ROM:Title_RegionJo
-	else
 	endif
 LvlSelCode_US:	dc.b button_up_mask, button_down_mask, button_down_mask, button_down_mask, button_down_mask, button_up_mask,  0,$FF; 0	; DATA XREF: ROM:00003418o
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+		even
+; ---------------------------------------------------------------------------
 
 Demo:					; CODE XREF: ROM:00003490j
 		move.w	#$1E,($FFFFF614).w
@@ -4255,7 +4233,7 @@ loc_3630:				; CODE XREF: ROM:00003664j
 		bcs.s	RunDemo
 		move.b	#0,($FFFFF600).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 RunDemo:				; CODE XREF: ROM:0000364Cj
 		andi.b	#$80,($FFFFF605).w
@@ -4296,7 +4274,7 @@ loc_36C0:				; CODE XREF: ROM:000036B0j
 		move.l	d0,($FFFFFE26).w
 		move.l	#$1388,($FFFFFFC0).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Demo_Levels:	dc.w  $200, $300	; 0
 		dc.w  $400, $500	; 2
 	if RemovePadding=0
@@ -4308,7 +4286,7 @@ Demo_Levels:	dc.w  $200, $300	; 0
 	    	even
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LevSel_Controls:			; CODE XREF: ROM:000034ECp
@@ -4344,7 +4322,7 @@ loc_3736:				; CODE XREF: LevSel_Controls+34j
 		move.w	d0,($FFFFFF82).w
 		bsr.w	LevSel_TextLoad
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_3740:				; CODE XREF: LevSel_Controls+Ej
 					; LevSel_Controls+1Ej
@@ -4380,7 +4358,7 @@ locret_377A:				; CODE XREF: LevSel_Controls+50j
 ; End of function LevSel_Controls
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LevSel_TextLoad:			; CODE XREF: ROM:000034DEp
@@ -4433,7 +4411,7 @@ loc_37E6:				; CODE XREF: LevSel_TextLoad+64j
 ; End of function LevSel_TextLoad
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_3808:				; CODE XREF: LevSel_TextLoad+80p
@@ -4450,7 +4428,7 @@ loc_3816:				; CODE XREF: sub_3808+8j
 ; End of function sub_3808
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_381C:				; CODE XREF: LevSel_TextLoad+1Cp
@@ -4464,7 +4442,7 @@ loc_381E:				; CODE XREF: sub_381C+Cj sub_381C+16j
 		move.w	#0,(a6)
 		dbf	d2,loc_381E
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_382E:				; CODE XREF: sub_381C+6j
 		add.w	d3,d0
@@ -4473,10 +4451,10 @@ loc_382E:				; CODE XREF: sub_381C+6j
 		rts
 ; End of function sub_381C
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 LevSel_Text:incbin	misc/LevSelText.bin
 		even
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 UnknownSub_1:				; ???
 		lea	($FFFF0000).l,a1
@@ -4492,7 +4470,7 @@ loc_3A3A:				; CODE XREF: ROM:00003A4Cj
 		move.w	d1,(a1)+
 		dbf	d2,loc_3A3A
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 UnknownSub_2:
 		lea	($FE0000).l,a1
@@ -4517,7 +4495,7 @@ loc_3A90:				; CODE XREF: ROM:00003A92j
 		move.w	(a1)+,(a2)+
 		dbf	d1,loc_3A90
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 UnknownSub_3:
 		lea	($FE0000).l,a1
@@ -4548,7 +4526,7 @@ loc_3AC8:				; CODE XREF: ROM:00003ACCj
 		adda.w	#$80,a1	; 'Ђ'
 		dbf	d5,loc_3AB8
 		bra.s	loc_3AF8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_3ADE:				; CODE XREF: ROM:00003ACAj
 		movem.l	(sp)+,a1-a3
@@ -4566,7 +4544,7 @@ loc_3AF8:				; CODE XREF: ROM:00003ADCj
 					; ROM:loc_3AF8j
 		bra.s	loc_3AF8
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 UnknownSub_4:				; CODE XREF: ROM:loc_3A68p
@@ -4585,18 +4563,16 @@ loc_3AFC:				; CODE XREF: UnknownSub_4+12j
 		adda.w	#$80,a2	; 'Ђ'
 		rts
 ; End of function UnknownSub_4
-	else
 	endif
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
-	else
 	endif
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 MusicList:	incbin	misc/MusicList1.bin
 		even
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Level:					; CODE XREF: ROM:000003A4j
 					; ROM:000003A8j ...
@@ -4754,7 +4730,6 @@ loc_3CE6:				; CODE XREF: ROM:00003CE2j
 		lea	MusicList(pc),a1
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 		move.b	(a1,d0.w),d0
 		bsr.w	PlaySound
@@ -4785,7 +4760,6 @@ loc_3D2A:				; CODE XREF: ROM:00003CCAj
 		bsr.w	LoadTilesFromStart
 	if RemovePadding=0
 		jsr	FloorLog_Unk
-	else
 	endif
 		bsr.w	ColIndexLoad
 		bsr.w	WaterEffects
@@ -4909,7 +4883,7 @@ loc_3ECC:				; CODE XREF: ROM:00003ED6j
 		addq.b	#4,($FFFFB124).w
 		addq.b	#4,($FFFFB164).w
 		bra.s	Level_StartGame
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Level_ClrTitleCard:			; CODE XREF: ROM:00003EE8j
 		moveq	#2,d0
@@ -4957,7 +4931,7 @@ loc_3F54:				; CODE XREF: ROM:00003F4Ej
 		cmpi.b	#$C,($FFFFF600).w
 		beq.w	Level_MainLoop
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_3F96:				; CODE XREF: ROM:00003F88j
 		tst.w	($FFFFFE02).w
@@ -4968,7 +4942,7 @@ loc_3F96:				; CODE XREF: ROM:00003F88j
 		beq.w	Level_MainLoop
 		move.b	#0,($FFFFF600).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_3FB4:				; CODE XREF: ROM:00003F9Aj
 					; ROM:00003FA0j
@@ -5002,7 +4976,7 @@ loc_400E:				; CODE XREF: ROM:00004002j
 		bne.s	loc_3FDE
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ChangeWaterSurfacePos:			; CODE XREF: ROM:loc_3F54p
@@ -5025,7 +4999,7 @@ locret_403E:				; CODE XREF: ChangeWaterSurfacePos+4j
 ; End of function ChangeWaterSurfacePos
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 WaterEffects:				; CODE XREF: ROM:00003D56p
@@ -5067,10 +5041,10 @@ locret_4094:				; CODE XREF: WaterEffects+4j
 		rts
 ; End of function WaterEffects
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 WaterHeight:	dc.w  $600, $328, $900,	$228; 0	; DATA XREF: ROM:00003C74o
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 DynamicWaterHeight:			; CODE XREF: WaterEffects+14p
@@ -5094,13 +5068,13 @@ locret_40C6:				; CODE XREF: DynamicWaterHeight+1Ej
 		rts
 ; End of function DynamicWaterHeight
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynWater_Index:	dc.w DynWater_HPZ1-DynWater_Index; 0 ; DATA XREF: ROM:DynWater_Indexo
 					; ROM:DynWater_Index+2o ...
 		dc.w DynWater_HPZ2-DynWater_Index; 1 ; leftover	from Sonic 1's LZ2
 		dc.w DynWater_HPZ3-DynWater_Index; 2
 		dc.w DynWater_HPZ4-DynWater_Index; 3
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynWater_HPZ1:				; DATA XREF: ROM:DynWater_Indexo
 		btst	#0,($FFFFF606).w
@@ -5120,7 +5094,7 @@ loc_40E2:				; CODE XREF: ROM:000040D6j
 locret_40F6:				; CODE XREF: ROM:000040E8j
 					; ROM:000040F0j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 	if RemovePadding=0
 S1DynWater_LZ1:				; leftover from	Sonic 1
@@ -5151,7 +5125,7 @@ loc_4148:				; CODE XREF: ROM:0000410Aj
 					; ROM:0000411Cj ...
 		move.w	d1,($FFFFF64A).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_414E:				; CODE XREF: ROM:00004116j
 		cmpi.w	#$C80,d0
@@ -5161,7 +5135,7 @@ loc_414E:				; CODE XREF: ROM:00004116j
 		bcs.s	loc_4148
 		move.w	#$108,d1
 		bra.s	loc_4148
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_4164:				; CODE XREF: ROM:00004100j
 		subq.b	#1,d2
@@ -5180,9 +5154,8 @@ loc_4184:				; CODE XREF: ROM:00004178j
 locret_4188:				; CODE XREF: ROM:00004166j
 					; ROM:0000416Ej
 		rts
-	else
 	endif
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynWater_HPZ2:				; DATA XREF: ROM:DynWater_Indexo
 	if RemovePadding=0
@@ -5198,10 +5171,9 @@ DynWater_HPZ2:				; DATA XREF: ROM:DynWater_Indexo
 loc_41A6:				; CODE XREF: ROM:00004196j
 					; ROM:000041A0j
 		move.w	d1,($FFFFF64A).w
-	else
 	endif
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynWater_HPZ3:				; DATA XREF: ROM:DynWater_Indexo
 	if RemovePadding=0
@@ -5226,7 +5198,7 @@ loc_41E8:				; CODE XREF: ROM:000041BEj
 		move.w	d1,($FFFFF64A).w
 		move.w	d1,($FFFFF648).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_41F2:				; CODE XREF: ROM:000041B4j
 		subq.b	#1,d2
@@ -5256,7 +5228,7 @@ loc_4236:				; CODE XREF: ROM:000041FEj
 					; ROM:00004208j ...
 		move.w	d1,($FFFFF64A).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_423C:				; CODE XREF: ROM:000041F4j
 		subq.b	#1,d2
@@ -5277,7 +5249,7 @@ loc_4260:				; CODE XREF: ROM:00004248j
 					; ROM:00004258j
 		move.w	d1,($FFFFF64A).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_4266:				; CODE XREF: ROM:0000423Ej
 		subq.b	#1,d2
@@ -5293,14 +5265,14 @@ loc_4266:				; CODE XREF: ROM:0000423Ej
 		move.w	#$7C0,($FFFFF648).w
 		move.b	#1,($FFFFF7E8).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_4298:				; CODE XREF: ROM:00004272j
 					; ROM:0000427Cj
 		move.w	d1,($FFFFF64A).w
 		move.w	d1,($FFFFF648).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_42A2:				; CODE XREF: ROM:00004268j
 		cmpi.w	#$1E00,d0
@@ -5308,10 +5280,9 @@ loc_42A2:				; CODE XREF: ROM:00004268j
 		move.w	#$128,($FFFFF64A).w
 
 locret_42AE:				; CODE XREF: ROM:000042A6j
-	else
 	endif
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynWater_HPZ4:				; DATA XREF: ROM:DynWater_Indexo
 	if RemovePadding=0
@@ -5322,10 +5293,9 @@ DynWater_HPZ4:				; DATA XREF: ROM:DynWater_Indexo
 
 loc_42C0:				; CODE XREF: ROM:000042BAj
 		move.w	d1,($FFFFF64A).w
-	else
 	endif
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 	if RemovePadding=0
 S1_LZWindTunnels:			; leftover from	Sonic 1's LZ
@@ -5396,7 +5366,7 @@ loc_437E:				; CODE XREF: ROM:00004378j
 
 locret_438A:				; CODE XREF: ROM:00004384j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_438C:				; CODE XREF: ROM:000042F4j
 					; ROM:000042FCj ...
@@ -5412,11 +5382,11 @@ loc_439E:				; CODE XREF: ROM:00004334j
 locret_43A2:				; CODE XREF: ROM:000042CAj
 					; ROM:0000432Aj ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		dc.w  $A80, $300, $C10,	$380; 0
 S1LZWind_Data:	dc.w  $F80, $100,$1410,	$180, $460, $400, $710,	$480, $A20, $600,$1610,	$6E0, $C80, $600,$13D0,	$680; 0
 					; DATA XREF: ROM:000042CEo
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1_LZWaterSlides:
 		lea	($FFFFB000).w,a1
@@ -5447,7 +5417,7 @@ loc_4400:				; CODE XREF: ROM:000043D6j
 
 locret_4410:				; CODE XREF: ROM:00004404j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_4412:				; CODE XREF: ROM:000043FEj
 		cmpi.w	#3,d1
@@ -5473,13 +5443,12 @@ loc_4430:				; CODE XREF: ROM:00004428j
 
 locret_4454:				; CODE XREF: ROM:00004448j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_4456:	dc.b  $A,$F5, $A,$F6,$F5,$F4, $B,  0,  2,  7,  3,$4C,$4B,  8,  4; 0
 byte_4465:	dc.b 0			; DATA XREF: ROM:000043F2t
-	else
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 MoveSonicInDemo:			; CODE XREF: ROM:00003F2Cp
@@ -5487,7 +5456,7 @@ MoveSonicInDemo:			; CODE XREF: ROM:00003F2Cp
 		tst.w	($FFFFFFF0).w
 		bne.s	MoveDemo_On
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 	if RemovePadding=0
 MoveSonic_DemoRecord:			; unused subroutine for	recording demos
@@ -5503,7 +5472,7 @@ loc_4474:
 		cmpi.b	#-1,1(a1)
 		beq.s	loc_4490
 		bra.s	loc_44A4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_4490:				; CODE XREF: MoveSonicInDemo+1Aj
 					; MoveSonicInDemo+26j
@@ -5525,7 +5494,7 @@ loc_44A4:				; CODE XREF: MoveSonicInDemo+28j
 		cmpi.b	#-1,1(a1)
 		beq.s	loc_44CE
 		bra.s	locret_44E2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_44CE:				; CODE XREF: MoveSonicInDemo+58j
 					; MoveSonicInDemo+64j
@@ -5537,8 +5506,7 @@ loc_44CE:				; CODE XREF: MoveSonicInDemo+58j
 locret_44E2:				; CODE XREF: MoveSonicInDemo+44j
 					; MoveSonicInDemo+66j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-	else
+; ---------------------------------------------------------------------------
 	endif
 
 MoveDemo_On:				; CODE XREF: MoveSonicInDemo+4j
@@ -5596,14 +5564,14 @@ loc_453A:				; CODE XREF: MoveSonicInDemo+C8j
 
 locret_4570:				; CODE XREF: MoveSonicInDemo+FEj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_4572:				; CODE XREF: MoveSonicInDemo+DAj
 		move.w	#0,($FFFFF606).w
 		rts
 ; End of function MoveSonicInDemo
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Demo_Index:	dc.l Demo_S1GHZ		; DATA XREF: ROM:00003E4Eo
 					; MoveSonicInDemo:loc_44F6o ...
 					; leftover demo	from Sonic 1 GHZ
@@ -5625,6 +5593,7 @@ Demo_Index:	dc.l Demo_S1GHZ		; DATA XREF: ROM:00003E4Eo
 		dc.l $FE8000
 		dc.l $FE8000
 	else
+	    	even
 	endif
 Demo_S1EndIndex:
 	if RemovePadding=0
@@ -5641,10 +5610,9 @@ Demo_S1EndIndex:
 		dc.l $8CA0000
 		dc.l 0
 		dc.l 0
-	else
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ColIndexLoad:				; CODE XREF: ROM:00003D52p
@@ -5660,7 +5628,7 @@ ColIndexLoad:				; CODE XREF: ROM:00003D52p
 ; End of function ColIndexLoad
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Col_Load:				; CODE XREF: ColIndexLoad+18p
@@ -5674,7 +5642,7 @@ loc_4616:				; CODE XREF: Col_Load+Aj
 		rts
 ; End of function Col_Load
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ColP_Index:	dc.l ColP_GHZ		; 0
 		dc.l ColP_CPZ		; 1
 		dc.l ColP_CPZ		; 2
@@ -5688,7 +5656,7 @@ ColS_Index:	dc.l ColS_GHZ		; 0
 		dc.l ColS_HPZ		; 4
 		dc.l ColS_EHZ		; 5
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 OscillateNumInit:			; CODE XREF: ROM:00003E20p
@@ -5702,7 +5670,7 @@ loc_465C:				; CODE XREF: OscillateNumInit+Ej
 		rts
 ; End of function OscillateNumInit
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Osc_Data:	incbin	misc/OscillatorData.bin
 	if RemovePadding=0
  	   	dc.w 0
@@ -5710,7 +5678,7 @@ Osc_Data:	incbin	misc/OscillatorData.bin
 	    	even
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 OscillateNumDo:				; CODE XREF: ROM:00003F6Ap
@@ -5734,7 +5702,7 @@ loc_46BC:				; CODE XREF: OscillateNumDo+4Ej
 		bhi.s	loc_46F2
 		bset	d1,d3
 		bra.s	loc_46F2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_46DC:				; CODE XREF: OscillateNumDo+1Cj
 		move.w	2(a1),d0
@@ -5755,12 +5723,12 @@ locret_46FC:				; CODE XREF: OscillateNumDo+6j
 		rts
 ; End of function OscillateNumDo
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 OscData2:	incbin	misc/OscillatorData2.bin
 		even
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ChangeRingFrame:			; CODE XREF: ROM:00003F6Ep
@@ -5804,7 +5772,7 @@ locret_47AA:				; CODE XREF: ChangeRingFrame+4Ej
 ; End of function ChangeRingFrame
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 SignpostArtLoad:			; CODE XREF: ROM:00003F72p
@@ -5824,14 +5792,14 @@ SignpostArtLoad:			; CODE XREF: ROM:00003F72p
 		move.w	d1,($FFFFEEC8).w
 		moveq	#$12,d0
 		bra.w	LoadPLC2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_47E2:				; CODE XREF: SignpostArtLoad+4j
 					; SignpostArtLoad+Ej ...
 		rts
 ; End of function SignpostArtLoad
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Demo_EHZ:	incbin	demos/EHZ.bin
 		even
 Demo_2P:	incbin	demos/EHZ2P.bin
@@ -5846,15 +5814,14 @@ Demo_S1GHZ:     incbin	demos/GHZ.bin
 		even
 Demo_S1SS:      incbin	demos/SS.bin
 		even
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_DynamicArtCues:			; CODE XREF: ROM:00003DE8p
 					; ROM:00003F5Ep
 		jmp	DynamicArtCues
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 
 ; GameMode10
@@ -6049,20 +6016,20 @@ loc_529C:				; CODE XREF: ROM:000052BEj
 		bsr.w	PlaySound_Special
 		bsr.w	Pal_MakeFlash
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_52D4:				; CODE XREF: ROM:000051A2j
 					; ROM:000052E2j
 		move.b	#0,($FFFFF600).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_52DC:				; CODE XREF: ROM:000051B4j
 		cmpi.b	#$C,($FFFFF600).w
 		beq.s	loc_52D4
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 S1_SSBGLoad:				; CODE XREF: ROM:00005088p
@@ -6132,7 +6099,7 @@ loc_5360:				; CODE XREF: S1_SSBGLoad+6Ej
 ; End of function S1_SSBGLoad
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 PalCycle_S1SS:				; CODE XREF: ROM:00000E90p
@@ -6181,7 +6148,7 @@ loc_53D0:				; CODE XREF: PalCycle_S1SS+2Aj
 locret_5424:				; CODE XREF: PalCycle_S1SS+4j
 					; PalCycle_S1SS+Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_5426:				; CODE XREF: PalCycle_S1SS+70j
 		move.w	($FFFFF79E).w,d1
@@ -6219,7 +6186,7 @@ loc_546C:				; CODE XREF: PalCycle_S1SS+C2j
 		rts
 ; End of function PalCycle_S1SS
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 word_547A:	dc.w  $300, $792, $300,	$790, $300, $78E, $300,	$78C, $300, $78B, $300,	$780, $300, $782, $300,	$784; 0
 					; DATA XREF: PalCycle_S1SS+20o
 		dc.w  $300, $786, $300,	$788, $708, $700, $70A,	$70C,$FF0C, $718,$FF0C,	$718, $70A, $70C, $708,	$700; 16
@@ -6232,7 +6199,7 @@ Pal_S1SSCyc1:	incbin	palettes/SpecialStage_Cycle1.bin
 Pal_S1SSCyc2:	incbin	palettes/SpecialStage_Cycle2.bin
 		even
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 S1SS_BgAnimate:				; CODE XREF: ROM:00005194p
@@ -6275,7 +6242,7 @@ loc_5664:				; CODE XREF: S1SS_BgAnimate+5Aj
 		lea	($FFFFAA00).w,a3
 		lea	(byte_56F6).l,a2
 		bra.s	loc_56BC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_568C:				; CODE XREF: S1SS_BgAnimate+16j
 		cmpi.w	#$C,d0
@@ -6324,20 +6291,21 @@ loc_56E2:				; CODE XREF: S1SS_BgAnimate+CAj
 		rts
 ; End of function S1SS_BgAnimate
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_56F6:	dc.b   9,$28,$18,$10,$28,$18,$10,$30,$18,  8,$10; 0
 					; DATA XREF: S1SS_BgAnimate+62o
 byte_5701:	dc.b   6,$30,$30,$30,$28,$18,$18,$18; 0	; DATA XREF: S1SS_BgAnimate+94o
 byte_5709:	dc.b   8,  2,  4,$FF,  2,  3,  8,$FF,  4,  2,  2,  3,  8,$FD,  4,  2; 0
 					; DATA XREF: S1SS_BgAnimate+36o
 		dc.b   2,  3,  2,$FF,  0; 16
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LevelSizeLoad:				; CODE XREF: ROM:00003D30p
@@ -6373,7 +6341,7 @@ LevelSizeLoad:				; CODE XREF: ROM:00003D30p
 		move.w	#$1010,($FFFFEE40).w
 		move.w	#$60,($FFFFEED8).w ; '`'
 		bra.w	LevelSize_CheckLamp
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 LevelSizeArray:
 		dc.w	 0,$24BF,    0,	$300,	 0,$1EBF,    0,	$300; 0
 		dc.w	 0,$2960,    0,	$300,	 0,$2ABF,    0,	$300; 8
@@ -6391,7 +6359,7 @@ LevelSizeArray:
 		dc.w	 0,$2FFF,    0,	$320,	 0,$2FFF,    0,	$320; 104
 S1EndingStartLoc:dc.w	$50, $3B0, $EA0, $46C,$1750,  $BD, $A00, $62C; 0
 		dc.w  $BB0,  $4C,$1570,	$16C, $1B0, $72C,$1400,	$2AC; 8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 LevelSize_CheckLamp:			; CODE XREF: LevelSizeLoad+76j
 		tst.b	($FFFFFE30).w
@@ -6400,7 +6368,7 @@ LevelSize_CheckLamp:			; CODE XREF: LevelSizeLoad+76j
 		move.w	($FFFFB008).w,d1
 		move.w	($FFFFB00C).w,d0
 		bra.s	LevelSize_StartLocLoaded
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 LevelSize_StartLoc:			; CODE XREF: LevelSizeLoad+17Ej
 		move.w	($FFFFFE10).w,d0
@@ -6452,7 +6420,7 @@ loc_590A:				; CODE XREF: LevelSizeLoad+1E4j
 		rts
 ; End of function LevelSizeLoad
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 StartLocArray:	dc.w   $50, $3B0,  $50,	 $FC,  $50, $3B0,  $80,	 $A8; 0
 		dc.w   $60,  $6C,  $50,	 $EC,  $50, $2EC, $B80,	   0; 8
 		dc.w   $30, $1EC,  $30,	$266,  $30, $166,  $80,	 $A8; 16
@@ -6461,7 +6429,7 @@ StartLocArray:	dc.w   $50, $3B0,  $50,	 $FC,  $50, $3B0,  $80,	 $A8; 0
 		dc.w   $40, $36F,  $60,	$690,$2140, $5AC,  $80,	 $A8; 40
 		dc.w  $620, $16B, $EE0,	$16C,  $80,  $A8,  $80,	 $A8; 48
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 BgScrollSpeed:				; CODE XREF: LevelSizeLoad+1F2p
@@ -6486,7 +6454,7 @@ loc_59B6:				; CODE XREF: BgScrollSpeed+4j
 		jmp	BgScroll_Index(pc,d2.w)
 ; End of function BgScrollSpeed
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 BgScroll_Index:	dc.w BgScroll_GHZ-BgScroll_Index; 0 ; DATA XREF: ROM:BgScroll_Indexo
 					; ROM:BgScroll_Index+2o ...
 		dc.w BgScroll_LZ-BgScroll_Index; 1
@@ -6495,7 +6463,7 @@ BgScroll_Index:	dc.w BgScroll_GHZ-BgScroll_Index; 0 ; DATA XREF: ROM:BgScroll_In
 		dc.w BgScroll_HPZ-BgScroll_Index; 4
 		dc.w BgScroll_EHZ-BgScroll_Index; 5
 		dc.w BgScroll_S1Ending-BgScroll_Index; 6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 BgScroll_GHZ:				; DATA XREF: ROM:BgScroll_Indexo
 		clr.l	($FFFFEE08).w
@@ -6511,13 +6479,13 @@ BgScroll_GHZ:				; DATA XREF: ROM:BgScroll_Indexo
 		clr.l	($FFFFEE34).w
 		clr.l	($FFFFEE3C).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 BgScroll_LZ:				; DATA XREF: ROM:BgScroll_Indexo
 		asr.l	#1,d0
 		move.w	d0,($FFFFEE0C).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 BgScroll_CPZ:				; DATA XREF: ROM:BgScroll_Indexo
 		lsr.w	#2,d0
@@ -6526,7 +6494,7 @@ BgScroll_CPZ:				; DATA XREF: ROM:BgScroll_Indexo
 		clr.l	($FFFFEE08).w
 		clr.l	($FFFFEE10).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 BgScroll_EHZ:				; DATA XREF: ROM:BgScroll_Indexo
 		clr.l	($FFFFEE08).w
@@ -6542,14 +6510,14 @@ BgScroll_EHZ:				; DATA XREF: ROM:BgScroll_Indexo
 		clr.l	($FFFFEE34).w
 		clr.l	($FFFFEE3C).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 BgScroll_HPZ:				; DATA XREF: ROM:BgScroll_Indexo
 		asr.w	#1,d0
 		move.w	d0,($FFFFEE0C).w
 		clr.l	($FFFFEE08).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 BgScroll_S1SYZ:				; leftover from	Sonic 1
 		asl.l	#4,d0
@@ -6561,7 +6529,7 @@ BgScroll_S1SYZ:				; leftover from	Sonic 1
 		move.w	d0,($FFFFEE0C).w
 		clr.l	($FFFFEE08).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 BgScroll_S1Ending:			; DATA XREF: ROM:BgScroll_Indexo
 		move.w	($FFFFEE00).w,d0
@@ -6582,7 +6550,7 @@ BgScroll_S1Ending:			; DATA XREF: ROM:BgScroll_Indexo
 		clr.l	(a2)+
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 DeformBGLayer:				; CODE XREF: ROM:00003D34p
@@ -6590,7 +6558,7 @@ DeformBGLayer:				; CODE XREF: ROM:00003D34p
 		tst.b	($FFFFEEDC).w
 		beq.s	loc_5AA4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_5AA4:				; CODE XREF: DeformBGLayer+4j
 		clr.w	($FFFFEE50).w
@@ -6639,7 +6607,7 @@ loc_5B2A:				; CODE XREF: DeformBGLayer+5Cj
 		jmp	Deform_Index(pc,d0.w)
 ; End of function DeformBGLayer
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Deform_Index:	dc.w Deform_GHZ-Deform_Index; 0	; DATA XREF: ROM:Deform_Indexo
 					; ROM:Deform_Index+2o ...
 		dc.w Deform_LZ-Deform_Index; 1
@@ -6648,7 +6616,7 @@ Deform_Index:	dc.w Deform_GHZ-Deform_Index; 0	; DATA XREF: ROM:Deform_Indexo
 		dc.w Deform_HPZ-Deform_Index; 4
 		dc.w Deform_HTZ-Deform_Index; 5
 		dc.w Deform_GHZ-Deform_Index; 6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Deform_GHZ:				; DATA XREF: ROM:Deform_Indexo
 		tst.w	($FFFFFFE8).w
@@ -6754,7 +6722,7 @@ loc_5C48:				; CODE XREF: ROM:00005C54j
 		swap	d3
 		dbf	d1,loc_5C48
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_5C5A:				; CODE XREF: ROM:00005B5Cj
 		move.w	($FFFFEEB0).w,d4
@@ -6963,7 +6931,7 @@ loc_5E52:				; CODE XREF: ROM:00005E5Ej
 		swap	d3
 		dbf	d1,loc_5E52
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Deform_LZ:				; DATA XREF: ROM:Deform_Indexo
 		move.w	($FFFFEEB0).w,d4
@@ -7003,7 +6971,7 @@ loc_5EC6:				; CODE XREF: ROM:00005ED2j
 		addq.b	#1,d3
 		dbf	d1,loc_5EC6
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_5ED8:				; CODE XREF: ROM:00005EC8j
 					; ROM:00005EF0j
@@ -7019,7 +6987,7 @@ loc_5ED8:				; CODE XREF: ROM:00005EC8j
 		addq.b	#1,d3
 		dbf	d1,loc_5ED8
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Deform_LZ_Data1:dc.b   1,  1,  2,  2,  3,  3,  3,  3,  2,  2,  1,  1,  0,  0,  0,  0; 0
 					; DATA XREF: ROM:00005E7Eo
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 16
@@ -7037,7 +7005,7 @@ Deform_LZ_Data1:dc.b   1,  1,  2,  2,  3,  3,  3,  3,  2,  2,  1,  1,  0,  0,  0
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 208
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 224
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 240
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Deform_CPZ:				; DATA XREF: ROM:Deform_Indexo
 		move.w	($FFFFEEB0).w,d4
@@ -7060,7 +7028,7 @@ loc_6026:				; CODE XREF: ROM:00006028j
 		move.l	d0,(a1)+
 		dbf	d1,loc_6026
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Deform_Unk:				; unknown BG deform
 		move.w	($FFFFEEB0).w,d4
@@ -7103,7 +7071,7 @@ loc_6088:				; CODE XREF: ROM:0000608Aj
 		lea	(a2,d0.w),a2
 		bra.w	loc_6306
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Deform_TitleScreen:			; CODE XREF: ROM:00003404p
@@ -7123,7 +7091,7 @@ loc_60B6:				; CODE XREF: Deform_TitleScreen+Ej
 		neg.w	d2
 		moveq	#0,d0
 		bra.s	loc_60E4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Deform_EHZ:				; DATA XREF: ROM:Deform_Indexo
 		tst.w	($FFFFFFE8).w
@@ -7246,14 +7214,14 @@ loc_61B2:				; CODE XREF: Deform_TitleScreen+124j
 		rts
 ; End of function Deform_TitleScreen
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Deform_EHZ_Data:dc.b   1,  2,  1,  3,  1,  2,  2,  1,  2,  3,  1,  2,  1,  2,  0,  0; 0
 					; DATA XREF: Deform_TitleScreen+74o
 					; sub_6264+28t
 		dc.b   2,  0,  3,  2,  2,  3,  2,  2,  1,  3,  0,  0,  1,  0,  1,  3; 16
 		dc.b   1,  2,  1,  3,  1,  2,  2,  1,  2,  3,  1,  2,  1,  2,  0,  0; 32
 		dc.b   2,  0,  3,  2,  2,  3,  2,  2,  1,  3,  0,  0,  1,  0,  1,  3; 48
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR Deform_TitleScreen
 
 loc_620E:				; CODE XREF: Deform_TitleScreen+28j
@@ -7282,7 +7250,7 @@ loc_624A:
 		move.w	#$E,d1
 ; END OF FUNCTION CHUNK	FOR Deform_TitleScreen
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6264:				; CODE XREF: Deform_TitleScreen+192p
@@ -7363,7 +7331,7 @@ loc_62F6:				; CODE XREF: sub_6264+9Cj
 		rts
 ; End of function sub_6264
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6306:				; CODE XREF: ROM:000060A0j
 					; ROM:0000640Cj
@@ -7376,7 +7344,7 @@ loc_6306:				; CODE XREF: ROM:000060A0j
 		add.w	d2,d2
 		move.w	(a2)+,d0
 		jmp	loc_6324(pc,d2.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6322:				; CODE XREF: ROM:00006344j
 		move.w	(a2)+,d0
@@ -7400,7 +7368,7 @@ loc_6324:
 		move.l	d0,(a1)+
 		dbf	d1,loc_6322
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Deform_HPZ:				; DATA XREF: ROM:Deform_Indexo
 		move.w	($FFFFEEB0).w,d4
@@ -7485,7 +7453,7 @@ loc_63F2:				; CODE XREF: ROM:000063F4j
 		lsr.w	#3,d0
 		lea	(a2,d0.w),a2
 		bra.w	loc_6306
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Deform_HTZ:				; DATA XREF: ROM:Deform_Indexo
 		move.w	($FFFFEE0C).w,($FFFFF618).w
@@ -7595,7 +7563,7 @@ loc_64D6:				; CODE XREF: ROM:000064D8j
 		dbf	d2,loc_64D0
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ScrollHorizontal:			; CODE XREF: DeformBGLayer+44p
@@ -7613,7 +7581,7 @@ ScrollHorizontal:			; CODE XREF: DeformBGLayer+44p
 		bpl.s	loc_650E
 		bset	#2,(a3)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_650E:				; CODE XREF: ScrollHorizontal+18j
 		bset	#3,(a3)
@@ -7623,7 +7591,7 @@ locret_6512:				; CODE XREF: ScrollHorizontal+Ej
 ; End of function ScrollHorizontal
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6514:				; CODE XREF: ScrollHorizontal+2p
@@ -7640,7 +7608,7 @@ sub_6514:				; CODE XREF: ScrollHorizontal+2p
 		move.w	(a6,d0.w),d0
 		andi.w	#$3FFF,d0
 		bra.s	loc_653A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6536:				; CODE XREF: sub_6514+2j
 		move.w	8(a0),d0
@@ -7653,7 +7621,7 @@ loc_653A:				; CODE XREF: sub_6514+20j
 		bge.s	loc_6564
 		clr.w	(a4)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_654C:				; CODE XREF: sub_6514+2Cj
 		cmpi.w	#$FFF0,d0
@@ -7666,7 +7634,7 @@ loc_6556:				; CODE XREF: sub_6514+3Cj
 		bgt.s	loc_657A
 		move.w	($FFFFEEC8).w,d0
 		bra.s	loc_657A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6564:				; CODE XREF: sub_6514+32j
 		cmpi.w	#$10,d0
@@ -7689,7 +7657,7 @@ loc_657A:				; CODE XREF: sub_6514+48j sub_6514+4Ej ...
 ; End of function sub_6514
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ScrollVertical:				; CODE XREF: DeformBGLayer+54p
@@ -7712,7 +7680,7 @@ loc_6598:				; CODE XREF: ScrollVertical+Ej
 		tst.b	($FFFFEEDE).w
 		bne.s	loc_6614
 		bra.s	loc_65C4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_65B8:				; CODE XREF: ScrollVertical+18j
 		sub.w	($FFFFEED8).w,d0
@@ -7723,7 +7691,7 @@ loc_65B8:				; CODE XREF: ScrollVertical+18j
 loc_65C4:				; CODE XREF: ScrollVertical+30j
 		clr.w	(a4)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_65C8:				; CODE XREF: ScrollVertical+36j
 		cmpi.w	#$60,($FFFFEED8).w ; '`'
@@ -7741,7 +7709,7 @@ loc_65D8:				; CODE XREF: ScrollVertical+4Ej
 		cmpi.w	#$FFFA,d0
 		blt.s	loc_662A
 		bra.s	loc_661A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_65F0:				; CODE XREF: ScrollVertical+48j
 		move.w	#$200,d1
@@ -7750,7 +7718,7 @@ loc_65F0:				; CODE XREF: ScrollVertical+48j
 		cmpi.w	#$FFFE,d0
 		blt.s	loc_662A
 		bra.s	loc_661A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6602:				; CODE XREF: ScrollVertical+22j
 					; ScrollVertical+28j ...
@@ -7760,7 +7728,7 @@ loc_6602:				; CODE XREF: ScrollVertical+22j
 		cmpi.w	#$FFF0,d0
 		blt.s	loc_662A
 		bra.s	loc_661A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6614:				; CODE XREF: ScrollVertical+2Ej
 					; ScrollVertical+3Cj
@@ -7775,7 +7743,7 @@ loc_661A:				; CODE XREF: ScrollVertical+68j
 		tst.w	d0
 		bpl.w	loc_6664
 		bra.w	loc_6634
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_662A:				; CODE XREF: ScrollVertical+66j
 					; ScrollVertical+78j ...
@@ -7795,12 +7763,12 @@ loc_6634:				; CODE XREF: ScrollVertical+A0j
 		andi.w	#$7FF,(a1)
 		andi.w	#$3FF,8(a1)
 		bra.s	loc_6686
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6656:				; CODE XREF: ScrollVertical+B8j
 		move.w	($FFFFEECC).w,d1
 		bra.s	loc_6686
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_665C:				; CODE XREF: ScrollVertical+60j
 					; ScrollVertical+72j ...
@@ -7818,7 +7786,7 @@ loc_6664:				; CODE XREF: ScrollVertical+9Cj
 		subi.w	#$800,(a1)
 		andi.w	#$3FF,8(a1)
 		bra.s	loc_6686
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6682:				; CODE XREF: ScrollVertical+E8j
 		move.w	($FFFFEECE).w,d1
@@ -7843,7 +7811,7 @@ loc_6686:				; CODE XREF: ScrollVertical+B2j
 		bpl.s	loc_66B0
 		bset	#0,(a3)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_66B0:				; CODE XREF: ScrollVertical+122j
 		bset	#1,(a3)
@@ -7853,7 +7821,7 @@ locret_66B4:				; CODE XREF: ScrollVertical+118j
 ; End of function ScrollVertical
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ScrollBlock1:				; CODE XREF: ROM:00005E74p
@@ -7873,7 +7841,7 @@ ScrollBlock1:				; CODE XREF: ROM:00005E74p
 		bpl.s	loc_66E4
 		bset	#2,($FFFFEE52).w
 		bra.s	loc_66EA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_66E4:				; CODE XREF: ScrollBlock1+24j
 		bset	#3,($FFFFEE52).w
@@ -7895,7 +7863,7 @@ loc_66EA:				; CODE XREF: ScrollBlock1+1Aj
 		bpl.s	loc_6718
 		bset	#0,($FFFFEE52).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6718:				; CODE XREF: ScrollBlock1+58j
 		bset	#1,($FFFFEE52).w
@@ -7905,7 +7873,7 @@ locret_671E:				; CODE XREF: ScrollBlock1+4Ej
 ; End of function ScrollBlock1
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ScrollBlock2:				; CODE XREF: ROM:00006362p
@@ -7924,7 +7892,7 @@ ScrollBlock2:				; CODE XREF: ROM:00006362p
 		bpl.s	loc_674C
 		bset	d6,($FFFFEE52).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_674C:				; CODE XREF: ScrollBlock2+24j
 		addq.b	#1,d6
@@ -7934,7 +7902,7 @@ locret_6752:				; CODE XREF: ScrollBlock2+1Aj
 		rts
 ; End of function ScrollBlock2
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 ScrollBlock3:
 		move.w	($FFFFEE0C).w,d3
@@ -7949,7 +7917,7 @@ ScrollBlock3:
 		bpl.s	loc_677C
 		bset	#0,($FFFFEE52).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_677C:				; CODE XREF: ROM:00006772j
 		bset	#1,($FFFFEE52).w
@@ -7957,7 +7925,7 @@ loc_677C:				; CODE XREF: ROM:00006772j
 locret_6782:				; CODE XREF: ROM:00006768j
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ScrollBlock4:				; CODE XREF: ROM:00006354p
@@ -7976,7 +7944,7 @@ ScrollBlock4:				; CODE XREF: ROM:00006354p
 		bpl.s	loc_67B0
 		bset	d6,($FFFFEE52).w
 		bra.s	locret_67B6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_67B0:				; CODE XREF: ScrollBlock4+24j
 		addq.b	#1,d6
@@ -7988,7 +7956,7 @@ locret_67B6:				; CODE XREF: ScrollBlock4+1Aj
 ; End of function ScrollBlock4
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ScrollBlock5:				; CODE XREF: ROM:00005B7Ep
@@ -8008,7 +7976,7 @@ ScrollBlock5:				; CODE XREF: ROM:00005B7Ep
 		bpl.s	loc_67E4
 		bset	d6,($FFFFEE54).w
 		bra.s	locret_67EA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_67E4:				; CODE XREF: ScrollBlock5+24j
 		addq.b	#1,d6
@@ -8020,7 +7988,7 @@ locret_67EA:				; CODE XREF: ScrollBlock5+1Aj
 ; End of function ScrollBlock5
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ScrollBlock6:				; CODE XREF: ROM:00005B70p
@@ -8040,7 +8008,7 @@ ScrollBlock6:				; CODE XREF: ROM:00005B70p
 		bpl.s	loc_6818
 		bset	d6,($FFFFEE56).w
 		bra.s	locret_681E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6818:				; CODE XREF: ScrollBlock6+24j
 		addq.b	#1,d6
@@ -8051,7 +8019,7 @@ locret_681E:				; CODE XREF: ScrollBlock6+1Aj
 		rts
 ; End of function ScrollBlock6
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		lea	(VdpCtrl).l,a5
 		lea	(VdpData).l,a6
 		lea	($FFFFEE52).w,a2
@@ -8063,7 +8031,7 @@ locret_681E:				; CODE XREF: ScrollBlock6+1Aj
 		lea	($FFFFEE10).w,a3
 		bra.w	sub_6A82
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LoadTilesAsYouMove:			; CODE XREF: DemoTimep	ROM:00000F78p
@@ -8112,7 +8080,7 @@ loc_68BE:				; CODE XREF: LoadTilesAsYouMove+8Ej
 		dbf	d6,loc_68BE
 		move.b	#0,($FFFFEEA0).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_68E6:				; CODE XREF: LoadTilesAsYouMove+66j
 		tst.b	(a2)
@@ -8162,7 +8130,7 @@ locret_694A:				; CODE XREF: LoadTilesAsYouMove+9Cj
 ; End of function LoadTilesAsYouMove
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_694C:				; CODE XREF: LoadTilesAsYouMove+4Ep
@@ -8212,7 +8180,7 @@ locret_69B0:				; CODE XREF: sub_694C+2j sub_694C+4Ej
 ; End of function sub_694C
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_69B2:				; CODE XREF: ROM:0000683Cp
@@ -8307,7 +8275,7 @@ locret_6A80:				; CODE XREF: sub_69B2+2j sub_69B2+B6j
 ; End of function sub_69B2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6A82:				; CODE XREF: ROM:00006848j
@@ -8339,14 +8307,14 @@ loc_6AAE:				; CODE XREF: sub_6A82+14j
 
 locret_6ACE:				; CODE XREF: sub_6A82+2j sub_6A82+30j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_6AD0:	dc.b 0			; DATA XREF: sub_6A82:loc_6B66t
 byte_6AD1:	dc.b   0,  0,  0,  0,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  4,  4; 0
 					; DATA XREF: sub_6A82:loc_6B04t
 					; ROM:0000720At
 		dc.b   4,  4,  4,  4,  4,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2; 16
 		even
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6AF2:				; CODE XREF: sub_6A82+Cj
 		moveq	#-16,d4
@@ -8372,7 +8340,7 @@ loc_6B04:				; CODE XREF: sub_6A82+76j
 		movem.l	(sp)+,d4-d5
 		bsr.w	sub_6D8C
 		bra.s	loc_6B4C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6B38:				; CODE XREF: sub_6A82+A0j
 		moveq	#0,d5
@@ -8386,7 +8354,7 @@ loc_6B4C:				; CODE XREF: sub_6A82+7Cj sub_6A82+B4j
 		tst.b	(a2)
 		bne.s	loc_6B52
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6B52:				; CODE XREF: sub_6A82+CCj
 		moveq	#-16,d4
@@ -8408,7 +8376,7 @@ loc_6B66:				; CODE XREF: sub_6A82+DAj
 ; End of function sub_6A82
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6B7C:				; CODE XREF: LoadTilesAsYouMove+34p
@@ -8439,7 +8407,7 @@ loc_6BA8:				; CODE XREF: sub_6B7C+14j
 
 locret_6BC8:				; CODE XREF: sub_6B7C+2j sub_6B7C+30j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_6BCA:	dc.b 0			; DATA XREF: sub_6B7C:loc_6C62t
 byte_6BCB:	dc.b   2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2; 0
 					; DATA XREF: sub_6B7C:loc_6C1Et
@@ -8448,7 +8416,7 @@ byte_6BCB:	dc.b   2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2;
 		dc.b   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4; 32
 		dc.b   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4; 48
 		dc.b 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6C0C:				; CODE XREF: sub_6B7C+Cj
 		moveq	#-16,d4
@@ -8476,7 +8444,7 @@ loc_6C48:				; CODE XREF: sub_6B7C+9Cj
 		tst.b	(a2)
 		bne.s	loc_6C4E
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6C4E:				; CODE XREF: sub_6B7C+CEj
 		moveq	#-16,d4
@@ -8495,9 +8463,9 @@ loc_6C62:				; CODE XREF: sub_6B7C+DCj
 		lsr.w	#4,d0
 		lea	(a0,d0.w),a0
 		bra.w	loc_6C80
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 word_6C78:	dc.w $EE68,$EE68,$EE70,$EE78; 0	; DATA XREF: sub_6A82+96o
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6C80:				; CODE XREF: sub_6A82+F6j sub_6B7C+F8j
 		tst.w	($FFFFFFE8).w
@@ -8524,7 +8492,7 @@ loc_6CB6:				; CODE XREF: sub_6B7C+118j
 		dbf	d6,loc_6C8E
 		clr.b	(a2)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6CC2:				; CODE XREF: sub_6B7C+108j
 		moveq	#$F,d6
@@ -8552,7 +8520,7 @@ loc_6CF2:				; CODE XREF: sub_6B7C+154j
 ; End of function sub_6B7C
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6CFE:				; CODE XREF: LoadTilesAsYouMove+E0p
@@ -8561,7 +8529,7 @@ sub_6CFE:				; CODE XREF: LoadTilesAsYouMove+E0p
 ; End of function sub_6CFE
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6D00:				; CODE XREF: sub_6A82+28p sub_6A82+48p ...
@@ -8593,7 +8561,7 @@ loc_6D18:				; CODE XREF: sub_6D00:loc_6D48j
 loc_6D48:				; CODE XREF: sub_6D00+42j
 		dbf	d6,loc_6D18
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6D4E:				; CODE XREF: sub_6D00+16j
 					; sub_6D00:loc_6D7Ej
@@ -8619,7 +8587,7 @@ loc_6D7E:				; CODE XREF: sub_6D00+78j
 ; End of function sub_6D00
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6D84:				; CODE XREF: sub_69B2+AEp sub_69B2+CAp ...
@@ -8629,7 +8597,7 @@ sub_6D84:				; CODE XREF: sub_69B2+AEp sub_69B2+CAp ...
 ; End of function sub_6D84
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6D8C:				; CODE XREF: LoadTilesAsYouMove+82p
@@ -8639,7 +8607,7 @@ sub_6D8C:				; CODE XREF: LoadTilesAsYouMove+82p
 ; End of function sub_6D8C
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6D90:				; CODE XREF: sub_69B2+7Ap sub_69B2+96p ...
@@ -8703,7 +8671,7 @@ loc_6E0A:				; CODE XREF: sub_6D90+6Ej
 		dbf	d6,loc_6DFA
 		movea.l	(sp)+,a2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6E12:				; CODE XREF: sub_6D90+8j
 		move.l	d0,d1
@@ -8740,7 +8708,7 @@ loc_6E46:				; CODE XREF: sub_6D90+AAj
 loc_6E56:				; CODE XREF: sub_6D90+C0j
 		dbf	d6,loc_6E24
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6E5C:				; CODE XREF: sub_6D90+8Ej
 		bsr.w	sub_6E98
@@ -8773,7 +8741,7 @@ loc_6E92:				; CODE XREF: sub_6D90+FCj
 ; End of function sub_6D90
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6E98:				; CODE XREF: sub_6D00+Ep sub_6D00+44p	...
@@ -8800,7 +8768,7 @@ sub_6E98:				; CODE XREF: sub_6D00+Ep sub_6D00+44p	...
 ; End of function sub_6E98
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6ED0:				; CODE XREF: sub_6D90+30p
@@ -8811,7 +8779,7 @@ sub_6ED0:				; CODE XREF: sub_6D90+30p
 		move.l	(a1)+,(a6)
 		move.l	(a1)+,(a2)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6EE2:				; CODE XREF: sub_6ED0+Aj
 		move.l	(a1)+,d3
@@ -8823,7 +8791,7 @@ loc_6EE2:				; CODE XREF: sub_6ED0+Aj
 		swap	d3
 		move.l	d3,(a2)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6EFC:				; CODE XREF: sub_6ED0+4j
 		btst	#2,(a0)
@@ -8835,7 +8803,7 @@ loc_6EFC:				; CODE XREF: sub_6ED0+4j
 		eori.l	#$10001000,d0
 		move.l	d0,(a2)+
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6F18:				; CODE XREF: sub_6ED0+30j
 		move.l	(a1)+,d0
@@ -8850,7 +8818,7 @@ loc_6F18:				; CODE XREF: sub_6ED0+30j
 ; End of function sub_6ED0
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6F32:				; CODE XREF: sub_6D90+A2p sub_6D90+DEp
@@ -8860,7 +8828,7 @@ sub_6F32:				; CODE XREF: sub_6D90+A2p sub_6D90+DEp
 		bne.s	loc_6F42
 		move.l	(a1)+,(a6)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6F42:				; CODE XREF: sub_6F32+Aj
 		move.l	(a1)+,d3
@@ -8868,7 +8836,7 @@ loc_6F42:				; CODE XREF: sub_6F32+Aj
 		swap	d3
 		move.l	d3,(a6)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6F50:				; CODE XREF: sub_6F32+4j
 		btst	#2,(a0)
@@ -8877,7 +8845,7 @@ loc_6F50:				; CODE XREF: sub_6F32+4j
 		eori.l	#$10001000,d3
 		move.l	d3,(a6)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6F62:				; CODE XREF: sub_6F32+22j
 		move.l	(a1)+,d3
@@ -8888,7 +8856,7 @@ loc_6F62:				; CODE XREF: sub_6F32+22j
 ; End of function sub_6F32
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6F70:				; CODE XREF: sub_6B7C+132p
@@ -8905,7 +8873,7 @@ sub_6F70:				; CODE XREF: sub_6B7C+132p
 		move.l	d0,(a5)
 		move.l	(a1)+,(a6)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6F8C:				; CODE XREF: sub_6F70+Ej
 		move.l	d0,(a5)
@@ -8920,7 +8888,7 @@ loc_6F8C:				; CODE XREF: sub_6F70+Ej
 		swap	d3
 		move.l	d3,(a6)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6FAC:				; CODE XREF: sub_6F70+8j
 		btst	#2,(a0)
@@ -8937,7 +8905,7 @@ loc_6FAC:				; CODE XREF: sub_6F70+8j
 		move.l	d5,(a6)
 		move.l	(sp)+,d5
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_6FD2:				; CODE XREF: sub_6F70+40j
 		move.l	d5,-(sp)
@@ -8957,7 +8925,7 @@ loc_6FD2:				; CODE XREF: sub_6F70+40j
 ; End of function sub_6F70
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_6FF6:				; CODE XREF: sub_6B7C+16Ep
@@ -8971,7 +8939,7 @@ sub_6FF6:				; CODE XREF: sub_6B7C+16Ep
 		move.l	d0,(a5)
 		move.l	(a1)+,(a6)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_700C:				; CODE XREF: sub_6FF6+Ej
 		move.l	d0,(a5)
@@ -8980,7 +8948,7 @@ loc_700C:				; CODE XREF: sub_6FF6+Ej
 		swap	d3
 		move.l	d3,(a6)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_701C:				; CODE XREF: sub_6FF6+8j
 		btst	#2,(a0)
@@ -8990,7 +8958,7 @@ loc_701C:				; CODE XREF: sub_6FF6+8j
 		eori.l	#$10001000,d3
 		move.l	d3,(a6)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7030:				; CODE XREF: sub_6FF6+2Aj
 		move.l	d0,(a5)
@@ -9002,7 +8970,7 @@ loc_7030:				; CODE XREF: sub_6FF6+2Aj
 ; End of function sub_6FF6
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_7040:				; CODE XREF: sub_6B7C+126p
@@ -9035,7 +9003,7 @@ sub_7040:				; CODE XREF: sub_6B7C+126p
 ; End of function sub_7040
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_7084:				; CODE XREF: LoadTilesAsYouMove+7Ap
@@ -9044,7 +9012,7 @@ sub_7084:				; CODE XREF: LoadTilesAsYouMove+7Ap
 ; End of function sub_7084
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_7086:				; CODE XREF: sub_69B2+70p sub_69B2+8Ap ...
@@ -9060,7 +9028,7 @@ sub_7086:				; CODE XREF: sub_69B2+70p sub_69B2+8Ap ...
 		swap	d0
 		move.w	d4,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_70A6:				; CODE XREF: sub_7086+4j
 		add.w	4(a3),d4
@@ -9076,7 +9044,7 @@ loc_70A6:				; CODE XREF: sub_7086+4j
 ; End of function sub_7086
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_70C0:				; CODE XREF: sub_694C+Ep sub_694C+26p	...
@@ -9093,7 +9061,7 @@ sub_70C0:				; CODE XREF: sub_694C+Ep sub_694C+26p	...
 		swap	d0
 		move.w	d4,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_70E2:				; CODE XREF: sub_70C0+4j
 		add.w	4(a3),d4
@@ -9110,7 +9078,7 @@ loc_70E2:				; CODE XREF: sub_70C0+4j
 ; End of function sub_70C0
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LoadTilesFromStart:			; CODE XREF: ROM:00003D48p
@@ -9139,7 +9107,7 @@ loc_711E:				; CODE XREF: LoadTilesFromStart+10j
 ; End of function LoadTilesFromStart
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LoadTilesFromStart2:			; CODE XREF: LoadTilesFromStart+2Cp
@@ -9164,7 +9132,7 @@ loc_7144:				; CODE XREF: LoadTilesFromStart2+2Aj
 ; End of function LoadTilesFromStart2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LoadTilesFromStart_2p:			; CODE XREF: LoadTilesFromStart+1Ep
@@ -9188,7 +9156,7 @@ loc_7174:				; CODE XREF: LoadTilesFromStart_2p+2Aj
 		rts
 ; End of function LoadTilesFromStart_2p
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR LoadTilesFromStart
 
 loc_71A0:				; CODE XREF: LoadTilesFromStart+3Ej
@@ -9207,10 +9175,10 @@ loc_71A4:				; CODE XREF: LoadTilesFromStart+C6j
 		dbf	d6,loc_71A4
 		rts
 ; END OF FUNCTION CHUNK	FOR LoadTilesFromStart
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_71CA:	dc.b   0,  0,  0,  0,  6,  6,  6,  4,  4,  4,  0,  0,  0,  0,  0,  0; 0
 					; DATA XREF: LoadTilesFromStart+AAo
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		moveq	#-16,d4
 		moveq	#$F,d6
 
@@ -9225,7 +9193,7 @@ loc_71DE:				; CODE XREF: ROM:000071FCj
 		addi.w	#$10,d4
 		dbf	d6,loc_71DE
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		moveq	#-16,d4
 		moveq	#$F,d6
 
@@ -9240,13 +9208,13 @@ loc_7206:				; CODE XREF: ROM:00007224j
 		addi.w	#$10,d4
 		dbf	d6,loc_7206
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 word_722A:	dc.w $EE08
 		dc.w $EE08
 		dc.w $EE10
 		dc.w $EE18
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_7232:				; CODE XREF: LoadTilesFromStart+BAp
@@ -9263,7 +9231,7 @@ sub_7232:				; CODE XREF: LoadTilesFromStart+BAp
 		bsr.w	sub_6D8C
 		enable_ints
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_725A:				; CODE XREF: sub_7232+Aj
 		moveq	#0,d5
@@ -9276,7 +9244,7 @@ loc_725A:				; CODE XREF: sub_7232+Aj
 ; End of function sub_7232
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 MainLevelLoadBlock:			; CODE XREF: ROM:00003D3Ep
@@ -9291,14 +9259,14 @@ MainLevelLoadBlock:			; CODE XREF: ROM:00003D3Ep
 		tst.b	($FFFFFE10).w
 		beq.s	.Convert16
 		bra.s	.Convert16
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 .Skip16Convert:				; leftover from	a previous build
 		lea	($FFFF9000).w,a1
 		move.w	#0,d0
 		bsr.w	EniDec
 		bra.s	loc_72C2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 .Convert16:				; CODE XREF: MainLevelLoadBlock+1Cj
 					; MainLevelLoadBlock+1Ej
@@ -9364,7 +9332,7 @@ loc_732C:				; CODE XREF: MainLevelLoadBlock+C2j
 		bmi.s	loc_732C
 		movea.l	(sp)+,a2
 		bra.s	loc_7348
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7338:				; CODE XREF: MainLevelLoadBlock+8Cj
 					; MainLevelLoadBlock+94j ...
@@ -9407,7 +9375,7 @@ locret_7382:				; CODE XREF: MainLevelLoadBlock+10Cj
 ; End of function MainLevelLoadBlock
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LevelLayoutLoad:			; CODE XREF: MainLevelLoadBlock:loc_7348p
@@ -9426,7 +9394,7 @@ loc_738E:				; CODE XREF: LevelLayoutLoad+Cj
 ; End of function LevelLayoutLoad
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LevelLayoutLoad2:			; CODE XREF: LevelLayoutLoad+16p
@@ -9470,7 +9438,7 @@ loc_73E6:				; CODE XREF: LevelLayoutLoad2+44j
 		lea	$100(a3),a3
 		dbf	d2,loc_73DE
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 LevelLayoutLoad_GHZ:			; CODE XREF: LevelLayoutLoad2+4j
 		move.w	($FFFFFE10).w,d0
@@ -9502,7 +9470,7 @@ loc_742A:				; CODE XREF: LevelLayoutLoad2:loc_7456j
 		move.b	d3,$FE(a0)
 		move.b	d3,$FF(a0)
 		bra.s	loc_7456
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7440:				; CODE XREF: LevelLayoutLoad2+8Aj
 		lsl.b	#2,d3
@@ -9522,7 +9490,7 @@ loc_7456:				; CODE XREF: LevelLayoutLoad2+9Aj
 		rts
 ; End of function LevelLayoutLoad2
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 LevelLayout_Convert:			; leftover level layout	converting function (from raw to the way it's stored in the game)
 		lea	($FE0000).l,a1
@@ -9547,7 +9515,7 @@ loc_74A2:				; CODE XREF: ROM:000074A4j
 		move.w	(a1)+,(a2)+
 		dbf	d1,loc_74A2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		lea	($FE0000).l,a1
 		lea	($FFFF0000).l,a3
 		moveq	#$1F,d0
@@ -9576,7 +9544,7 @@ loc_74DA:				; CODE XREF: ROM:000074DEj
 		adda.w	#$80,a1	; 'Ђ'
 		dbf	d5,loc_74CA
 		bra.s	loc_750A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_74F0:				; CODE XREF: ROM:000074DCj
 		movem.l	(sp)+,a1-a3
@@ -9594,7 +9562,7 @@ loc_750A:				; CODE XREF: ROM:000074EEj
 					; ROM:loc_750Aj
 		bra.s	loc_750A
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_750C:				; CODE XREF: ROM:loc_747Ap
@@ -9615,7 +9583,7 @@ loc_750E:				; CODE XREF: sub_750C+12j
 ; End of function sub_750C
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 DynScreenResizeLoad:			; CODE XREF: DeformBGLayer:loc_5B2Ap
@@ -9642,7 +9610,7 @@ loc_7560:				; CODE XREF: DynScreenResizeLoad+28j
 
 locret_756A:				; CODE XREF: DynScreenResizeLoad+1Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_756C:				; CODE XREF: DynScreenResizeLoad+1Cj
 		move.w	($FFFFEE04).w,d0
@@ -9661,7 +9629,7 @@ loc_7586:				; CODE XREF: DynScreenResizeLoad+4Cj
 		rts
 ; End of function DynScreenResizeLoad
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_Index:dc.w DynResize_GHZ-DynResize_Index; 0 ;	DATA XREF: ROM:DynResize_Indexo
 					; ROM:DynResize_Index+2o ...
 		dc.w DynResize_LZ-DynResize_Index; 1
@@ -9670,7 +9638,7 @@ DynResize_Index:dc.w DynResize_GHZ-DynResize_Index; 0 ;	DATA XREF: ROM:DynResize
 		dc.w DynResize_HPZ-DynResize_Index; 4
 		dc.w DynResize_HTZ-DynResize_Index; 5
 		dc.w DynResize_S1Ending-DynResize_Index; 6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_GHZ:				; DATA XREF: ROM:DynResize_Indexo
 		moveq	#0,d0
@@ -9678,13 +9646,13 @@ DynResize_GHZ:				; DATA XREF: ROM:DynResize_Indexo
 		add.w	d0,d0
 		move.w	DynResize_GHZ_Index(pc,d0.w),d0
 		jmp	DynResize_GHZ_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_GHZ_Index:dc.w DynResize_GHZ1-DynResize_GHZ_Index; 0
 					; DATA XREF: ROM:DynResize_GHZ_Indexo
 					; ROM:DynResize_GHZ_Index+2o ...
 		dc.w DynResize_GHZ2-DynResize_GHZ_Index; 1
 		dc.w DynResize_GHZ3-DynResize_GHZ_Index; 2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_GHZ1:				; DATA XREF: ROM:DynResize_GHZ_Indexo
 		move.w	#$300,($FFFFEEC6).w
@@ -9694,7 +9662,7 @@ DynResize_GHZ1:				; DATA XREF: ROM:DynResize_GHZ_Indexo
 
 locret_75CA:				; CODE XREF: ROM:000075C2j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_GHZ2:				; DATA XREF: ROM:DynResize_GHZ_Indexo
 		move.w	#$300,($FFFFEEC6).w
@@ -9711,20 +9679,20 @@ DynResize_GHZ2:				; DATA XREF: ROM:DynResize_GHZ_Indexo
 locret_75FC:				; CODE XREF: ROM:000075D8j
 					; ROM:000075E6j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_GHZ3:				; DATA XREF: ROM:DynResize_GHZ_Indexo
 		moveq	#0,d0
 		move.b	($FFFFEEDF).w,d0
 		move.w	DynResize_GHZ3_Index(pc,d0.w),d0
 		jmp	DynResize_GHZ3_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_GHZ3_Index:dc.w DynResize_GHZ3_Main-DynResize_GHZ3_Index; 0
 					; DATA XREF: ROM:DynResize_GHZ3_Indexo
 					; ROM:DynResize_GHZ3_Index+2o ...
 		dc.w DynResize_GHZ3_Boss-DynResize_GHZ3_Index; 1
 		dc.w DynResize_GHZ3_End-DynResize_GHZ3_Index; 2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_GHZ3_Main:			; DATA XREF: ROM:DynResize_GHZ3_Indexo
 		move.w	#$300,($FFFFEEC6).w
@@ -9748,14 +9716,14 @@ loc_7650:				; CODE XREF: ROM:00007642j
 locret_7658:				; CODE XREF: ROM:0000761Ej
 					; ROM:0000762Cj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_765A:				; CODE XREF: ROM:00007634j
 					; ROM:00007656j
 		move.w	#$300,($FFFFEEC6).w
 		addq.b	#2,($FFFFEEDF).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_GHZ3_Boss:			; DATA XREF: ROM:DynResize_GHZ3_Indexo
 		cmpi.w	#$960,($FFFFEE00).w
@@ -9778,16 +9746,16 @@ loc_7692:				; CODE XREF: ROM:0000767Ej
 		addq.b	#2,($FFFFEEDF).w
 		moveq	#$11,d0
 		bra.w	LoadPLC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_76AA:				; CODE XREF: ROM:00007678j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_GHZ3_End:			; DATA XREF: ROM:DynResize_GHZ3_Indexo
 		move.w	($FFFFEE00).w,($FFFFEEC8).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_LZ:				; DATA XREF: ROM:DynResize_Indexo
 		moveq	#0,d0
@@ -9795,18 +9763,18 @@ DynResize_LZ:				; DATA XREF: ROM:DynResize_Indexo
 		add.w	d0,d0
 		move.w	DynResize_LZ_Index(pc,d0.w),d0
 		jmp	DynResize_LZ_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_LZ_Index:dc.w	DynResize_LZ_Null-DynResize_LZ_Index; 0
 					; DATA XREF: ROM:DynResize_LZ_Indexo
 					; ROM:DynResize_LZ_Index+2o ...
 		dc.w DynResize_LZ_Null-DynResize_LZ_Index; 1
 		dc.w DynResize_LZ3-DynResize_LZ_Index; 2
 		dc.w DynResize_LZ4-DynResize_LZ_Index; 3
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_LZ_Null:			; DATA XREF: ROM:DynResize_LZ_Indexo
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_LZ3:				; DATA XREF: ROM:DynResize_LZ_Indexo
 		tst.b	($FFFFF7EF).w
@@ -9837,16 +9805,16 @@ loc_770C:				; CODE XREF: ROM:00007704j
 		addq.b	#2,($FFFFEEDF).w
 		moveq	#$11,d0
 		bra.w	LoadPLC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_7724:				; CODE XREF: ROM:000076F6j
 					; ROM:000076FEj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_7726:				; CODE XREF: ROM:000076EEj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_LZ4:				; DATA XREF: ROM:DynResize_LZ_Indexo
 		cmpi.w	#$D00,($FFFFEE00).w
@@ -9861,7 +9829,7 @@ DynResize_LZ4:				; DATA XREF: ROM:DynResize_LZ_Indexo
 locret_774E:				; CODE XREF: ROM:0000772Ej
 					; ROM:00007736j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_CPZ:				; DATA XREF: ROM:DynResize_Indexo
 		moveq	#0,d0
@@ -9869,30 +9837,30 @@ DynResize_CPZ:				; DATA XREF: ROM:DynResize_Indexo
 		add.w	d0,d0
 		move.w	DynResize_CPZ_Index(pc,d0.w),d0
 		jmp	DynResize_CPZ_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_CPZ_Index:dc.w DynResize_CPZ1-DynResize_CPZ_Index; 0
 					; DATA XREF: ROM:DynResize_CPZ_Indexo
 					; ROM:DynResize_CPZ_Index+2o ...
 		dc.w DynResize_CPZ2-DynResize_CPZ_Index; 1
 		dc.w DynResize_CPZ3-DynResize_CPZ_Index; 2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_CPZ1:				; DATA XREF: ROM:DynResize_CPZ_Indexo
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1DynResize_MZ1:			; leftover from	Sonic 1
 		moveq	#0,d0
 		move.b	($FFFFEEDF).w,d0
 		move.w	off_7776(pc,d0.w),d0
 		jmp	off_7776(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_7776:	dc.w loc_777E-off_7776	; 0 ; DATA XREF: ROM:off_7776o
 					; ROM:off_7776+2o ...
 		dc.w loc_77AE-off_7776	; 1
 		dc.w loc_77F2-off_7776	; 2
 		dc.w loc_781C-off_7776	; 3
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_777E:				; DATA XREF: ROM:off_7776o
 		move.w	#$1D0,($FFFFEEC6).w
@@ -9909,14 +9877,14 @@ loc_777E:				; DATA XREF: ROM:off_7776o
 locret_77AC:				; CODE XREF: ROM:0000778Aj
 					; ROM:00007798j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_77AE:				; DATA XREF: ROM:off_7776o
 		cmpi.w	#$340,($FFFFEE04).w
 		bcc.s	loc_77BC
 		subq.b	#2,($FFFFEEDF).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_77BC:				; CODE XREF: ROM:000077B4j
 		move.w	#0,($FFFFEECC).w
@@ -9934,14 +9902,14 @@ loc_77BC:				; CODE XREF: ROM:000077B4j
 locret_77F0:				; CODE XREF: ROM:000077C8j
 					; ROM:000077DCj ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_77F2:				; DATA XREF: ROM:off_7776o
 		cmpi.w	#$370,($FFFFEE04).w
 		bcc.s	loc_7800
 		subq.b	#2,($FFFFEEDF).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7800:				; CODE XREF: ROM:000077F8j
 		cmpi.w	#$500,($FFFFEE04).w
@@ -9954,7 +9922,7 @@ loc_7800:				; CODE XREF: ROM:000077F8j
 locret_781A:				; CODE XREF: ROM:00007806j
 					; ROM:0000780Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_781C:				; DATA XREF: ROM:off_7776o
 		cmpi.w	#$B80,($FFFFEE00).w
@@ -9963,7 +9931,7 @@ loc_781C:				; DATA XREF: ROM:off_7776o
 		beq.s	locret_786A
 		subq.w	#2,($FFFFEECC).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7832:				; CODE XREF: ROM:00007822j
 		cmpi.w	#$500,($FFFFEECC).w
@@ -9984,11 +9952,11 @@ loc_7848:				; CODE XREF: ROM:00007838j
 locret_786A:				; CODE XREF: ROM:0000782Aj
 					; ROM:00007840j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_CPZ2:				; DATA XREF: ROM:DynResize_CPZ_Indexo
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1DynResize_MZ2:			; leftover from	Sonic 1
 		move.w	#$520,($FFFFEEC6).w
@@ -9998,18 +9966,18 @@ S1DynResize_MZ2:			; leftover from	Sonic 1
 
 locret_7882:				; CODE XREF: ROM:0000787Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_CPZ3:				; DATA XREF: ROM:DynResize_CPZ_Indexo
 		moveq	#0,d0
 		move.b	($FFFFEEDF).w,d0
 		move.w	off_7892(pc,d0.w),d0
 		jmp	off_7892(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_7892:	dc.w DynResize_CPZ3_BossCheck-off_7892;	0 ; DATA XREF: ROM:off_7892o
 					; ROM:off_7892+2o
 		dc.w DynResize_CPZ3_Null-off_7892; 1
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_CPZ3_BossCheck:		; DATA XREF: ROM:off_7892o
 		cmpi.w	#$480,($FFFFEE00).w
@@ -10029,12 +9997,12 @@ DynResize_CPZ3_BossCheck:		; DATA XREF: ROM:off_7892o
 		move.w	#$540,$C(a1)
 		moveq	#$11,d0
 		bra.w	LoadPLC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_CPZ3_Null:			; CODE XREF: ROM:0000789Cj
 					; ROM:000078A4j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_EHZ:				; DATA XREF: ROM:DynResize_Indexo
 		moveq	#0,d0
@@ -10042,29 +10010,29 @@ DynResize_EHZ:				; DATA XREF: ROM:DynResize_Indexo
 		add.w	d0,d0
 		move.w	off_78F0(pc,d0.w),d0
 		jmp	off_78F0(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_78F0:	dc.w DynResize_EHZ1-off_78F0 ; DATA XREF: ROM:off_78F0o
 					; ROM:000078F2o ...
 		dc.w DynResize_EHZ2-off_78F0
 		dc.w locret_7980-off_78F0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_EHZ1:				; DATA XREF: ROM:off_78F0o
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_EHZ2:				; DATA XREF: ROM:000078F2o
 		moveq	#0,d0
 		move.b	($FFFFEEDF).w,d0
 		move.w	DynResize_EHZ2_Index(pc,d0.w),d0
 		jmp	DynResize_EHZ2_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_EHZ2_Index:dc.w DynResize_EHZ2_01-DynResize_EHZ2_Index
 					; DATA XREF: ROM:DynResize_EHZ2_Indexo
 					; ROM:00007908o ...
 		dc.w DynResize_EHZ2_02-DynResize_EHZ2_Index
 		dc.w DynResize_EHZ2_03-DynResize_EHZ2_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_EHZ2_01:			; DATA XREF: ROM:DynResize_EHZ2_Indexo
 		cmpi.w	#$26E0,($FFFFEE00).w
@@ -10086,11 +10054,11 @@ loc_7946:				; CODE XREF: ROM:0000792Ej
 		move.b	#1,($FFFFF7AA).w
 		moveq	#$11,d0
 		bra.w	LoadPLC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_795A:				; CODE XREF: ROM:00007912j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_EHZ2_02:			; DATA XREF: ROM:00007908o
 		cmpi.w	#$2880,($FFFFEE00).w
@@ -10100,7 +10068,7 @@ DynResize_EHZ2_02:			; DATA XREF: ROM:00007908o
 
 locret_796E:				; CODE XREF: ROM:00007962j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_EHZ2_03:			; DATA XREF: ROM:0000790Ao
 		tst.b	($FFFFF7A7).w
@@ -10109,25 +10077,25 @@ DynResize_EHZ2_03:			; DATA XREF: ROM:0000790Ao
 
 DynResize_EHZ3:				; CODE XREF: ROM:00007974j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_7980:				; DATA XREF: ROM:000078F4o
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1DynResize_SLZ3:			; leftover from	Sonic 1
 		moveq	#0,d0
 		move.b	($FFFFEEDF).w,d0
 		move.w	off_7990(pc,d0.w),d0
 		jmp	off_7990(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_7990:	dc.w loc_7996-off_7990	; DATA XREF: ROM:off_7990o
 					; ROM:00007992o ...
 		dc.w loc_79AA-off_7990
 		dc.w loc_79D6-off_7990
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7996:				; DATA XREF: ROM:off_7990o
 		cmpi.w	#$1E70,($FFFFEE00).w
@@ -10137,7 +10105,7 @@ loc_7996:				; DATA XREF: ROM:off_7990o
 
 locret_79A8:				; CODE XREF: ROM:0000799Cj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_79AA:				; DATA XREF: ROM:00007992o
 		cmpi.w	#$2000,($FFFFEE00).w
@@ -10153,18 +10121,18 @@ loc_79BC:				; CODE XREF: ROM:000079B6j
 		addq.b	#2,($FFFFEEDF).w
 		moveq	#$11,d0
 		bra.w	LoadPLC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_79D4:				; CODE XREF: ROM:000079B0j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_79D6:				; DATA XREF: ROM:00007994o
 		move.w	($FFFFEE00).w,($FFFFEEC8).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_HPZ:				; DATA XREF: ROM:DynResize_Indexo
 		moveq	#0,d0
@@ -10172,17 +10140,17 @@ DynResize_HPZ:				; DATA XREF: ROM:DynResize_Indexo
 		add.w	d0,d0
 		move.w	DynResize_HPZ_Index(pc,d0.w),d0
 		jmp	DynResize_HPZ_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_HPZ_Index:dc.w DynResize_HPZ1-DynResize_HPZ_Index
 					; DATA XREF: ROM:DynResize_HPZ_Indexo
 					; ROM:000079F2o ...
 		dc.w DynResize_HPZ2-DynResize_HPZ_Index
 		dc.w DynResize_HPZ3-DynResize_HPZ_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_HPZ1:				; DATA XREF: ROM:DynResize_HPZ_Indexo
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_HPZ2:				; DATA XREF: ROM:000079F2o
 		move.w	#$520,($FFFFEEC6).w
@@ -10196,20 +10164,20 @@ DynResize_HPZ2:				; DATA XREF: ROM:000079F2o
 locret_7A1A:				; CODE XREF: ROM:00007A04j
 					; ROM:00007A12j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_HPZ3:				; DATA XREF: ROM:000079F4o
 		moveq	#0,d0
 		move.b	($FFFFEEDF).w,d0
 		move.w	DynResize_HPZ3_Index(pc,d0.w),d0
 		jmp	DynResize_HPZ3_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_HPZ3_Index:dc.w loc_7A30-DynResize_HPZ3_Index
 					; DATA XREF: ROM:DynResize_HPZ3_Indexo
 					; ROM:00007A2Co ...
 		dc.w loc_7A48-DynResize_HPZ3_Index
 		dc.w loc_7A7A-DynResize_HPZ3_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7A30:				; DATA XREF: ROM:DynResize_HPZ3_Indexo
 		cmpi.w	#$2AC0,($FFFFEE00).w
@@ -10222,7 +10190,7 @@ loc_7A30:				; DATA XREF: ROM:DynResize_HPZ3_Indexo
 locret_7A46:				; CODE XREF: ROM:00007A36j
 					; ROM:00007A3Cj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7A48:				; DATA XREF: ROM:00007A2Co
 		cmpi.w	#$2C00,($FFFFEE00).w
@@ -10239,16 +10207,16 @@ loc_7A64:				; CODE XREF: ROM:00007A5Aj
 		move.b	#1,($FFFFF7AA).w
 		moveq	#$11,d0
 		bra.w	LoadPLC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_7A78:				; CODE XREF: ROM:00007A4Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7A7A:				; DATA XREF: ROM:00007A2Eo
 		move.w	($FFFFEE00).w,($FFFFEEC8).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_HTZ:				; DATA XREF: ROM:DynResize_Indexo
 		moveq	#0,d0
@@ -10256,13 +10224,13 @@ DynResize_HTZ:				; DATA XREF: ROM:DynResize_Indexo
 		add.w	d0,d0
 		move.w	DynResize_HTZ_Index(pc,d0.w),d0
 		jmp	DynResize_HTZ_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_HTZ_Index:dc.w DynResize_HTZ1-DynResize_HTZ_Index
 					; DATA XREF: ROM:DynResize_HTZ_Indexo
 					; ROM:00007A94o ...
 		dc.w DynResize_HTZ2-DynResize_HTZ_Index
 		dc.w DynResize_HTZ3-DynResize_HTZ_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_HTZ1:				; DATA XREF: ROM:DynResize_HTZ_Indexo
 		move.w	#$720,($FFFFEEC6).w
@@ -10276,21 +10244,21 @@ DynResize_HTZ1:				; DATA XREF: ROM:DynResize_HTZ_Indexo
 locret_7ABA:				; CODE XREF: ROM:00007AA4j
 					; ROM:00007AB2j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_HTZ2:				; DATA XREF: ROM:00007A94o
 		moveq	#0,d0
 		move.b	($FFFFEEDF).w,d0
 		move.w	DynResize_HTZ2_Index(pc,d0.w),d0
 		jmp	DynResize_HTZ2_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_HTZ2_Index:dc.w loc_7AD2-DynResize_HTZ2_Index
 					; DATA XREF: ROM:DynResize_HTZ2_Indexo
 					; ROM:00007ACCo ...
 		dc.w loc_7AF4-DynResize_HTZ2_Index
 		dc.w loc_7B12-DynResize_HTZ2_Index
 		dc.w loc_7B30-DynResize_HTZ2_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7AD2:				; DATA XREF: ROM:DynResize_HTZ2_Indexo
 		move.w	#$800,($FFFFEEC6).w
@@ -10304,7 +10272,7 @@ loc_7AD2:				; DATA XREF: ROM:DynResize_HTZ2_Indexo
 locret_7AF2:				; CODE XREF: ROM:00007ADEj
 					; ROM:00007AECj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7AF4:				; DATA XREF: ROM:00007ACCo
 		cmpi.w	#$1EB0,($FFFFEE00).w
@@ -10315,12 +10283,12 @@ loc_7AF4:				; DATA XREF: ROM:00007ACCo
 		addq.b	#2,($FFFFEEDF).w
 		moveq	#$1E,d0
 		bra.w	LoadPLC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_7B10:				; CODE XREF: ROM:00007AFAj
 					; ROM:00007B00j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7B12:				; DATA XREF: ROM:00007ACEo
 		cmpi.w	#$1F60,($FFFFEE00).w
@@ -10335,26 +10303,26 @@ loc_7B28:				; CODE XREF: ROM:00007B1Ej
 
 loc_7B2E:				; CODE XREF: ROM:00007B18j
 		bra.s	loc_7B3A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7B30:				; DATA XREF: ROM:00007AD0o
 		cmpi.w	#$2050,($FFFFEE00).w
 		bcs.s	loc_7B3A
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7B3A:				; CODE XREF: ROM:loc_7B2Ej
 					; ROM:00007B36j ...
 		move.w	($FFFFEE00).w,($FFFFEEC8).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_HTZ3:				; DATA XREF: ROM:00007A96o
 		moveq	#0,d0
 		move.b	($FFFFEEDF).w,d0
 		move.w	DynResize_HTZ3_Index(pc,d0.w),d0
 		jmp	DynResize_HTZ3_Index(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DynResize_HTZ3_Index:dc.w loc_7B5A-DynResize_HTZ3_Index
 					; DATA XREF: ROM:DynResize_HTZ3_Indexo
 					; ROM:00007B52o ...
@@ -10362,7 +10330,7 @@ DynResize_HTZ3_Index:dc.w loc_7B5A-DynResize_HTZ3_Index
 		dc.w loc_7B8C-DynResize_HTZ3_Index
 		dc.w locret_7B9A-DynResize_HTZ3_Index
 		dc.w loc_7B9C-DynResize_HTZ3_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7B5A:				; DATA XREF: ROM:DynResize_HTZ3_Indexo
 		cmpi.w	#$2148,($FFFFEE00).w
@@ -10373,7 +10341,7 @@ loc_7B5A:				; DATA XREF: ROM:DynResize_HTZ3_Indexo
 
 loc_7B6C:				; CODE XREF: ROM:00007B60j
 		bra.s	loc_7B3A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7B6E:				; DATA XREF: ROM:00007B52o
 		cmpi.w	#$2300,($FFFFEE00).w
@@ -10387,7 +10355,7 @@ loc_7B6E:				; DATA XREF: ROM:00007B52o
 loc_7B8A:				; CODE XREF: ROM:00007B74j
 					; ROM:00007B7Aj
 		bra.s	loc_7B3A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7B8C:				; DATA XREF: ROM:00007B54o
 		cmpi.w	#$2450,($FFFFEE00).w
@@ -10396,19 +10364,19 @@ loc_7B8C:				; DATA XREF: ROM:00007B54o
 
 loc_7B98:				; CODE XREF: ROM:00007B92j
 		bra.s	loc_7B3A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_7B9A:				; DATA XREF: ROM:00007B56o
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7B9C:				; DATA XREF: ROM:00007B58o
 		bra.s	loc_7B3A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DynResize_S1Ending:			; DATA XREF: ROM:DynResize_Indexo
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 11 - Bridge
 ;----------------------------------------------------
@@ -10420,18 +10388,18 @@ Obj11:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj11_Index(pc,d0.w),d1
 		jmp	Obj11_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7BB8:				; CODE XREF: ROM:00007BA6j
 		moveq	#3,d0
 		bra.w	DisplaySprite_Param
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj11_Index:	dc.w loc_7BC6-Obj11_Index ; DATA XREF: ROM:Obj11_Indexo
 					; ROM:00007BC0o ...
 		dc.w loc_7CC8-Obj11_Index
 		dc.w loc_7D5A-Obj11_Index
 		dc.w loc_7D5E-Obj11_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7BC6:				; DATA XREF: ROM:Obj11_Indexo
 		addq.b	#2,$24(a0)
@@ -10488,7 +10456,7 @@ loc_7C14:				; CODE XREF: ROM:00007C00j
 loc_7C74:				; CODE XREF: ROM:00007C5Aj
 		bra.s	loc_7CC8
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_7C76:				; CODE XREF: ROM:00007C46p
@@ -10518,7 +10486,7 @@ locret_7CC6:				; CODE XREF: sub_7C76+4j
 		rts
 ; End of function sub_7C76
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7CC8:				; CODE XREF: ROM:loc_7C74j
 					; DATA XREF: ROM:00007BC0o
@@ -10529,7 +10497,7 @@ loc_7CC8:				; CODE XREF: ROM:loc_7C74j
 		beq.s	loc_7D0A
 		subq.b	#4,$3E(a0)
 		bra.s	loc_7D06
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7CDE:				; CODE XREF: ROM:00007CD0j
 		andi.b	#$10,d0
@@ -10540,7 +10508,7 @@ loc_7CDE:				; CODE XREF: ROM:00007CD0j
 		bcc.s	loc_7CF6
 		addq.b	#1,$3F(a0)
 		bra.s	loc_7CFA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7CF6:				; CODE XREF: ROM:00007CEEj
 		subq.b	#1,$3F(a0)
@@ -10570,7 +10538,7 @@ loc_7D22:				; CODE XREF: ROM:00007DBCj
 		tst.w	($FFFFFFE8).w
 		beq.s	loc_7D2A
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7D2A:				; CODE XREF: ROM:00007D26j
 		move.w	8(a0),d0
@@ -10579,7 +10547,7 @@ loc_7D2A:				; CODE XREF: ROM:00007D26j
 		cmpi.w	#$280,d0
 		bhi.s	loc_7D3E
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7D3E:				; CODE XREF: ROM:00007D3Aj
 		movea.l	$30(a0),a1
@@ -10591,11 +10559,11 @@ loc_7D3E:				; CODE XREF: ROM:00007D3Aj
 
 loc_7D56:				; CODE XREF: ROM:00007D4Cj
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7D5A:				; DATA XREF: ROM:00007BC2o
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7D5E:				; DATA XREF: ROM:00007BC4o
 		move.b	$22(a0),d0
@@ -10605,7 +10573,7 @@ loc_7D5E:				; DATA XREF: ROM:00007BC4o
 		beq.s	loc_7DA0
 		subq.b	#4,$3E(a0)
 		bra.s	loc_7D9C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7D74:				; CODE XREF: ROM:00007D66j
 		andi.b	#$10,d0
@@ -10616,7 +10584,7 @@ loc_7D74:				; CODE XREF: ROM:00007D66j
 		bcc.s	loc_7D8C
 		addq.b	#1,$3F(a0)
 		bra.s	loc_7D90
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7D8C:				; CODE XREF: ROM:00007D84j
 		subq.b	#1,$3F(a0)
@@ -10644,7 +10612,7 @@ loc_7DA0:				; CODE XREF: ROM:00007D6Cj
 		bsr.w	sub_7E60
 		bra.w	loc_7D22
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_7DC0:				; CODE XREF: ROM:00007D1Ep
@@ -10661,7 +10629,7 @@ sub_7DC0:				; CODE XREF: ROM:00007D1Ep
 ; End of function sub_7DC0
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_7DDA:				; CODE XREF: sub_7DC0+Cp
@@ -10682,7 +10650,7 @@ loc_7DFA:				; CODE XREF: sub_7DDA+Cj sub_7DDA+1Aj
 		bclr	d6,$22(a0)
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7E08:				; CODE XREF: sub_7DDA+1Ej
 		lsr.w	#4,d0
@@ -10706,7 +10674,7 @@ loc_7E20:				; CODE XREF: sub_7DDA+3Cj
 		move.w	d0,$C(a1)
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7E3E:				; CODE XREF: sub_7DDA+4j
 		move.w	d1,-(sp)
@@ -10726,7 +10694,7 @@ locret_7E5E:				; CODE XREF: sub_7DDA+70j
 ; End of function sub_7DDA
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_7E60:				; CODE XREF: ROM:00007DB8p
@@ -10755,10 +10723,10 @@ loc_7E90:				; CODE XREF: sub_7E60+24j
 		swap	d6
 		move.b	byte_7E9E(pc,d0.w),d6
 		bra.s	loc_7EAE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_7E9E:	dc.b 1
 byte_7E9F:	dc.b   2,  1,  2,  1,  2,  1,  2,  0,  1,  0,  0,  0,  0,  0,  1; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_7EAE:				; CODE XREF: sub_7E60+3Cj
 		moveq	#$FFFFFFFE,d3
@@ -10839,7 +10807,7 @@ loc_7F30:				; CODE XREF: sub_7E60+C6j
 ; End of function sub_7E60
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_7F36:				; CODE XREF: ROM:loc_7D06p
@@ -10921,7 +10889,7 @@ locret_7FE4:				; CODE XREF: sub_7F36+7Aj sub_7F36+88j
 		rts
 ; End of function sub_7F36
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj11_BendData:	dc.b   2,  4,  6,  8,  8,  6,  4,  2,  0,  0,  0,  0,  0,  0,  0,  0; 0
 					; DATA XREF: sub_7F36+24t
 		dc.b   2,  4,  6,  8, $A,  8,  6,  4,  2,  0,  0,  0,  0,  0,  0,  0; 16
@@ -10986,10 +10954,11 @@ word_81EE:	dc.w 1			; DATA XREF: ROM:Map_Obj11_EHZo
 		dc.w $F805,    4,    2,$FFF8; 0
 word_81F8:	dc.w 1			; DATA XREF: ROM:000081ECo
 		dc.w $F805,    0,    0,$FFF8; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 15 - swinging platforms
@@ -11000,7 +10969,7 @@ Obj15:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj15_Index(pc,d0.w),d1
 		jmp	Obj15_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj15_Index:	dc.w loc_821E-Obj15_Index ; DATA XREF: ROM:Obj15_Indexo
 					; ROM:00008214o ...
 		dc.w loc_83AA-Obj15_Index
@@ -11008,7 +10977,7 @@ Obj15_Index:	dc.w loc_821E-Obj15_Index ; DATA XREF: ROM:Obj15_Indexo
 		dc.w loc_8526-Obj15_Index
 		dc.w loc_852A-Obj15_Index
 		dc.w loc_83CA-Obj15_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_821E:				; DATA XREF: ROM:Obj15_Indexo
 		addq.b	#2,$24(a0)
@@ -11044,7 +11013,7 @@ loc_8284:				; CODE XREF: ROM:0000825Ej
 		move.b	d0,$3C(a0)
 		move.b	#0,(a2)+
 		bra.w	loc_8388
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_82BE:				; CODE XREF: ROM:0000828Aj
 		move.b	0(a0),d4
@@ -11127,14 +11096,14 @@ loc_83AA:				; DATA XREF: ROM:00008214o
 		move.w	(sp)+,d4
 		bsr.w	sub_F82E
 		bra.w	loc_84EE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_83CA:				; CODE XREF: ROM:000083A8j
 					; DATA XREF: ROM:0000821Co
 		bsr.w	sub_83D2
 		bra.w	loc_84EE
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_83D2:				; CODE XREF: ROM:000083AEp
@@ -11148,7 +11117,7 @@ sub_83D2:				; CODE XREF: ROM:000083AEp
 
 loc_83E6:				; CODE XREF: sub_83D2+Ej
 		bra.w	loc_8472
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_83EA:				; CODE XREF: ROM:0001922Ap
 		tst.b	$3D(a0)
@@ -11161,7 +11130,7 @@ loc_83EA:				; CODE XREF: ROM:0001922Ap
 		bne.s	loc_842A
 		move.b	#1,$3D(a0)
 		bra.s	loc_842A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_840E:				; CODE XREF: sub_83D2+1Cj
 		move.w	$3E(a0),d0
@@ -11202,7 +11171,7 @@ loc_8442:				; CODE XREF: sub_83D2+9Aj
 		move.w	d5,8(a1)
 		dbf	d6,loc_8442
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8472:				; CODE XREF: sub_83D2:loc_83E6j
 		bsr.w	CalcSine
@@ -11259,7 +11228,7 @@ locret_84EC:				; CODE XREF: sub_83D2+D4j
 		rts
 ; End of function sub_83D2
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_84EE:				; CODE XREF: ROM:000083C6j
 					; ROM:000083CEj
@@ -11269,7 +11238,7 @@ loc_84EE:				; CODE XREF: ROM:000083C6j
 		cmpi.w	#$280,d0
 		bhi.w	loc_8506
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8506:				; CODE XREF: ROM:000084FEj
 		moveq	#0,d2
@@ -11285,16 +11254,16 @@ loc_850E:				; CODE XREF: ROM:00008520j
 		bsr.w	sub_CF3C
 		dbf	d2,loc_850E
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8526:				; DATA XREF: ROM:00008216o
 					; ROM:00008218o
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_852A:				; DATA XREF: ROM:0000821Ao
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj15:	dc.w word_8534-Map_Obj15 ; DATA	XREF: ROM:00008222o
 					; ROM:Map_Obj15o ...
 		dc.w word_8546-Map_Obj15
@@ -11355,10 +11324,11 @@ word_8648:	dc.w 4			; DATA XREF: ROM:000085D0o
 		dc.w $E80A, $812, $809,	   0; 4
 		dc.w	$A,$1012,$1009,$FFE8; 8
 		dc.w	$A,$101B,$100D,	   0; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 Obj17:					; DATA XREF: ROM:Obj_Indexo
@@ -11366,12 +11336,12 @@ Obj17:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj17_Index(pc,d0.w),d1
 		jmp	Obj17_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj17_Index:	dc.w loc_8680-Obj17_Index ; DATA XREF: ROM:Obj17_Indexo
 					; ROM:0000867Co ...
 		dc.w loc_874A-Obj17_Index
 		dc.w loc_87AC-Obj17_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8680:				; DATA XREF: ROM:Obj17_Indexo
 		addq.b	#2,$24(a0)
@@ -11441,7 +11411,7 @@ loc_874A:				; CODE XREF: ROM:000086D0j
 		cmpi.w	#$280,d0
 		bhi.w	loc_8766
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8766:				; CODE XREF: ROM:0000875Ej
 		moveq	#0,d2
@@ -11462,7 +11432,7 @@ loc_8772:				; CODE XREF: ROM:00008784j
 loc_8788:				; CODE XREF: ROM:00008770j
 		bra.w	DeleteObject
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_878C:				; CODE XREF: ROM:loc_874Ap
@@ -11479,12 +11449,12 @@ locret_87AA:				; CODE XREF: sub_878C+16j
 		rts
 ; End of function sub_878C
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_87AC:				; DATA XREF: ROM:0000867Eo
 		bsr.w	sub_878C
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj17:	dc.w word_87C4-Map_Obj17 ; DATA	XREF: ROM:00008684o
 					; ROM:Map_Obj17o ...
 		dc.w word_87CE-Map_Obj17
@@ -11509,14 +11479,14 @@ word_87F6:	dc.w 1			; DATA XREF: ROM:000087BEo
 word_8800:	dc.w 1			; DATA XREF: ROM:000087C2o
 		dc.w $F400,  $11,    8,$FFFD; 0
 word_880A:	dc.w 0			; DATA XREF: ROM:000087C0o
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj18:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
 		move.b	$24(a0),d0
 		move.w	Obj18_Index(pc,d0.w),d1
 		jmp	Obj18_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj18_Index:	dc.w loc_882C-Obj18_Index ; DATA XREF: ROM:Obj18_Indexo
 					; ROM:0000881Co ...
 		dc.w loc_88A2-Obj18_Index
@@ -11527,7 +11497,7 @@ Obj18_Conf:	dc.w $2000
 		dc.w $2002
 		dc.w $4003
 		dc.w $3004
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_882C:				; DATA XREF: ROM:Obj18_Indexo
 		addq.b	#2,$24(a0)
@@ -11567,7 +11537,7 @@ loc_88A2:				; DATA XREF: ROM:0000881Co
 		beq.s	loc_88C4
 		subq.b	#4,$38(a0)
 		bra.s	loc_88C4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_88B8:				; CODE XREF: ROM:000088AAj
 		cmpi.b	#$40,$38(a0) ; '@'
@@ -11585,7 +11555,7 @@ loc_88C4:				; CODE XREF: ROM:000088B0j
 		move.w	(sp)+,d4
 		bsr.w	sub_F78A
 		bra.s	loc_88E8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_88E0:				; DATA XREF: ROM:00008820o
 		bsr.w	sub_8926
@@ -11595,7 +11565,7 @@ loc_88E8:				; CODE XREF: ROM:000088DEj
 		tst.w	($FFFFFFE8).w
 		beq.s	loc_88F2
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_88F2:				; CODE XREF: ROM:000088ECj
 		move.w	$32(a0),d0
@@ -11604,13 +11574,13 @@ loc_88F2:				; CODE XREF: ROM:000088ECj
 		cmpi.w	#$280,d0
 		bhi.s	loc_8908
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8908:				; CODE XREF: ROM:00008902j
 					; DATA XREF: ROM:0000881Eo
 		bra.w	DeleteObject
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_890C:				; CODE XREF: ROM:000088CCp
@@ -11626,7 +11596,7 @@ sub_890C:				; CODE XREF: ROM:000088CCp
 ; End of function sub_890C
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_8926:				; CODE XREF: ROM:000088C8p
@@ -11639,7 +11609,7 @@ sub_8926:				; CODE XREF: ROM:000088C8p
 		jmp	off_893A(pc,d1.w)
 ; End of function sub_8926
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_893A:	dc.w locret_8956-off_893A ; DATA XREF: ROM:off_893Ao
 					; ROM:0000893Co ...
 		dc.w loc_8968-off_893A
@@ -11655,12 +11625,12 @@ off_893A:	dc.w locret_8956-off_893A ; DATA XREF: ROM:off_893Ao
 		dc.w loc_8ABA-off_893A
 		dc.w loc_8990-off_893A
 		dc.w loc_8980-off_893A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_8956:				; DATA XREF: ROM:off_893Ao
 					; ROM:0000894Co
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8958:				; DATA XREF: ROM:00008944o
 		move.w	$32(a0),d0
@@ -11668,7 +11638,7 @@ loc_8958:				; DATA XREF: ROM:00008944o
 		neg.b	d1
 		addi.b	#$40,d1	; '@'
 		bra.s	loc_8974
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8968:				; DATA XREF: ROM:0000893Co
 		move.w	$32(a0),d0
@@ -11680,7 +11650,7 @@ loc_8974:				; CODE XREF: ROM:00008966j
 		add.w	d1,d0
 		move.w	d0,8(a0)
 		bra.w	loc_8AD2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8980:				; DATA XREF: ROM:00008954o
 		move.w	$34(a0),d0
@@ -11688,14 +11658,14 @@ loc_8980:				; DATA XREF: ROM:00008954o
 		neg.b	d1
 		addi.b	#$30,d1	; '0'
 		bra.s	loc_89BA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8990:				; DATA XREF: ROM:00008952o
 		move.w	$34(a0),d0
 		move.b	($FFFFFE6C).w,d1
 		subi.b	#$30,d1	; '0'
 		bra.s	loc_89BA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_899E:				; DATA XREF: ROM:00008946o
 		move.w	$34(a0),d0
@@ -11703,7 +11673,7 @@ loc_899E:				; DATA XREF: ROM:00008946o
 		neg.b	d1
 		addi.b	#$40,d1	; '@'
 		bra.s	loc_89BA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_89AE:				; DATA XREF: ROM:0000893Eo
 		move.w	$34(a0),d0
@@ -11716,7 +11686,7 @@ loc_89BA:				; CODE XREF: ROM:0000898Ej
 		add.w	d1,d0
 		move.w	d0,$2C(a0)
 		bra.w	loc_8AD2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_89C6:				; DATA XREF: ROM:00008940o
 		tst.w	$3A(a0)
@@ -11728,7 +11698,7 @@ loc_89C6:				; DATA XREF: ROM:00008940o
 locret_89DA:				; CODE XREF: ROM:000089D2j
 					; ROM:000089E0j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_89DC:				; CODE XREF: ROM:000089CAj
 		subq.w	#1,$3A(a0)
@@ -11736,7 +11706,7 @@ loc_89DC:				; CODE XREF: ROM:000089CAj
 		move.w	#$20,$3A(a0) ; ' '
 		addq.b	#1,$28(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_89EE:				; DATA XREF: ROM:00008942o
 		tst.w	$3A(a0)
@@ -11773,7 +11743,7 @@ loc_8A2E:				; CODE XREF: ROM:000089F2j
 
 locret_8A5A:				; CODE XREF: ROM:00008A52j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8A5C:				; DATA XREF: ROM:00008948o
 		tst.w	$3A(a0)
@@ -11789,14 +11759,14 @@ loc_8A5C:				; DATA XREF: ROM:00008948o
 locret_8A7A:				; CODE XREF: ROM:00008A72j
 					; ROM:00008A80j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8A7C:				; CODE XREF: ROM:00008A60j
 		subq.w	#1,$3A(a0)
 		bne.s	locret_8A7A
 		addq.b	#1,$28(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8A88:				; DATA XREF: ROM:0000894Ao
 		subq.w	#2,$2C(a0)
@@ -11808,7 +11778,7 @@ loc_8A88:				; DATA XREF: ROM:0000894Ao
 
 locret_8A9E:				; CODE XREF: ROM:00008A98j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8AA0:				; DATA XREF: ROM:0000894Eo
 		move.w	$34(a0),d0
@@ -11819,7 +11789,7 @@ loc_8AA0:				; DATA XREF: ROM:0000894Eo
 		add.w	d1,d0
 		move.w	d0,$2C(a0)
 		bra.w	loc_8AD2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8ABA:				; DATA XREF: ROM:00008950o
 		move.w	$34(a0),d0
@@ -11835,7 +11805,7 @@ loc_8AD2:				; CODE XREF: ROM:0000897Cj
 					; ROM:000089C2j ...
 		move.b	($FFFFFE78).w,$26(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj18x:	dc.w word_8ADE-Map_Obj18x ; DATA XREF: ROM:Map_Obj18xo
 					; ROM:00008ADCo
 		dc.w word_8AF0-Map_Obj18x
@@ -11893,10 +11863,11 @@ word_8C00:	dc.w 8			; DATA XREF: ROM:00008BECo
 		dc.w $140F, $82A, $815,	   0; 20
 		dc.w $340F,  $3A,  $1D,$FFE0; 24
 		dc.w $340F, $83A, $81D,	   0; 28
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 Obj1A:					; DATA XREF: ROM:Obj_Indexo
@@ -11904,12 +11875,12 @@ Obj1A:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj1A_Index(pc,d0.w),d1
 		jmp	Obj1A_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj1A_Index:	dc.w loc_8C58-Obj1A_Index ; DATA XREF: ROM:Obj1A_Indexo
 					; ROM:00008C54o ...
 		dc.w loc_8CCA-Obj1A_Index
 		dc.w loc_8D02-Obj1A_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8C58:				; DATA XREF: ROM:Obj1A_Indexo
 		addq.b	#2,$24(a0)
@@ -11928,7 +11899,7 @@ loc_8C58:				; DATA XREF: ROM:Obj1A_Indexo
 		move.b	#$30,$19(a0) ; '0'
 		move.l	#Obj1A_Conf_HPZ,$3C(a0)
 		bra.s	loc_8CCA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8CB0:				; CODE XREF: ROM:00008C8Cj
 		move.l	#Obj1A_Conf,$3C(a0)
@@ -11950,7 +11921,7 @@ loc_8CDC:				; CODE XREF: ROM:00008CCEj
 		beq.s	sub_8CEC
 		move.b	#1,$3A(a0)
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_8CEC:				; CODE XREF: ROM:00008CE4j
@@ -11967,7 +11938,7 @@ sub_8CEC:				; CODE XREF: ROM:00008CE4j
 		bra.w	MarkObjGone
 ; End of function sub_8CEC
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8D02:				; DATA XREF: ROM:00008C56o
 		tst.b	$38(a0)
@@ -11976,7 +11947,7 @@ loc_8D02:				; DATA XREF: ROM:00008C56o
 		bne.s	loc_8D16
 		subq.b	#1,$38(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8D16:				; CODE XREF: ROM:00008D0Cj
 		bsr.w	sub_8CEC
@@ -11986,7 +11957,7 @@ loc_8D16:				; CODE XREF: ROM:00008D0Cj
 		bsr.s	sub_8D2A
 		lea	($FFFFB040).w,a1
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_8D2A:				; CODE XREF: ROM:00008D24p
@@ -12000,28 +11971,28 @@ locret_8D44:				; CODE XREF: ROM:00008D1Ej sub_8D2A+6j
 		rts
 ; End of function sub_8D2A
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8D46:				; CODE XREF: ROM:00008D06j
 		bsr.w	ObjectFall
 		tst.b	1(a0)
 		bpl.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
-S1Obj_53:				; leftover object from Sonic 1
+S1_Obj53:				; leftover object from Sonic 1
 		moveq	#0,d0
 		move.b	$24(a0),d0
-		move.w	S1Obj_53_Index(pc,d0.w),d1
-		jmp	S1Obj_53_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-S1Obj_53_Index:	dc.w loc_8D6A-S1Obj_53_Index ; DATA XREF: ROM:S1Obj_53_Indexo
+		move.w	S1_Obj53_Index(pc,d0.w),d1
+		jmp	S1_Obj53_Index(pc,d1.w)
+; ---------------------------------------------------------------------------
+S1_Obj53_Index:	dc.w loc_8D6A-S1_Obj53_Index ; DATA XREF: ROM:S1_Obj53_Indexo
 					; ROM:00008D66o ...
-		dc.w loc_8DB4-S1Obj_53_Index
-		dc.w loc_8DEA-S1Obj_53_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+		dc.w loc_8DB4-S1_Obj53_Index
+		dc.w loc_8DEA-S1_Obj53_Index
+; ---------------------------------------------------------------------------
 
-loc_8D6A:				; DATA XREF: ROM:S1Obj_53_Indexo
+loc_8D6A:				; DATA XREF: ROM:S1_Obj53_Indexo
 		addq.b	#2,$24(a0)
 		move.l	#Map_S1Obj53,4(a0)
 		move.w	#$42B8,2(a0)
@@ -12054,7 +12025,7 @@ loc_8DC6:				; CODE XREF: ROM:00008DB8j
 		beq.s	sub_8DD6
 		move.b	#1,$3A(a0)
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_8DD6:				; CODE XREF: ROM:00008DCEj
@@ -12066,7 +12037,7 @@ sub_8DD6:				; CODE XREF: ROM:00008DCEj
 		bra.w	MarkObjGone
 ; End of function sub_8DD6
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8DEA:				; DATA XREF: ROM:00008D68o
 		tst.b	$38(a0)
@@ -12075,7 +12046,7 @@ loc_8DEA:				; DATA XREF: ROM:00008D68o
 		bne.s	loc_8DFE
 		subq.b	#1,$38(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8DFE:				; CODE XREF: ROM:00008DF4j
 		bsr.w	sub_8DD6
@@ -12085,7 +12056,7 @@ loc_8DFE:				; CODE XREF: ROM:00008DF4j
 		bsr.s	sub_8E12
 		lea	($FFFFB040).w,a1
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_8E12:				; CODE XREF: ROM:00008E0Cp
@@ -12099,14 +12070,14 @@ locret_8E2C:				; CODE XREF: ROM:00008E06j sub_8E12+6j
 		rts
 ; End of function sub_8E12
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8E2E:				; CODE XREF: ROM:00008DEEj
 		bsr.w	ObjectFall
 		tst.b	1(a0)
 		bpl.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8E3E:				; CODE XREF: ROM:00008DBEj
 		lea	(byte_8F17).l,a4
@@ -12117,7 +12088,7 @@ loc_8E3E:				; CODE XREF: ROM:00008DBEj
 loc_8E52:				; CODE XREF: ROM:00008E4Aj
 		addq.b	#1,$1A(a0)
 		bra.s	loc_8E70
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8E58:				; CODE XREF: ROM:00008CD4j
 		lea	(byte_8EF2).l,a4
@@ -12141,7 +12112,7 @@ loc_8E70:				; CODE XREF: ROM:00008E56j
 		move.b	1(a0),d5
 		movea.l	a0,a1
 		bra.s	loc_8E9E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_8E96:				; CODE XREF: ROM:loc_8EE0j
 		bsr.w	SingleObjectLoad
@@ -12171,7 +12142,7 @@ loc_8EE4:				; CODE XREF: ROM:00008E9Aj
 		bsr.w	DisplaySprite
 		move.w	#$B9,d0	; '№'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_8EF2:	dc.b $1C,$18,$14,$10	; 0 ; DATA XREF: ROM:loc_8E58o
 		dc.b $1A,$16,$12, $E	; 4
 		dc.b  $A,  6,$18,$14	; 8
@@ -12362,10 +12333,11 @@ word_9340:	dc.w $C			; DATA XREF: ROM:000092FAo
 		dc.w	 5, $80C, $806,	   0; 36
 		dc.w	 5, $80C, $806,	 $10; 40
 		dc.w	 5, $808, $804,	 $20; 44
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 Obj1C:					; DATA XREF: ROM:Obj_Indexo
@@ -12373,7 +12345,7 @@ Obj1C:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj1C_Index(pc,d0.w),d1
 		jmp	Obj1C_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj1C_Index:	dc.w loc_93F4-Obj1C_Index ; DATA XREF: ROM:Obj1C_Indexo
 					; ROM:000093B4o ...
 		dc.w loc_9442-Obj1C_Index
@@ -12396,7 +12368,7 @@ Obj1C_Conf:	dc.l Map_Obj11_HPZ
 		dc.l Map_Obj16
 		dc.w $43E6
 		dc.b   2,  8,  4,  0	; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_93F4:				; DATA XREF: ROM:Obj1C_Indexo
 		addq.b	#2,$24(a0)
@@ -12420,14 +12392,14 @@ loc_93F4:				; DATA XREF: ROM:Obj1C_Indexo
 		subq.b	#1,d0
 		move.b	d0,$1C(a0)
 		bra.s	loc_9464
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9442:				; CODE XREF: ROM:00009432j
 					; DATA XREF: ROM:000093B4o
 		tst.w	($FFFFFFE8).w
 		beq.s	loc_944C
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_944C:				; CODE XREF: ROM:00009446j
 		move.w	8(a0),d0
@@ -12436,7 +12408,7 @@ loc_944C:				; CODE XREF: ROM:00009446j
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9464:				; CODE XREF: ROM:00009440j
 					; DATA XREF: ROM:000093B6o
@@ -12445,7 +12417,7 @@ loc_9464:				; CODE XREF: ROM:00009440j
 		tst.w	($FFFFFFE8).w
 		beq.s	loc_9478
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9478:				; CODE XREF: ROM:00009472j
 		move.w	8(a0),d0
@@ -12454,7 +12426,7 @@ loc_9478:				; CODE XREF: ROM:00009472j
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj1C:	dc.w byte_9494-Ani_Obj1C ; DATA	XREF: ROM:loc_9464o
 					; ROM:Ani_Obj1Co ...
 		dc.w byte_949C-Ani_Obj1C
@@ -12476,18 +12448,18 @@ word_94C8:	dc.w 2			; DATA XREF: ROM:000094B0o
 word_94DA:	dc.w 2			; DATA XREF: ROM:000094B2o
 		dc.w $F00D,  $1A,   $D,$FFF0; 0
 		dc.w	$D,$181A,$180D,$FFF0; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj2A:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
 		move.b	$24(a0),d0
 		move.w	Obj2A_Index(pc,d0.w),d1
 		jmp	Obj2A_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj2A_Index:	dc.w loc_94FE-Obj2A_Index ; DATA XREF: ROM:Obj2A_Indexo
 					; ROM:000094FCo
 		dc.w loc_9526-Obj2A_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_94FE:				; DATA XREF: ROM:Obj2A_Indexo
 		addq.b	#2,$24(a0)
@@ -12515,7 +12487,7 @@ loc_9526:				; DATA XREF: ROM:000094FCo
 		btst	#0,$22(a0)
 		bne.s	loc_9564
 		bra.s	loc_955E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9556:				; CODE XREF: ROM:0000954Aj
 		btst	#0,$22(a0)
@@ -12539,7 +12511,7 @@ loc_9564:				; CODE XREF: ROM:00009538j
 
 loc_9588:				; CODE XREF: ROM:00009572j
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj2A:	dc.w byte_9590-Ani_Obj2A ; DATA	XREF: ROM:loc_9564o
 					; ROM:Ani_Obj2Ao ...
 		dc.w byte_959C-Ani_Obj2A
@@ -12584,23 +12556,23 @@ word_9638:	dc.w 2			; DATA XREF: ROM:000095B6o
 word_964A:	dc.w 2			; DATA XREF: ROM:000095B8o
 		dc.w $C007, $800, $800,$FFF8; 0
 		dc.w $2007, $800, $800,$FFF8; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Sonic	1 Object 1E - leftover Ballhog object
 ;----------------------------------------------------
 
-S1Obj_1E:				; leftover from	Sonic 1
+S1_Obj1E:				; leftover from	Sonic 1
 		moveq	#0,d0
 		move.b	$24(a0),d0
-		move.w	S1Obj_1E_Index(pc,d0.w),d1
-		jmp	S1Obj_1E_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-S1Obj_1E_Index:	dc.w loc_966E-S1Obj_1E_Index ; DATA XREF: ROM:S1Obj_1E_Indexo
+		move.w	S1_Obj1E_Index(pc,d0.w),d1
+		jmp	S1_Obj1E_Index(pc,d1.w)
+; ---------------------------------------------------------------------------
+S1_Obj1E_Index:	dc.w loc_966E-S1_Obj1E_Index ; DATA XREF: ROM:S1_Obj1E_Indexo
 					; ROM:0000966Co
-		dc.w loc_96C2-S1Obj_1E_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+		dc.w loc_96C2-S1_Obj1E_Index
+; ---------------------------------------------------------------------------
 
-loc_966E:				; DATA XREF: ROM:S1Obj_1E_Indexo
+loc_966E:				; DATA XREF: ROM:S1_Obj1E_Indexo
 		move.b	#$13,$16(a0)
 		move.b	#8,$17(a0)
 		move.l	#Map_S1Obj1E,4(a0)
@@ -12620,7 +12592,7 @@ loc_966E:				; DATA XREF: ROM:S1Obj_1E_Indexo
 
 locret_96C0:				; CODE XREF: ROM:000096B0j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_96C2:				; DATA XREF: ROM:0000966Co
 		lea	(Ani_S1Obj1E).l,a1
@@ -12630,7 +12602,7 @@ loc_96C2:				; DATA XREF: ROM:0000966Co
 		tst.b	$32(a0)
 		beq.s	loc_96E4
 		bra.s	loc_96E0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_96DC:				; CODE XREF: ROM:000096D2j
 		clr.b	$32(a0)
@@ -12638,7 +12610,7 @@ loc_96DC:				; CODE XREF: ROM:000096D2j
 loc_96E0:				; CODE XREF: ROM:000096DAj
 					; ROM:loc_972Ej
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_96E4:				; CODE XREF: ROM:000096D8j
 		move.b	#1,$32(a0)
@@ -12662,7 +12634,7 @@ loc_971E:				; CODE XREF: ROM:00009716j
 
 loc_972E:				; CODE XREF: ROM:000096EEj
 		bra.s	loc_96E0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Sonic	1 Object 20 - leftover object for the
 ;  ball	that S1	Ballhog	throws
@@ -12673,11 +12645,11 @@ S1Obj20:
 		move.b	$24(a0),d0
 		move.w	S1Obj20_Index(pc,d0.w),d1
 		jmp	S1Obj20_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1Obj20_Index:	dc.w loc_9742-S1Obj20_Index ; DATA XREF: ROM:S1Obj20_Indexo
 					; ROM:00009740o
 		dc.w loc_978A-S1Obj20_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9742:				; DATA XREF: ROM:S1Obj20_Indexo
 		addq.b	#2,$24(a0)
@@ -12711,7 +12683,7 @@ loc_978A:				; DATA XREF: ROM:00009740o
 		bpl.s	loc_97C6
 		neg.w	$10(a0)
 		bra.s	loc_97C6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_97BC:				; CODE XREF: ROM:000097AEj
 		tst.w	$10(a0)
@@ -12726,7 +12698,7 @@ loc_97C6:				; CODE XREF: ROM:00009794j
 		move.b	#$3F,0(a0) ; '?'
 		move.b	#0,$24(a0)
 		bra.w	Obj3F		; explosion object
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_97E2:				; CODE XREF: ROM:000097CAj
 		subq.b	#1,$1E(a0)
@@ -12740,7 +12712,7 @@ loc_97F4:				; CODE XREF: ROM:000097E6j
 		cmp.w	$C(a0),d0
 		bcs.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 24 - explosion	from a hit monitor
 ;----------------------------------------------------
@@ -12751,11 +12723,11 @@ Obj24:					; CODE XREF: ROM:0000A62Cj
 		move.b	$24(a0),d0
 		move.w	Obj24_Index(pc,d0.w),d1
 		jmp	Obj24_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj24_Index:	dc.w loc_981A-Obj24_Index ; DATA XREF: ROM:Obj24_Indexo
 					; ROM:00009818o
 		dc.w loc_985E-Obj24_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_981A:				; DATA XREF: ROM:Obj24_Indexo
 		addq.b	#2,$24(a0)
@@ -12781,7 +12753,7 @@ loc_985E:				; DATA XREF: ROM:00009818o
 
 loc_9878:				; CODE XREF: ROM:00009862j
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 27 - explosion	from a hit enemy
 ;----------------------------------------------------
@@ -12791,12 +12763,12 @@ Obj27:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj27_Index(pc,d0.w),d1
 		jmp	Obj27_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj27_Index:	dc.w loc_9890-Obj27_Index ; DATA XREF: ROM:Obj27_Indexo
 					; ROM:0000988Co ...
 		dc.w loc_98B2-Obj27_Index
 		dc.w loc_98F6-Obj27_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9890:				; DATA XREF: ROM:Obj27_Indexo
 		addq.b	#2,$24(a0)
@@ -12833,7 +12805,7 @@ loc_98F6:				; DATA XREF: ROM:0000988Eo
 
 loc_9910:				; CODE XREF: ROM:000098FAj
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 3F - Explosion
 ;----------------------------------------------------
@@ -12844,11 +12816,11 @@ Obj3F:					; CODE XREF: ROM:000097DEj
 		move.b	$24(a0),d0
 		move.w	Obj3F_Index(pc,d0.w),d1
 		jmp	Obj3F_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj3F_Index:	dc.w loc_9926-Obj3F_Index ; DATA XREF: ROM:Obj3F_Indexo
 					; ROM:00009924o
 		dc.w loc_98F6-Obj3F_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9926:				; DATA XREF: ROM:Obj3F_Indexo
 		addq.b	#2,$24(a0)
@@ -12863,7 +12835,7 @@ loc_9926:				; DATA XREF: ROM:Obj3F_Indexo
 		move.b	#0,$1A(a0)
 		move.w	#$C4,d0	; 'Д'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_S1Obj1E:	dc.w byte_996C-Ani_S1Obj1E ; DATA XREF:	ROM:loc_96C2o
 					; ROM:Ani_S1Obj1Eo
 byte_996C:	dc.b   9,  0,  0,  2,  2,  3,  2,  0 ; DATA XREF: ROM:Ani_S1Obj1Eo
@@ -12940,10 +12912,11 @@ word_9A92:	dc.w 1			; DATA XREF: ROM:00009A8Ao
 		dc.w $F00F,  $40,  $20,$FFF0; 0
 word_9A9C:	dc.w 1			; DATA XREF: ROM:00009A8Co
 		dc.w $F00F,  $50,  $28,$FFF0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 28 - animals
@@ -12954,7 +12927,7 @@ Obj28:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	off_9AB6(pc,d0.w),d1
 		jmp	off_9AB6(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_9AB6:	dc.w loc_9B92-off_9AB6,loc_9CB8-off_9AB6,loc_9D12-off_9AB6; 0
 					; DATA XREF: ROM:off_9AB6o
 					; ROM:off_9AB6+2o ...
@@ -13000,7 +12973,7 @@ off_9B50:	dc.l Map_Obj28,Map_Obj28; 0
 		dc.l Map_Obj28b,Map_Obj28; 8
 		dc.l Map_Obj28b		; 10
 word_9B7C:	dc.w  $5A5, $5A5, $5A5,	$553, $553, $573, $573,	$585, $593, $565, $5B3;	0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9B92:				; DATA XREF: ROM:off_9AB6o
 		tst.b	$28(a0)
@@ -13026,7 +12999,7 @@ loc_9B92:				; DATA XREF: ROM:off_9AB6o
 		move.b	#8,$19(a0)
 		move.b	#7,$1E(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9C00:				; CODE XREF: ROM:00009B96j
 		addq.b	#2,$24(a0)
@@ -13073,13 +13046,13 @@ loc_9C4A:				; CODE XREF: ROM:00009C42j
 
 loc_9CA6:				; CODE XREF: ROM:00009C88j
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9CAA:				; CODE XREF: ROM:00009C82j
 		move.b	#$12,$24(a0)
 		clr.w	$10(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9CB8:				; DATA XREF: ROM:off_9AB6o
 		tst.b	1(a0)
@@ -13108,7 +13081,7 @@ loc_9CB8:				; DATA XREF: ROM:off_9AB6o
 loc_9D0E:				; CODE XREF: ROM:00009CC8j
 					; ROM:00009CD2j ...
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9D12:				; CODE XREF: ROM:00009E60j
 					; DATA XREF: ROM:off_9AB6o
@@ -13130,7 +13103,7 @@ loc_9D3C:				; CODE XREF: ROM:00009D20j
 		tst.b	1(a0)
 		bpl.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9D4E:				; CODE XREF: ROM:00009E06j
 					; DATA XREF: ROM:off_9AB6o
@@ -13164,7 +13137,7 @@ loc_9DA0:				; CODE XREF: ROM:00009D8Ej
 		tst.b	1(a0)
 		bpl.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9DB2:				; CODE XREF: ROM:00009D40j
 					; ROM:00009DA4j ...
@@ -13179,7 +13152,7 @@ loc_9DB2:				; CODE XREF: ROM:00009D40j
 loc_9DCA:				; CODE XREF: ROM:00009DBAj
 					; ROM:00009DC0j
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9DCE:				; DATA XREF: ROM:off_9AB6o
 		tst.b	1(a0)
@@ -13191,7 +13164,7 @@ loc_9DCE:				; DATA XREF: ROM:off_9AB6o
 
 loc_9DEA:				; CODE XREF: ROM:00009DDAj
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9DEE:				; DATA XREF: ROM:off_9AB6o
 		bsr.w	sub_9F92
@@ -13200,11 +13173,11 @@ loc_9DEE:				; DATA XREF: ROM:off_9AB6o
 		move.w	$34(a0),$12(a0)
 		move.b	#$E,$24(a0)
 		bra.w	loc_9D4E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9E0A:				; CODE XREF: ROM:00009DF2j
 		bra.w	loc_9DB2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9E0E:				; DATA XREF: ROM:off_9AB6o
 		bsr.w	sub_9F92
@@ -13224,7 +13197,7 @@ loc_9E0E:				; DATA XREF: ROM:off_9AB6o
 loc_9E44:				; CODE XREF: ROM:00009E12j
 					; ROM:00009E32j
 		bra.w	loc_9DB2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9E48:				; DATA XREF: ROM:off_9AB6o
 		bsr.w	sub_9F92
@@ -13233,7 +13206,7 @@ loc_9E48:				; DATA XREF: ROM:off_9AB6o
 		move.w	$34(a0),$12(a0)
 		move.b	#4,$24(a0)
 		bra.w	loc_9D12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9E64:				; DATA XREF: ROM:off_9AB6o
 		bsr.w	ObjectFall
@@ -13256,7 +13229,7 @@ loc_9E94:				; CODE XREF: ROM:00009E88j
 loc_9E9E:				; CODE XREF: ROM:00009E4Cj
 					; ROM:00009E72j ...
 		bra.w	loc_9DB2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9EA2:				; DATA XREF: ROM:off_9AB6o
 		bsr.w	sub_9F92
@@ -13269,7 +13242,7 @@ loc_9EA2:				; DATA XREF: ROM:off_9AB6o
 
 loc_9EBC:				; CODE XREF: ROM:00009EA6j
 		bra.w	loc_9DB2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9EC0:				; DATA XREF: ROM:off_9AB6o
 		bsr.w	sub_9F92
@@ -13290,7 +13263,7 @@ loc_9EC0:				; DATA XREF: ROM:off_9AB6o
 loc_9EFA:				; CODE XREF: ROM:00009EC4j
 					; ROM:00009ED4j ...
 		bra.w	loc_9DB2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9EFE:				; DATA XREF: ROM:off_9AB6o
 		bsr.w	sub_9F92
@@ -13323,7 +13296,7 @@ loc_9F4E:				; CODE XREF: ROM:00009F02j
 					; ROM:00009F3Cj
 		bra.w	loc_9DB2
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_9F52:				; CODE XREF: ROM:00009E26p
@@ -13343,7 +13316,7 @@ locret_9F78:				; CODE XREF: sub_9F52+Aj sub_9F52+1Aj
 ; End of function sub_9F52
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_9F7A:				; CODE XREF: ROM:00009E2Ap
@@ -13359,7 +13332,7 @@ locret_9F90:				; CODE XREF: sub_9F7A+Ej
 ; End of function sub_9F7A
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_9F92:				; CODE XREF: ROM:loc_9DEEp
@@ -13370,7 +13343,7 @@ sub_9F92:				; CODE XREF: ROM:loc_9DEEp
 		rts
 ; End of function sub_9F92
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 29 - points that appear when you destroy something
 ;----------------------------------------------------
@@ -13380,11 +13353,11 @@ Obj29:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj29_Index(pc,d0.w),d1
 		jmp	Obj29_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj29_Index:	dc.w loc_9FB2-Obj29_Index ; DATA XREF: ROM:Obj29_Indexo
 					; ROM:00009FB0o
 		dc.w loc_9FE0-Obj29_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_9FB2:				; DATA XREF: ROM:Obj29_Indexo
 		addq.b	#2,$24(a0)
@@ -13402,7 +13375,7 @@ loc_9FE0:				; DATA XREF: ROM:00009FB0o
 		bsr.w	SpeedToPos
 		addi.w	#$18,$12(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj28a:	dc.w word_A006-Map_Obj28a ; DATA XREF: ROM:00009AF0o
 					; ROM:00009B00o ...
 		dc.w word_A010-Map_Obj28a
@@ -13458,10 +13431,11 @@ word_A0AA:	dc.w 2			; DATA XREF: ROM:0000A06Co
 word_A0BC:	dc.w 2			; DATA XREF: ROM:0000A06Eo
 		dc.w $F805,   $A,    5,$FFF0; 0
 		dc.w $F805,   $E,    7,	   0; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 1F - GHZ Crabmeat
@@ -13472,14 +13446,14 @@ Obj1F:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj1F_Index(pc,d0.w),d1
 		jmp	Obj1F_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj1F_Index:	dc.w loc_A0E8-Obj1F_Index ; DATA XREF: ROM:Obj1F_Indexo
 					; ROM:0000A0E0o ...
 		dc.w loc_A140-Obj1F_Index
 		dc.w loc_A29C-Obj1F_Index
 		dc.w loc_A2A0-Obj1F_Index
 		dc.w loc_A2DA-Obj1F_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A0E8:				; DATA XREF: ROM:Obj1F_Indexo
 		move.b	#$10,$16(a0)
@@ -13502,7 +13476,7 @@ loc_A0E8:				; DATA XREF: ROM:Obj1F_Indexo
 
 locret_A13E:				; CODE XREF: ROM:0000A12Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A140:				; DATA XREF: ROM:0000A0E0o
 		moveq	#0,d0
@@ -13512,11 +13486,11 @@ loc_A140:				; DATA XREF: ROM:0000A0E0o
 		lea	(Ani_Obj1F).l,a1
 		bsr.w	AnimateSprite
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_A15C:	dc.w loc_A160-off_A15C	; DATA XREF: ROM:off_A15Co
 					; ROM:0000A15Eo
 		dc.w loc_A1FE-off_A15C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A160:				; DATA XREF: ROM:off_A15Co
 		subq.w	#1,$30(a0)
@@ -13540,7 +13514,7 @@ loc_A174:				; CODE XREF: ROM:0000A16Aj
 locret_A19A:				; CODE XREF: ROM:0000A164j
 					; ROM:0000A194j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A19C:				; CODE XREF: ROM:0000A172j
 		move.w	#$3B,$30(a0) ; ';'
@@ -13566,7 +13540,7 @@ loc_A1D2:				; CODE XREF: ROM:0000A1ACj
 
 locret_A1FC:				; CODE XREF: ROM:0000A1D6j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A1FE:				; DATA XREF: ROM:0000A15Eo
 		subq.w	#1,$30(a0)
@@ -13587,7 +13561,7 @@ loc_A224:				; CODE XREF: ROM:0000A21Ej
 		cmpi.w	#$C,d1
 		bge.s	loc_A252
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A238:				; CODE XREF: ROM:0000A20Ej
 		jsr	ObjHitFloor
@@ -13597,7 +13571,7 @@ loc_A238:				; CODE XREF: ROM:0000A20Ej
 		addq.b	#3,d0
 		move.b	d0,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A252:				; CODE XREF: ROM:0000A202j
 					; ROM:0000A22Ej ...
@@ -13608,7 +13582,7 @@ loc_A252:				; CODE XREF: ROM:0000A202j
 		move.b	d0,$1C(a0)
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_A26C:				; CODE XREF: ROM:0000A184p
@@ -13625,7 +13599,7 @@ sub_A26C:				; CODE XREF: ROM:0000A184p
 
 locret_A286:				; CODE XREF: sub_A26C+Cj sub_A26C+16j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A288:				; CODE XREF: sub_A26C+6j
 		cmpi.b	#$FA,d3
@@ -13639,11 +13613,11 @@ locret_A29A:				; CODE XREF: sub_A26C+20j sub_A26C+2Aj
 		rts
 ; End of function sub_A26C
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A29C:				; DATA XREF: ROM:0000A0E2o
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A2A0:				; DATA XREF: ROM:0000A0E4o
 		addq.b	#2,$24(a0)
@@ -13666,7 +13640,7 @@ loc_A2DA:				; DATA XREF: ROM:0000A0E6o
 		cmp.w	$C(a0),d0
 		bcs.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj1F:	dc.w byte_A30C-Ani_Obj1F ; DATA	XREF: ROM:0000A14Eo
 					; ROM:loc_A2DAo ...
 		dc.w byte_A30F-Ani_Obj1F
@@ -13723,7 +13697,7 @@ word_A3F4:	dc.w 1			; DATA XREF: ROM:0000A336o
 		dc.w $F805,  $3C,  $1E,$FFF8; 0
 word_A3FE:	dc.w 1			; DATA XREF: ROM:0000A338o
 		dc.w $F805,  $40,  $20,$FFF8; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 22 - Buzzbomber
 ;----------------------------------------------------
@@ -13733,12 +13707,12 @@ Obj22:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	off_A416(pc,d0.w),d1
 		jmp	off_A416(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_A416:	dc.w loc_A41C-off_A416	; DATA XREF: ROM:off_A416o
 					; ROM:0000A418o ...
 		dc.w loc_A44A-off_A416
 		dc.w loc_A55A-off_A416
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A41C:				; DATA XREF: ROM:off_A416o
 		addq.b	#2,$24(a0)
@@ -13758,11 +13732,11 @@ loc_A44A:				; DATA XREF: ROM:0000A418o
 		lea	(Ani_Obj22).l,a1
 		bsr.w	AnimateSprite
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_A466:	dc.w loc_A46A-off_A466	; DATA XREF: ROM:off_A466o
 					; ROM:0000A468o
 		dc.w loc_A500-off_A466
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A46A:				; DATA XREF: ROM:off_A466o
 		subq.w	#1,$32(a0)
@@ -13780,7 +13754,7 @@ loc_A46A:				; DATA XREF: ROM:off_A466o
 locret_A49A:				; CODE XREF: ROM:0000A46Ej
 					; ROM:0000A494j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A49C:				; CODE XREF: ROM:0000A476j
 		bsr.w	SingleObjectLoad
@@ -13808,7 +13782,7 @@ loc_A4D8:				; CODE XREF: ROM:0000A4D0j
 
 locret_A4FE:				; CODE XREF: ROM:0000A4A0j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A500:				; DATA XREF: ROM:0000A468o
 		subq.w	#1,$32(a0)
@@ -13829,7 +13803,7 @@ loc_A51C:				; CODE XREF: ROM:0000A518j
 		move.b	#2,$34(a0)
 		move.w	#$1D,$32(a0)
 		bra.s	loc_A548
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A536:				; CODE XREF: ROM:0000A504j
 		move.b	#0,$34(a0)
@@ -13844,11 +13818,11 @@ loc_A548:				; CODE XREF: ROM:0000A534j
 locret_A558:				; CODE XREF: ROM:0000A50Ej
 					; ROM:0000A520j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A55A:				; DATA XREF: ROM:0000A41Ao
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 23 - Missile that Buzzbomber throws
 ;----------------------------------------------------
@@ -13858,14 +13832,14 @@ Obj23:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	off_A56C(pc,d0.w),d1
 		jmp	off_A56C(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_A56C:	dc.w loc_A576-off_A56C	; DATA XREF: ROM:off_A56Co
 					; ROM:0000A56Eo ...
 		dc.w loc_A5C4-off_A56C
 		dc.w loc_A5EC-off_A56C
 		dc.w loc_A630-off_A56C
 		dc.w loc_A634-off_A56C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A576:				; DATA XREF: ROM:off_A56Co
 		subq.w	#1,$32(a0)
@@ -13884,7 +13858,7 @@ loc_A576:				; DATA XREF: ROM:off_A56Co
 		move.b	#$87,$20(a0)
 		move.b	#1,$1C(a0)
 		bra.s	loc_A63E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A5C4:				; CODE XREF: ROM:0000A5AEj
 					; DATA XREF: ROM:0000A56Eo
@@ -13894,14 +13868,14 @@ loc_A5C4:				; CODE XREF: ROM:0000A5AEj
 		lea	(Ani_Obj33).l,a1
 		bsr.w	AnimateSprite
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A5DE:				; CODE XREF: ROM:0000A57Aj
 		movea.l	$3C(a0),a1
 		cmpi.b	#$27,0(a1) ; '''
 		beq.s	loc_A630
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A5EC:				; DATA XREF: ROM:0000A570o
 		btst	#7,$22(a0)
@@ -13916,18 +13890,18 @@ loc_A5EC:				; DATA XREF: ROM:0000A570o
 		cmp.w	$C(a0),d0
 		bcs.s	loc_A630
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A620:				; CODE XREF: ROM:0000A5F2j
 		move.b	#$24,0(a0) ; '$'
 		move.b	#0,$24(a0)
 		bra.w	Obj24
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A630:				; CODE XREF: ROM:0000A5CEj
 					; ROM:0000A5E8j ...
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A634:				; DATA XREF: ROM:0000A574o
 		tst.b	1(a0)
@@ -13938,7 +13912,7 @@ loc_A63E:				; CODE XREF: ROM:0000A5C2j
 		lea	(Ani_Obj33).l,a1
 		bsr.w	AnimateSprite
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj22:	dc.w byte_A652-Ani_Obj22 ; DATA	XREF: ROM:0000A458o
 					; ROM:Ani_Obj22o ...
 		dc.w byte_A656-Ani_Obj22
@@ -14015,10 +13989,11 @@ word_A7CE:	dc.w 1			; DATA XREF: ROM:0000A7B6o
 		dc.w $F805,  $2C,  $16,$FFF8; 0
 word_A7D8:	dc.w 1			; DATA XREF: ROM:0000A7B8o
 		dc.w $F805,  $33,  $19,$FFF8; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 25 - Rings
@@ -14029,7 +14004,7 @@ Obj25:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj25_Index(pc,d0.w),d1
 		jmp	Obj25_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj25_Index:	dc.w loc_A81C-Obj25_Index ; DATA XREF: ROM:Obj25_Indexo
 					; ROM:0000A7F4o ...
 		dc.w loc_A88A-Obj25_Index
@@ -14044,7 +14019,7 @@ Obj25_Index:	dc.w loc_A81C-Obj25_Index ; DATA XREF: ROM:Obj25_Indexo
 		dc.b $E8,$18,$E0,$20	; 20
 		dc.b $10,  8,$18,$10	; 24
 		dc.b $F0,  8,$E8,$10	; 28
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A81C:				; DATA XREF: ROM:Obj25_Indexo
 		movea.l	a0,a1
@@ -14052,7 +14027,7 @@ loc_A81C:				; DATA XREF: ROM:Obj25_Indexo
 		move.w	8(a0),d2
 		move.w	$C(a0),d3
 		bra.s	loc_A832
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A82A:				; CODE XREF: ROM:0000A886j
 		swap	d1
@@ -14089,7 +14064,7 @@ loc_A88A:				; CODE XREF: ROM:0000A830j
 		cmpi.w	#$280,d0
 		bhi.s	loc_A8DA
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A8A6:				; DATA XREF: ROM:0000A7F6o
 		addq.b	#2,$24(a0)
@@ -14106,13 +14081,13 @@ loc_A8CC:				; DATA XREF: ROM:0000A7F8o
 		lea	(Ani_Obj25).l,a1
 		bsr.w	AnimateSprite
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A8DA:				; CODE XREF: ROM:0000A8A0j
 					; DATA XREF: ROM:0000A7FAo
 		bra.w	DeleteObject
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_A8DE:				; CODE XREF: ROM:0000A8B6p
@@ -14138,7 +14113,7 @@ loc_A918:				; CODE XREF: sub_A8DE+14j sub_A8DE+24j ...
 		jmp	(PlaySound_Special).l
 ; End of function sub_A8DE
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 37 - Rings flying out of you when you get hit
 ;----------------------------------------------------
@@ -14148,14 +14123,14 @@ Obj37:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj37_Index(pc,d0.w),d1
 		jmp	Obj37_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj37_Index:	dc.w loc_A936-Obj37_Index ; DATA XREF: ROM:Obj37_Indexo
 					; ROM:0000A92Eo ...
 		dc.w loc_A9FA-Obj37_Index
 		dc.w loc_AA4C-Obj37_Index
 		dc.w loc_AA60-Obj37_Index
 		dc.w loc_AA6E-Obj37_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A936:				; DATA XREF: ROM:Obj37_Indexo
 		movea.l	a0,a1
@@ -14170,7 +14145,7 @@ loc_A946:				; CODE XREF: ROM:0000A942j
 		subq.w	#1,d5
 		move.w	#$288,d4
 		bra.s	loc_A956
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_A94E:				; CODE XREF: ROM:0000A9DAj
 		bsr.w	SingleObjectLoad
@@ -14249,7 +14224,7 @@ loc_AA34:				; CODE XREF: ROM:0000AA0Aj
 		cmp.w	$C(a0),d0
 		bcs.s	loc_AA6E
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AA4C:				; DATA XREF: ROM:0000A930o
 		addq.b	#2,$24(a0)
@@ -14261,138 +14236,138 @@ loc_AA60:				; DATA XREF: ROM:0000A932o
 		lea	(Ani_Obj25).l,a1
 		bsr.w	AnimateSprite
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AA6E:				; CODE XREF: ROM:0000AA38j
 					; ROM:0000AA46j
 					; DATA XREF: ...
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Sonic	1 Object 4B - leftover giant ring code
 ;----------------------------------------------------
 
-S1Obj4B:
+S1_Obj4B:
 		moveq	#0,d0
-		move.b	$24(a0),d0
-		move.w	S1Obj4B_Index(pc,d0.w),d1
-		jmp	S1Obj4B_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-S1Obj4B_Index:	dc.w loc_AA88-S1Obj4B_Index ; DATA XREF: ROM:S1Obj4B_Indexo
+		move.b	routine(a0),d0
+		move.w	S1_Obj4B_Index(pc,d0.w),d1
+		jmp	S1_Obj4B_Index(pc,d1.w)
+; ---------------------------------------------------------------------------
+S1_Obj4B_Index:	dc.w loc_AA88-S1_Obj4B_Index ; DATA XREF: ROM:S1_Obj4B_Indexo
 					; ROM:0000AA82o ...
-		dc.w loc_AAD6-S1Obj4B_Index
-		dc.w loc_AAF4-S1Obj4B_Index
-		dc.w loc_AB38-S1Obj4B_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+		dc.w loc_AAD6-S1_Obj4B_Index
+		dc.w loc_AAF4-S1_Obj4B_Index
+		dc.w loc_AB38-S1_Obj4B_Index
+; ---------------------------------------------------------------------------
 
-loc_AA88:				; DATA XREF: ROM:S1Obj4B_Indexo
-		move.l	#Map_S1Obj4B,4(a0)
-		move.w	#$2400,2(a0)
+loc_AA88:				; DATA XREF: ROM:S1_Obj4B_Indexo
+		move.l	#Map_S1_Obj4B,mappings(a0)
+		move.w	#$2400,art_tile(a0)
 		bsr.w	ModifySpriteAttr_2P
-		ori.b	#4,1(a0)
-		move.b	#$40,$19(a0) ; '@'
-		tst.b	1(a0)
+		ori.b	#4,render_flags(a0)
+		move.b	#$40,width_pixels(a0) ; '@'
+		tst.b	render_flags(a0)
 		bpl.s	loc_AAD6
 		cmpi.b	#6,($FFFFFE57).w
 		beq.w	loc_AB38
 		cmpi.w	#$32,($FFFFFE20).w ; '2'
 		bcc.s	loc_AAC0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AAC0:				; CODE XREF: ROM:0000AABCj
-		addq.b	#2,$24(a0)
-		move.b	#2,$18(a0)
-		move.b	#$52,$20(a0) ; 'R'
+		addq.b	#2,routine(a0)
+		move.b	#2,priority(a0)
+		move.b	#$52,collision_flags(a0) ; 'R'
 		move.w	#$C40,($FFFFF7BE).w
 
 loc_AAD6:				; CODE XREF: ROM:0000AAAAj
 					; ROM:0000AB36j
 					; DATA XREF: ...
-		move.b	($FFFFFEC3).w,$1A(a0)
-		move.w	8(a0),d0
+		move.b	($FFFFFEC3).w,mapping_frame(a0)
+		move.w	x_pos(a0),d0
 		andi.w	#$FF80,d0
 		sub.w	($FFFFF7DA).w,d0
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AAF4:				; DATA XREF: ROM:0000AA84o
-		subq.b	#2,$24(a0)
-		move.b	#0,$20(a0)
+		subq.b	#2,routine(a0)
+		move.b	#0,collision_flags(a0)
 		bsr.w	SingleObjectLoad
 		bne.w	loc_AB2C
-		move.b	#$7C,0(a1) ; '|'
-		move.w	8(a0),8(a1)
-		move.w	$C(a0),$C(a1)
-		move.l	a0,$3C(a1)
-		move.w	($FFFFB008).w,d0
-		cmp.w	8(a0),d0
+		move.b	#$7C,id(a1) ; You'll need to point this to another slot in order for this to work.
+		move.w	x_pos(a0),x_pos(a1)
+		move.w	y_pos(a0),y_pos(a1)
+		move.l	a0,objoff_3C(a1)
+		move.w	($FFFFB000+x_pos).w,d0
+		cmp.w	x_pos(a0),d0
 		bcs.s	loc_AB2C
-		bset	#0,1(a1)
+		bset	#0,render_flags(a1)
 
 loc_AB2C:				; CODE XREF: ROM:0000AB02j
 					; ROM:0000AB24j
 		move.w	#$C3,d0	; 'Г'
 		jsr	(PlaySound_Special).l
 		bra.s	loc_AAD6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AB38:				; CODE XREF: ROM:0000AAB2j
 					; DATA XREF: ROM:0000AA86o
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Sonic	1 Object 7C - leftover giant flash when	you
 ;   collected the giant	ring
 ;----------------------------------------------------
 
-Obj_S1Obj7C:
+S1_Obj7C:
 		moveq	#0,d0
-		move.b	$24(a0),d0
-		move.w	Obj_S1Obj7C_Index(pc,d0.w),d1
-		jmp	Obj_S1Obj7C_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
-Obj_S1Obj7C_Index:dc.w loc_AB50-Obj_S1Obj7C_Index ; DATA XREF: ROM:Obj_S1Obj7C_Indexo
+		move.b	routine(a0),d0
+		move.w	S1_Obj7C_Index(pc,d0.w),d1
+		jmp	S1_Obj7C_Index(pc,d1.w)
+; ---------------------------------------------------------------------------
+S1_Obj7C_Index:dc.w loc_AB50-S1_Obj7C_Index ; DATA XREF: ROM:S1_Obj7C_Indexo
 					; ROM:0000AB4Co ...
-		dc.w loc_AB7E-Obj_S1Obj7C_Index
-		dc.w loc_ABE6-Obj_S1Obj7C_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+		dc.w loc_AB7E-S1_Obj7C_Index
+		dc.w loc_ABE6-S1_Obj7C_Index
+; ---------------------------------------------------------------------------
 
-loc_AB50:				; DATA XREF: ROM:Obj_S1Obj7C_Indexo
-		addq.b	#2,$24(a0)
-		move.l	#Map_S1Obj7C,4(a0)
-		move.w	#$2462,2(a0)
+loc_AB50:				; DATA XREF: ROM:S1_Obj7C_Indexo
+		addq.b	#2,routine(a0)
+		move.l	#Map_S1Obj7C,mappings(a0)
+		move.w	#$2462,art_tile(a0)
 		bsr.w	ModifySpriteAttr_2P
-		ori.b	#4,1(a0)
-		move.b	#0,$18(a0)
-		move.b	#$20,$19(a0) ; ' '
-		move.b	#$FF,$1A(a0)
+		ori.b	#4,render_flags(a0)
+		move.b	#0,priority(a0)
+		move.b	#$20,width_pixels(a0) ; ' '
+		move.b	#-1,mapping_frame(a0)
 
 loc_AB7E:				; DATA XREF: ROM:0000AB4Co
 		bsr.s	sub_AB98
-		move.w	8(a0),d0
+		move.w	x_pos(a0),d0
 		andi.w	#$FF80,d0
 		sub.w	($FFFFF7DA).w,d0
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_AB98:				; CODE XREF: ROM:loc_AB7Ep
-		subq.b	#1,$1E(a0)
+		subq.b	#1,anim_frame_duration(a0)
 		bpl.s	locret_ABD6
-		move.b	#1,$1E(a0)
-		addq.b	#1,$1A(a0)
-		cmpi.b	#8,$1A(a0)
+		move.b	#1,anim_frame_duration(a0)
+		addq.b	#1,mapping_frame(a0)
+		cmpi.b	#8,mapping_frame(a0)
 		bcc.s	loc_ABD8
-		cmpi.b	#3,$1A(a0)
+		cmpi.b	#3,mapping_frame(a0)
 		bne.s	locret_ABD6
-		movea.l	$3C(a0),a1
-		move.b	#6,$24(a1)
+		movea.l	objoff_3C(a0),a1
+		move.b	#6,routine(a1)
 		move.b	#$1C,($FFFFB01C).w
 		move.b	#1,($FFFFF7CD).w
 		clr.b	($FFFFFE2D).w
@@ -14400,20 +14375,20 @@ sub_AB98:				; CODE XREF: ROM:loc_AB7Ep
 
 locret_ABD6:				; CODE XREF: sub_AB98+4j sub_AB98+1Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_ABD8:				; CODE XREF: sub_AB98+16j
-		addq.b	#2,$24(a0)
+		addq.b	#2,routine(a0)
 		move.w	#0,($FFFFB000).w
 		addq.l	#4,sp
 		rts
 ; End of function sub_AB98
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_ABE6:				; DATA XREF: ROM:0000AB4Eo
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj25:	dc.w byte_ABEC-Ani_Obj25 ; DATA	XREF: ROM:loc_A8CCo
 					; ROM:loc_AA60o ...
 byte_ABEC:	dc.b   5,  4,  5,  6,  7,$FC; 0	; DATA XREF: ROM:Ani_Obj25o
@@ -14444,12 +14419,12 @@ word_AC40:	dc.w 1			; DATA XREF: ROM:0000ABFEo
 word_AC4A:	dc.w 1			; DATA XREF: ROM:0000AC00o
 		dc.w $F805,$100A,$1005,$FFF8; 0
 word_AC54:	dc.w 0			; DATA XREF: ROM:0000AC02o
-Map_S1Obj4B:	dc.w word_AC5E-Map_S1Obj4B ; DATA XREF:	ROM:loc_AA88o
-					; ROM:Map_S1Obj4Bo ...
-		dc.w word_ACB0-Map_S1Obj4B
-		dc.w word_ACF2-Map_S1Obj4B
-		dc.w word_AD14-Map_S1Obj4B
-word_AC5E:	dc.w $A			; DATA XREF: ROM:Map_S1Obj4Bo
+Map_S1_Obj4B:	dc.w word_AC5E-Map_S1_Obj4B ; DATA XREF:	ROM:loc_AA88o
+					; ROM:Map_S1_Obj4Bo ...
+		dc.w word_ACB0-Map_S1_Obj4B
+		dc.w word_ACF2-Map_S1_Obj4B
+		dc.w word_AD14-Map_S1_Obj4B
+word_AC5E:	dc.w $A			; DATA XREF: ROM:Map_S1_Obj4Bo
 		dc.w $E008,    0,    0,$FFE8; 0
 		dc.w $E008,    3,    1,	   0; 4
 		dc.w $E80C,    6,    3,$FFE0; 8
@@ -14528,10 +14503,11 @@ word_AE34:	dc.w 4			; DATA XREF: ROM:0000AD64o
 		dc.w $E00F, $844, $822,	   0; 4
 		dc.w	$F,$1044,$1022,$FFE0; 8
 		dc.w	$F,$1844,$1822,	   0; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 26 - monitor
@@ -14542,14 +14518,14 @@ Obj26:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj26_Index(pc,d0.w),d1
 		jmp	Obj26_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj26_Index:	dc.w loc_AE70-Obj26_Index ; DATA XREF: ROM:Obj26_Indexo
 					; ROM:0000AE68o ...
 		dc.w loc_AED6-Obj26_Index
 		dc.w loc_AFDC-Obj26_Index
 		dc.w loc_AFBA-Obj26_Index
 		dc.w loc_AFC4-Obj26_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AE70:				; DATA XREF: ROM:Obj26_Indexo
 		addq.b	#2,$24(a0)
@@ -14570,7 +14546,7 @@ loc_AE70:				; DATA XREF: ROM:Obj26_Indexo
 		move.b	#8,$24(a0)
 		move.b	#$B,$1A(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AECA:				; CODE XREF: ROM:0000AEBAj
 		move.b	#$46,$20(a0) ; 'F'
@@ -14589,14 +14565,14 @@ loc_AED6:				; DATA XREF: ROM:0000AE68o
 		bne.w	loc_AF00
 		clr.b	$25(a0)
 		bra.w	loc_AFBA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AF00:				; CODE XREF: ROM:0000AEF4j
 		move.w	#$10,d3
 		move.w	8(a0),d2
 		bsr.w	sub_F70E
 		bra.w	loc_AFBA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AF10:				; CODE XREF: ROM:0000AEDEj
 		bsr.w	ObjectFall
@@ -14607,7 +14583,7 @@ loc_AF10:				; CODE XREF: ROM:0000AEDEj
 		clr.w	$12(a0)
 		clr.b	$25(a0)
 		bra.w	loc_AFBA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AF30:				; CODE XREF: ROM:0000AEDAj
 		move.w	#$1A,d1
@@ -14626,7 +14602,7 @@ loc_AF4E:				; CODE XREF: ROM:0000AF44j
 		bsr.w	sub_F8F8
 		move.b	#2,$25(a0)
 		bra.w	loc_AFBA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AF64:				; CODE XREF: ROM:0000AF50j
 		tst.w	d0
@@ -14635,7 +14611,7 @@ loc_AF64:				; CODE XREF: ROM:0000AF50j
 		tst.w	$10(a1)
 		bmi.s	loc_AF8A
 		bra.s	loc_AF7A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AF74:				; CODE XREF: ROM:0000AF6Aj
 		tst.w	$10(a1)
@@ -14653,7 +14629,7 @@ loc_AF8A:				; CODE XREF: ROM:0000AF66j
 		bset	#5,$22(a1)
 		bset	#5,$22(a0)
 		bra.s	loc_AFBA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AFA0:				; CODE XREF: ROM:0000AF3Cj
 					; ROM:0000AF4Cj
@@ -14677,7 +14653,7 @@ loc_AFC4:				; DATA XREF: ROM:0000AE6Eo
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_AFDC:				; DATA XREF: ROM:0000AE6Ao
 		addq.b	#2,$24(a0)
@@ -14704,7 +14680,7 @@ loc_B020:				; CODE XREF: ROM:0000B008j
 		bset	#0,2(a2,d0.w)
 		move.b	#$A,$1C(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 2E - contents of monitors
 ;----------------------------------------------------
@@ -14714,12 +14690,12 @@ Obj2E:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj2E_Index(pc,d0.w),d1
 		jmp	Obj2E_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj2E_Index:	dc.w loc_B04E-Obj2E_Index ; DATA XREF: ROM:Obj2E_Indexo
 					; ROM:0000B04Ao ...
 		dc.w loc_B092-Obj2E_Index
 		dc.w loc_B1AA-Obj2E_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B04E:				; DATA XREF: ROM:Obj2E_Indexo
 		addq.b	#2,$24(a0)
@@ -14743,7 +14719,7 @@ loc_B092:				; DATA XREF: ROM:0000B04Ao
 		bsr.s	sub_B098
 		bra.w	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_B098:				; CODE XREF: ROM:loc_B092p
@@ -14752,7 +14728,7 @@ sub_B098:				; CODE XREF: ROM:loc_B092p
 		bsr.w	SpeedToPos
 		addi.w	#$18,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B0AC:				; CODE XREF: sub_B098+4j
 		addq.b	#2,$24(a0)
@@ -14764,25 +14740,25 @@ loc_B0AC:				; CODE XREF: sub_B098+4j
 		jmp	Monitor_Subroutines(pc,d0.w)
 ; End of function sub_B098
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Monitor_Subroutines:dc.w Monitor_Null-Monitor_Subroutines
 					; DATA XREF: ROM:Monitor_Subroutineso
 					; ROM:0000B0C8o ...
 		dc.w Monitor_SonicLife-Monitor_Subroutines
 		dc.w Monitor_TailsLife-Monitor_Subroutines
 		dc.w Monitor_Null-Monitor_Subroutines
-		dc.w Monitor_Rigns-Monitor_Subroutines
+		dc.w Monitor_Rings-Monitor_Subroutines
 		dc.w Monitor_Shoes-Monitor_Subroutines
 		dc.w Monitor_Shield-Monitor_Subroutines
 		dc.w Monitor_Invincibility-Monitor_Subroutines
 		dc.w Monitor_Null-Monitor_Subroutines
 		dc.w Monitor_Null-Monitor_Subroutines
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Monitor_Null:				; DATA XREF: ROM:Monitor_Subroutineso
 					; ROM:0000B0CCo ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Monitor_SonicLife:			; CODE XREF: ROM:0000B11Aj
 					; ROM:0000B12Cj
@@ -14791,16 +14767,16 @@ Monitor_SonicLife:			; CODE XREF: ROM:0000B11Aj
 		addq.b	#1,($FFFFFE1C).w
 		move.w	#$88,d0	; '€'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Monitor_TailsLife:			; DATA XREF: ROM:0000B0CAo
 		addq.b	#1,($FFFFFE12).w
 		addq.b	#1,($FFFFFE1C).w
 		move.w	#$88,d0	; '€'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
-Monitor_Rigns:				; DATA XREF: ROM:0000B0CEo
+Monitor_Rings:				; DATA XREF: ROM:0000B0CEo
 		addi.w	#$A,($FFFFFE20).w
 		ori.b	#1,($FFFFFE1D).w
 		cmpi.w	#$64,($FFFFFE20).w ; 'd'
@@ -14816,7 +14792,7 @@ loc_B130:				; CODE XREF: ROM:0000B112j
 					; ROM:0000B124j
 		move.w	#$B5,d0	; 'µ'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Monitor_Shoes:				; DATA XREF: ROM:0000B0D0o
 		move.b	#1,($FFFFFE2E).w
@@ -14826,14 +14802,14 @@ Monitor_Shoes:				; DATA XREF: ROM:0000B0D0o
 		move.w	#$80,($FFFFF764).w ; 'Ђ'
 		move.w	#$E2,d0	; 'в'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Monitor_Shield:				; DATA XREF: ROM:0000B0D2o
 		move.b	#1,($FFFFFE2C).w
 		move.b	#$38,($FFFFB180).w ; '8'
 		move.w	#$AF,d0	; 'Ї'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Monitor_Invincibility:			; DATA XREF: ROM:0000B0D4o
 		move.b	#1,($FFFFFE2D).w
@@ -14846,19 +14822,19 @@ Monitor_Invincibility:			; DATA XREF: ROM:0000B0D4o
 		bls.s	locret_B1A8
 		move.w	#$87,d0	; '‡'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_B1A8:				; CODE XREF: ROM:0000B194j
 					; ROM:0000B19Cj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B1AA:				; DATA XREF: ROM:0000B04Co
 		subq.w	#1,$1E(a0)
 		bmi.w	DeleteObject
 		bra.w	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Obj26_SolidSides:			; CODE XREF: ROM:0000AF38p
@@ -14900,13 +14876,13 @@ loc_B20A:				; CODE XREF: Obj26_SolidSides+70j
 					; Obj26_SolidSides+74j
 		moveq	#1,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B20E:				; CODE XREF: Obj26_SolidSides+Ej
 					; Obj26_SolidSides+16j	...
 		moveq	#0,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B212:				; CODE XREF: Obj26_SolidSides+52j
 		moveq	#0,d1
@@ -14923,7 +14899,7 @@ loc_B212:				; CODE XREF: Obj26_SolidSides+52j
 		rts
 ; End of function Obj26_SolidSides
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj26:	dc.w byte_B246-Ani_Obj26 ; DATA	XREF: ROM:loc_AFBAo
 					; ROM:Ani_Obj26o ...
 		dc.w byte_B24A-Ani_Obj26
@@ -14984,9 +14960,9 @@ word_B35C:	dc.w 2			; DATA XREF: ROM:0000B2ACo
 		dc.w $F505,  $38,  $1C,$FFF8,$EF0F,    0,    0,$FFF0; 0
 word_B36E:	dc.w 1			; DATA XREF: ROM:0000B2AEo
 		dc.w $FF0D,  $10,    8,$FFF0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
-; Object 0E - Sonic on title screen
+; Object 0E - Sonic/Tails on title screen
 ;----------------------------------------------------
 
 Obj0E:					; DATA XREF: ROM:Obj_Indexo
@@ -14994,13 +14970,13 @@ Obj0E:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj0E_Index(pc,d0.w),d1
 		jmp	Obj0E_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj0E_Index:	dc.w loc_B38E-Obj0E_Index ; DATA XREF: ROM:Obj0E_Indexo
 					; ROM:0000B388o ...
 		dc.w loc_B3D0-Obj0E_Index
 		dc.w loc_B3E4-Obj0E_Index
 		dc.w loc_B3FA-Obj0E_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B38E:				; DATA XREF: ROM:Obj0E_Indexo
 		addq.b	#2,$24(a0)
@@ -15019,16 +14995,18 @@ loc_B38E:				; DATA XREF: ROM:Obj0E_Indexo
 loc_B3D0:				; CODE XREF: ROM:0000B3BCj
 					; DATA XREF: ROM:0000B388o
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
+	if RemovePadding=0
 		subq.b	#1,$1F(a0)
 		bpl.s	locret_B3E2
 		addq.b	#2,$24(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	endif
+; ---------------------------------------------------------------------------
 
 locret_B3E2:				; CODE XREF: ROM:0000B3D8j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B3E4:				; DATA XREF: ROM:0000B38Ao
 		subi.w	#8,$A(a0)
@@ -15038,11 +15016,11 @@ loc_B3E4:				; DATA XREF: ROM:0000B38Ao
 
 loc_B3F6:				; CODE XREF: ROM:0000B3F0j
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B3FA:				; DATA XREF: ROM:0000B38Co
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 0F - ???
 ;----------------------------------------------------
@@ -15053,12 +15031,12 @@ Obj0F:					; DATA XREF: ROM:Obj_Indexo
 		move.w	Obj0F_Index(pc,d0.w),d1
 		jsr	Obj0F_Index(pc,d1.w)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj0F_Index:	dc.w loc_B416-Obj0F_Index ; DATA XREF: ROM:Obj0F_Indexo
 					; ROM:0000B412o ...
 		dc.w loc_B438-Obj0F_Index
 		dc.w loc_B438-Obj0F_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B416:				; DATA XREF: ROM:Obj0F_Indexo
 		addq.b	#2,$24(a0)
@@ -15083,7 +15061,7 @@ loc_B44C:				; CODE XREF: ROM:0000B440j
 
 locret_B458:				; CODE XREF: ROM:0000B450j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj0F:	dc.w word_B47A-Map_Obj0F ; DATA	XREF: ROM:0000B426o
 					; ROM:Map_Obj0Fo ...
 		dc.w word_B484-Map_Obj0F
@@ -15214,7 +15192,7 @@ word_B6C4:	dc.w $A			; DATA XREF: ROM:0000B668o
 		dc.w $140D,  $B1,  $58,$FFE4; 32
 		dc.w $140D,  $B9,  $5C,	   4; 36
 		dc.w $4E71		; 40
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 2B - GHZ Chopper Badnik
 ;----------------------------------------------------
@@ -15225,11 +15203,11 @@ Obj2B:					; DATA XREF: ROM:Obj_Indexo
 		move.w	Obj2B_Index(pc,d0.w),d1
 		jsr	Obj2B_Index(pc,d1.w)
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj2B_Index:	dc.w loc_B72E-Obj2B_Index ; DATA XREF: ROM:Obj2B_Indexo
 					; ROM:0000B72Co
 		dc.w loc_B768-Obj2B_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B72E:				; DATA XREF: ROM:Obj2B_Indexo
 		addq.b	#2,$24(a0)
@@ -15267,7 +15245,7 @@ loc_B790:				; CODE XREF: ROM:0000B784j
 locret_B7B2:				; CODE XREF: ROM:0000B79Ej
 					; ROM:0000B7AAj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj2B:	dc.w byte_B7BA-Ani_Obj2B ; DATA	XREF: ROM:loc_B768o
 					; ROM:Ani_Obj2Bo ...
 		dc.w byte_B7BE-Ani_Obj2B
@@ -15282,7 +15260,7 @@ word_B7CA:	dc.w 1			; DATA XREF: ROM:Map_Obj2Bo
 		dc.w $F00F,    0,    0,$FFF0; 0
 word_B7D4:	dc.w 1			; DATA XREF: ROM:0000B7C8o
 		dc.w $F00F,  $10,    8,$FFF0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 2C - LZ Jaws Badnik
 ;----------------------------------------------------
@@ -15292,11 +15270,11 @@ Obj2C:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj2C_Index(pc,d0.w),d1
 		jmp	Obj2C_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj2C_Index:	dc.w loc_B7F0-Obj2C_Index ; DATA XREF: ROM:Obj2C_Indexo
 					; ROM:0000B7EEo
 		dc.w loc_B842-Obj2C_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_B7F0:				; DATA XREF: ROM:Obj2C_Indexo
 		addq.b	#2,$24(a0)
@@ -15332,7 +15310,7 @@ loc_B85E:				; CODE XREF: ROM:0000B846j
 		bsr.w	AnimateSprite
 		bsr.w	SpeedToPos
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj2C:	dc.b   0,  2,  7,  0,  1,  2,  3,$FF; 0	; DATA XREF: ROM:loc_B85Eo
 Map_Obj2C:	dc.w word_B880-Map_Obj2C ; DATA	XREF: ROM:0000B7F4o
 					; ROM:Map_Obj2Co ...
@@ -15351,7 +15329,7 @@ word_B8A4:	dc.w 2			; DATA XREF: ROM:0000B87Co
 word_B8B6:	dc.w 2			; DATA XREF: ROM:0000B87Eo
 		dc.w $F40E,   $C,    6,$FFF0; 0
 		dc.w $F505,$101C,$100E,	 $10; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 34 - leftover Sonic 1 title cards
 ;----------------------------------------------------
@@ -15361,13 +15339,13 @@ Obj34:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj34_Index(pc,d0.w),d1
 		jmp	Obj34_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj34_Index:	dc.w Obj34_CheckLZ4-Obj34_Index; 0 ; DATA XREF:	ROM:Obj34_Indexo
 					; ROM:Obj34_Index+2o ...
 		dc.w Obj34_CheckPos-Obj34_Index; 1
 		dc.w Obj34_Wait-Obj34_Index; 2
 		dc.w Obj34_Wait-Obj34_Index; 3
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj34_CheckLZ4:				; DATA XREF: ROM:Obj34_Indexo
 		movea.l	a0,a1
@@ -15440,23 +15418,23 @@ loc_B98E:				; CODE XREF: ROM:0000B984j
 		cmpi.w	#$200,d0
 		bcc.s	Obj34_NoDisplay
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj34_NoDisplay:			; CODE XREF: ROM:0000B992j
 					; ROM:0000B998j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj34_Wait:				; DATA XREF: ROM:Obj34_Indexo
 		tst.w	$1E(a0)
 		beq.s	Obj34_CheckPos2
 		subq.w	#1,$1E(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj34_CheckPos2:			; CODE XREF: ROM:0000B9A6j
 		tst.b	1(a0)
@@ -15475,14 +15453,14 @@ Obj34_Move2:				; CODE XREF: ROM:0000B9C4j
 		cmpi.w	#$200,d0
 		bcc.s	Obj34_NoDisplay2
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj34_NoDisplay2:			; CODE XREF: ROM:0000B9D0j
 					; ROM:0000B9D6j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj34_ChangeArt:			; CODE XREF: ROM:0000B9B6j
 					; ROM:0000B9C2j
@@ -15497,7 +15475,7 @@ Obj34_ChangeArt:			; CODE XREF: ROM:0000B9B6j
 
 Obj34_Delete:				; CODE XREF: ROM:0000B9E6j
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj34_ItemData:	dc.w $D0		; DATA XREF: ROM:0000B908o
 		dc.b   2,  0		; 0
 		dc.w $E4
@@ -15514,7 +15492,7 @@ Obj34_Config:	dc.w	 0, $120,$FEFC,	$13C, $414, $154, $214,	$154; 0
 		dc.w	 0, $120,$FF04,	$144, $41C, $15C, $21C,	$15C; 32
 		dc.w	 0, $120,$FF04,	$144, $41C, $15C, $21C,	$15C; 40
 		dc.w	 0, $120,$FEE4,	$124, $3EC, $3EC, $1EC,	$12C; 48
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 39 - Game over	/ time over
 ;----------------------------------------------------
@@ -15524,18 +15502,18 @@ Obj39:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj39_Index(pc,d0.w),d1
 		jmp	Obj39_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj39_Index:	dc.w loc_BA98-Obj39_Index ; DATA XREF: ROM:Obj39_Indexo
 					; ROM:0000BA94o ...
 		dc.w loc_BADC-Obj39_Index
 		dc.w loc_BAFE-Obj39_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BA98:				; DATA XREF: ROM:Obj39_Indexo
 		tst.l	($FFFFF680).w
 		beq.s	loc_BAA0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BAA0:				; CODE XREF: ROM:0000BA9Cj
 		addq.b	#2,$24(a0)
@@ -15562,13 +15540,13 @@ loc_BADC:				; DATA XREF: ROM:0000BA94o
 loc_BAEA:				; CODE XREF: ROM:0000BAE6j
 		add.w	d1,8(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BAF2:				; CODE XREF: ROM:0000BAE4j
 		move.w	#$2D0,$1E(a0)
 		addq.b	#2,$24(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BAFE:				; DATA XREF: ROM:0000BA96o
 		move.b	($FFFFF605).w,d0
@@ -15580,7 +15558,7 @@ loc_BAFE:				; DATA XREF: ROM:0000BA96o
 		beq.s	loc_BB1E
 		subq.w	#1,$1E(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BB1E:				; CODE XREF: ROM:0000BB06j
 					; ROM:0000BB14j
@@ -15591,7 +15569,7 @@ loc_BB1E:				; CODE XREF: ROM:0000BB06j
 		bne.s	loc_BB42
 		move.b	#0,($FFFFF600).w
 		bra.s	loc_BB42
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BB38:				; CODE XREF: ROM:0000BB22j
 		clr.l	($FFFFFE38).w
@@ -15600,7 +15578,7 @@ loc_BB38:				; CODE XREF: ROM:0000BB22j
 loc_BB42:				; CODE XREF: ROM:0000BB0Ej
 					; ROM:0000BB2Ej ...
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 3A - leftover SONIC GOT THROUGH title card
 ;----------------------------------------------------
@@ -15610,19 +15588,19 @@ Obj3A:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj3A_Index(pc,d0.w),d1
 		jmp	Obj3A_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj3A_Index:	dc.w loc_BB5C-Obj3A_Index ; DATA XREF: ROM:Obj3A_Indexo
 					; ROM:0000BB56o ...
 		dc.w loc_BBB8-Obj3A_Index
 		dc.w loc_BC04-Obj3A_Index
 		dc.w loc_BC80-Obj3A_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BB5C:				; DATA XREF: ROM:Obj3A_Indexo
 		tst.l	($FFFFF680).w
 		beq.s	loc_BB64
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BB64:				; CODE XREF: ROM:0000BB60j
 		movea.l	a0,a1
@@ -15667,19 +15645,19 @@ loc_BBCC:				; CODE XREF: ROM:0000BBF8j
 		cmpi.w	#$200,d0
 		bcc.s	locret_BBDE
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_BBDE:				; CODE XREF: ROM:0000BBD0j
 					; ROM:0000BBD6j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BBE0:				; CODE XREF: ROM:0000BBF0j
 		move.b	#$E,$24(a0)
 		bra.w	loc_BCF8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BBEA:				; CODE XREF: ROM:0000BBC2j
 		cmpi.b	#$E,($FFFFB724).w
@@ -15696,9 +15674,9 @@ loc_BC04:				; DATA XREF: ROM:0000BB58o
 
 locret_BC0E:				; CODE XREF: ROM:0000BC08j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bsr.w	DisplaySprite
 		move.b	#1,($FFFFF7D6).w
 		moveq	#0,d0
@@ -15728,7 +15706,7 @@ loc_BC5E:				; CODE XREF: ROM:0000BC58j
 
 locret_BC64:				; CODE XREF: ROM:0000BC74j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BC66:				; CODE XREF: ROM:0000BC42j
 		jsr	AddPoints
@@ -15737,7 +15715,7 @@ loc_BC66:				; CODE XREF: ROM:0000BC42j
 		bne.s	locret_BC64
 		move.w	#$CD,d0	; 'Н'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BC80:				; DATA XREF: ROM:0000BB5Ao
 		move.b	($FFFFFE10).w,d0
@@ -15753,7 +15731,7 @@ loc_BC80:				; DATA XREF: ROM:0000BB5Ao
 		bne.s	loc_BCAA
 		move.b	#0,($FFFFF600).w
 		bra.s	locret_BCC2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BCAA:				; CODE XREF: ROM:0000BCA0j
 		clr.b	($FFFFFE30).w
@@ -15761,7 +15739,7 @@ loc_BCAA:				; CODE XREF: ROM:0000BCA0j
 		beq.s	loc_BCBC
 		move.b	#$10,($FFFFF600).w
 		bra.s	locret_BCC2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BCBC:				; CODE XREF: ROM:0000BCB2j
 		move.w	#1,($FFFFFE02).w
@@ -15769,16 +15747,16 @@ loc_BCBC:				; CODE XREF: ROM:0000BCB2j
 locret_BCC2:				; CODE XREF: ROM:0000BCA8j
 					; ROM:0000BCBAj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 LevelOrder:	dc.w	 1,    2, $200,	   0; 0
 		dc.w  $101, $102, $300,	$502; 4
 		dc.w  $201, $202, $400,	   0; 8
 		dc.w  $301, $302, $500,	   0; 12
 		dc.w  $401, $402, $100,	   0; 16
 		dc.w  $501, $103,    0,	   0; 20
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BCF8:				; CODE XREF: ROM:0000BBE6j
 		moveq	#$20,d1	; ' '
@@ -15795,12 +15773,12 @@ loc_BD08:				; CODE XREF: ROM:0000BD04j
 		cmpi.w	#$200,d0
 		bcc.s	locret_BD1C
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_BD1C:				; CODE XREF: ROM:0000BD10j
 					; ROM:0000BD16j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BD1E:				; CODE XREF: ROM:0000BD02j
 		cmpi.b	#4,$1A(a0)
@@ -15809,12 +15787,12 @@ loc_BD1E:				; CODE XREF: ROM:0000BD02j
 		clr.b	($FFFFF7CC).w
 		move.w	#$8D,d0	; 'Ќ'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		addq.w	#2,($FFFFEECA).w
 		cmpi.w	#$2100,($FFFFEECA).w
 		beq.w	DeleteObject
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj3A_Conf:	dc.w	 4, $124,  $BC,	$200; 0	; DATA XREF: ROM:0000BB66o
 		dc.w $FEE0, $120,  $D0,	$201; 4
 		dc.w  $40C, $14C,  $D6,	$206; 8
@@ -15822,7 +15800,7 @@ Obj3A_Conf:	dc.w	 4, $124,  $BC,	$200; 0	; DATA XREF: ROM:0000BB66o
 		dc.w  $540, $120,  $FC,	$203; 16
 		dc.w  $560, $120, $10C,	$204; 20
 		dc.w  $20C, $14C,  $CC,	$205; 24
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Sonic	1 Object 7E - leftover S1 Special Stage	results
 ;----------------------------------------------------
@@ -15832,7 +15810,7 @@ S1Obj7E:
 		move.b	$24(a0),d0
 		move.w	S1Obj7E_Index(pc,d0.w),d1
 		jmp	S1Obj7E_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1Obj7E_Index:	dc.w loc_BDA6-S1Obj7E_Index ; DATA XREF: ROM:S1Obj7E_Indexo
 					; ROM:0000BD92o ...
 		dc.w loc_BE1E-S1Obj7E_Index
@@ -15845,13 +15823,13 @@ S1Obj7E_Index:	dc.w loc_BDA6-S1Obj7E_Index ; DATA XREF: ROM:S1Obj7E_Indexo
 		dc.w loc_BE5C-S1Obj7E_Index
 		dc.w loc_BEC4-S1Obj7E_Index
 		dc.w loc_BEF2-S1Obj7E_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BDA6:				; DATA XREF: ROM:S1Obj7E_Indexo
 		tst.l	($FFFFF680).w
 		beq.s	loc_BDAE
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BDAE:				; CODE XREF: ROM:0000BDAAj
 		movea.l	a0,a1
@@ -15906,12 +15884,12 @@ loc_BE32:				; CODE XREF: ROM:0000BE4Aj
 		cmpi.w	#$200,d0
 		bcc.s	locret_BE42
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_BE42:				; CODE XREF: ROM:0000BE36j
 					; ROM:0000BE3Cj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BE44:				; CODE XREF: ROM:0000BE28j
 		cmpi.b	#2,$1A(a0)
@@ -15928,7 +15906,7 @@ loc_BE5C:				; DATA XREF: ROM:0000BD94o
 
 loc_BE66:				; CODE XREF: ROM:0000BE60j
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BE6A:				; DATA XREF: ROM:0000BD96o
 		bsr.w	DisplaySprite
@@ -15943,7 +15921,7 @@ loc_BE6A:				; DATA XREF: ROM:0000BD96o
 		bne.s	locret_BEC2
 		move.w	#$CD,d0	; 'Н'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BE9C:				; CODE XREF: ROM:0000BE78j
 		move.w	#$C5,d0	; 'Е'
@@ -15958,13 +15936,13 @@ loc_BE9C:				; CODE XREF: ROM:0000BE78j
 locret_BEC2:				; CODE XREF: ROM:0000BE90j
 					; ROM:0000BEB6j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BEC4:				; DATA XREF: ROM:0000BD9Ao
 					; ROM:0000BDA2o
 		move.w	#1,($FFFFFE02).w
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BECE:				; DATA XREF: ROM:0000BD9Eo
 		move.b	#4,($FFFFB6DA).w
@@ -15974,7 +15952,7 @@ loc_BECE:				; DATA XREF: ROM:0000BD9Eo
 		addq.b	#2,$24(a0)
 		move.w	#$168,$1E(a0)
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BEF2:				; DATA XREF: ROM:0000BDA4o
 		move.b	($FFFFFE0F).w,d0
@@ -15984,13 +15962,13 @@ loc_BEF2:				; DATA XREF: ROM:0000BDA4o
 
 loc_BF02:				; CODE XREF: ROM:0000BEFAj
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1Obj7E_Conf:	dc.w   $20, $120,  $C4,	$200; 0	; DATA XREF: ROM:0000BDB0o
 		dc.w  $320, $120, $118,	$201; 4
 		dc.w  $360, $120, $128,	$202; 8
 		dc.w  $1EC, $11C,  $C4,	$203; 12
 		dc.w  $3A0, $120, $138,	$206; 16
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Sonic	1 Object 7F - leftover Sonic 1 SS emeralds
 ;----------------------------------------------------
@@ -16000,7 +15978,7 @@ S1Obj7F:
 		move.b	$24(a0),d0
 		move.w	S1Obj7F_Index(pc,d0.w),d1
 		jmp	S1Obj7F_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1Obj7F_Index:	dc.w loc_BF4C-S1Obj7F_Index ; DATA XREF: ROM:S1Obj7F_Indexo
 					; ROM:0000BF3Eo
 		dc.w loc_BFA6-S1Obj7F_Index
@@ -16010,7 +15988,7 @@ word_BF40:	dc.w $110		; DATA XREF: ROM:0000BF4Et
 		dc.w $140
 		dc.w $E0
 		dc.w $158
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_BF4C:				; DATA XREF: ROM:S1Obj7F_Indexo
 		movea.l	a0,a1
@@ -16047,7 +16025,7 @@ loc_BFA6:				; DATA XREF: ROM:0000BF3Eo
 
 loc_BFBC:				; CODE XREF: ROM:0000BFB4j
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj34:	dc.w word_BFD8-Map_Obj34 ; DATA	XREF: ROM:0000B948o
 					; ROM:Map_Obj34o ...
 		dc.w word_C022-Map_Obj34
@@ -16327,10 +16305,11 @@ word_C64C:	dc.w 1			; DATA XREF: ROM:0000C61Eo
 word_C656:	dc.w 1			; DATA XREF: ROM:0000C620o
 		dc.w $F805,$200C,$2006,$FFF8; 0
 word_C660:	dc.w 0			; DATA XREF: ROM:0000C622o
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 36 - Spikes
@@ -16341,7 +16320,7 @@ Obj36:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj36_Index(pc,d0.w),d1
 		jmp	Obj36_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj36_Index:	dc.w loc_C682-Obj36_Index ; DATA XREF: ROM:Obj36_Indexo
 					; ROM:0000C674o
 		dc.w loc_C6CE-Obj36_Index
@@ -16351,7 +16330,7 @@ Obj36_Conf:	dc.b   0,$10		; 0 ; DATA XREF: ROM:0000C6B2t
 		dc.b   0,$10		; 6
 		dc.b   0,$10		; 8
 		dc.b   0,$10		; 10
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C682:				; DATA XREF: ROM:Obj36_Indexo
 		addq.b	#2,$24(a0)
@@ -16392,7 +16371,7 @@ loc_C6EA:				; CODE XREF: ROM:0000C6DCj
 		andi.w	#3,d6
 		bne.s	loc_C736
 		bra.s	loc_C766
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C70C:				; CODE XREF: ROM:0000C6E4j
 		moveq	#0,d1
@@ -16433,7 +16412,7 @@ loc_C766:				; CODE XREF: ROM:0000C700j
 		tst.w	($FFFFFFE8).w
 		beq.s	loc_C770
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C770:				; CODE XREF: ROM:0000C76Aj
 		move.w	$30(a0),d0
@@ -16443,7 +16422,7 @@ loc_C770:				; CODE XREF: ROM:0000C76Aj
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_C788:				; CODE XREF: ROM:loc_C6CEp
@@ -16454,16 +16433,16 @@ sub_C788:				; CODE XREF: ROM:loc_C6CEp
 		jmp	off_C798(pc,d1.w)
 ; End of function sub_C788
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_C798:	dc.w locret_C79E-off_C798 ; DATA XREF: ROM:off_C798o
 					; ROM:0000C79Ao ...
 		dc.w loc_C7A0-off_C798
 		dc.w loc_C7B4-off_C798
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_C79E:				; DATA XREF: ROM:off_C798o
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C7A0:				; DATA XREF: ROM:0000C79Ao
 		bsr.w	sub_C7C8
@@ -16472,7 +16451,7 @@ loc_C7A0:				; DATA XREF: ROM:0000C79Ao
 		add.w	$32(a0),d0
 		move.w	d0,$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C7B4:				; DATA XREF: ROM:0000C79Co
 		bsr.w	sub_C7C8
@@ -16482,7 +16461,7 @@ loc_C7B4:				; DATA XREF: ROM:0000C79Co
 		move.w	d0,8(a0)
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_C7C8:				; CODE XREF: ROM:loc_C7A0p
@@ -16496,7 +16475,7 @@ sub_C7C8:				; CODE XREF: ROM:loc_C7A0p
 		move.w	#$B6,d0	; '¶'
 		jsr	(PlaySound_Special).l
 		bra.s	locret_C828
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C7E6:				; CODE XREF: sub_C7C8+4j
 		tst.w	$36(a0)
@@ -16507,7 +16486,7 @@ loc_C7E6:				; CODE XREF: sub_C7C8+4j
 		move.w	#0,$36(a0)
 		move.w	#$3C,$38(a0) ; '<'
 		bra.s	locret_C828
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C808:				; CODE XREF: sub_C7C8+22j
 		addi.w	#$800,$34(a0)
@@ -16521,7 +16500,7 @@ locret_C828:				; CODE XREF: sub_C7C8+Aj sub_C7C8+10j	...
 		rts
 ; End of function sub_C7C8
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj36:	dc.w word_C836-Map_Obj36 ; DATA	XREF: ROM:0000C686o
 					; ROM:Map_Obj36o ...
 		dc.w word_C836-Map_Obj36
@@ -16533,7 +16512,7 @@ word_C836:	dc.w 2			; DATA XREF: ROM:Map_Obj36o
 					; ROM:0000C82Co ...
 		dc.w $F007,    0,    0,$FFF0; 0
 		dc.w $F007,    0,    0,	   0; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 3B - GHZ Purple Rock
 ;----------------------------------------------------
@@ -16545,11 +16524,11 @@ loc_C84A:
 		move.b	$24(a0),d0
 		move.w	Obj3B_Index(pc,d0.w),d1
 		jmp	Obj3B_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj3B_Index:	dc.w loc_C85A-Obj3B_Index ; DATA XREF: ROM:Obj3B_Indexo
 					; ROM:0000C858o
 		dc.w loc_C882-Obj3B_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C85A:				; DATA XREF: ROM:Obj3B_Indexo
 		addq.b	#2,$24(a0)
@@ -16572,7 +16551,7 @@ loc_C882:				; DATA XREF: ROM:0000C858o
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj3B:	dc.w word_C8B0-Map_Obj3B ; DATA	XREF: ROM:0000C85Eo
 					; ROM:Map_Obj3Bo ...
 word_C8B0:	dc.w 2			; DATA XREF: ROM:Map_Obj3Bo
@@ -16583,7 +16562,7 @@ word_C8B0:	dc.w 2			; DATA XREF: ROM:Map_Obj3Bo
 	else
 	    	even
 	endif
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 3C - GHZ smashable wall
 ;----------------------------------------------------
@@ -16594,12 +16573,12 @@ Obj3C:					; DATA XREF: ROM:Obj_Indexo
 		move.w	Obj3C_Index(pc,d0.w),d1
 		jsr	Obj3C_Index(pc,d1.w)
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj3C_Index:	dc.w loc_C8DC-Obj3C_Index ; DATA XREF: ROM:Obj3C_Indexo
 					; ROM:0000C8D8o ...
 		dc.w loc_C90A-Obj3C_Index
 		dc.w loc_C988-Obj3C_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C8DC:				; DATA XREF: ROM:Obj3C_Indexo
 		addq.b	#2,$24(a0)
@@ -16624,7 +16603,7 @@ loc_C90A:				; DATA XREF: ROM:0000C8D8o
 locret_C92C:				; CODE XREF: ROM:0000C938j
 					; ROM:0000C946j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C92E:				; CODE XREF: ROM:0000C92Aj
 		lea	($FFFFB000).w,a1
@@ -16661,7 +16640,7 @@ loc_C988:				; DATA XREF: ROM:0000C8DAo
 		bpl.w	DeleteObject
 		bra.w	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_C99E:				; CODE XREF: ROM:0000C986p
@@ -16676,7 +16655,7 @@ sub_C99E:				; CODE XREF: ROM:0000C986p
 		move.b	1(a0),d5
 		movea.l	a0,a1
 		bra.s	loc_C9CA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_C9C2:				; CODE XREF: sub_C99E:loc_CA18j
 		bsr.w	SingleObjectLoad
@@ -16712,7 +16691,7 @@ loc_CA1C:				; CODE XREF: sub_C99E+28j
 		jmp	(PlaySound_Special).l
 ; End of function sub_C99E
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj3C_FragSpdRight:dc.w	 $400,$FB00	   ; 0 ; DATA XREF: ROM:0000C952o
 		dc.w  $600,$FF00	; 2
 		dc.w  $600, $100	; 4
@@ -16760,13 +16739,14 @@ word_CAF0:	dc.w 8			; DATA XREF: ROM:0000CA6Ao
 		dc.w $F005,    8,    4,	   0; 20
 		dc.w	 5,    8,    4,	   0; 24
 		dc.w $1005,    8,    4,	   0; 28
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ObjectsLoad:				; CODE XREF: ROM:000033B2p
@@ -16782,7 +16762,7 @@ ObjectsLoad:				; CODE XREF: ROM:000033B2p
 ; End of function ObjectsLoad
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_CB44:				; CODE XREF: sub_CB44+14j
@@ -16801,7 +16781,7 @@ loc_CB54:				; CODE XREF: sub_CB44+2j
 		rts
 ; End of function sub_CB44
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR ObjectsLoad
 
 loc_CB5E:				; CODE XREF: ObjectsLoad+Ej
@@ -16825,7 +16805,7 @@ loc_CB78:
 		dbf	d7,loc_CB64
 		rts
 ; END OF FUNCTION CHUNK	FOR ObjectsLoad
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj_Index:	dc.l Obj01,Obj02,Obj03,Obj04; 0	; DATA XREF: sub_CB44+8t
 		dc.l Obj05,Obj06,jmp_DeleteObject,Obj08; 4 ; explosion object
 		dc.l Obj09,Obj0A,Obj0B,Obj0C; 8
@@ -16861,12 +16841,12 @@ Obj_Index:	dc.l Obj01,Obj02,Obj03,Obj04; 0	; DATA XREF: sub_CB44+8t
 		dc.l jmp_DeleteObject,jmp_DeleteObject,jmp_DeleteObject,jmp_DeleteObject; 128
 		dc.l jmp_DeleteObject,jmp_DeleteObject,jmp_DeleteObject,jmp_DeleteObject; 132
 		dc.l jmp_DeleteObject,Obj8A,jmp_DeleteObject,jmp_DeleteObject; 136
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 jmp_DeleteObject:			; DATA XREF: ROM:Obj_Indexo
 		bra.w	DeleteObject
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ObjectFall:				; CODE XREF: ROM:loc_8D46p
@@ -16888,7 +16868,7 @@ ObjectFall:				; CODE XREF: ROM:loc_8D46p
 ; End of function ObjectFall
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 SpeedToPos:				; CODE XREF: ROM:loc_9D4Ep
@@ -16909,7 +16889,7 @@ SpeedToPos:				; CODE XREF: ROM:loc_9D4Ep
 ; End of function SpeedToPos
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 DisplaySprite:				; CODE XREF: ROM:loc_7D5Aj
@@ -16930,7 +16910,7 @@ locret_CE20:				; CODE XREF: DisplaySprite+14j
 ; End of function DisplaySprite
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 DisplayA1Sprite:			; CODE XREF: ROM:00008EDCp
@@ -16950,7 +16930,7 @@ locret_CE3E:				; CODE XREF: DisplayA1Sprite+14j
 		rts
 ; End of function DisplayA1Sprite
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 DisplaySprite_Param:			; CODE XREF: ROM:00007BBAj
 		lea	($FFFFAC00).w,a1
@@ -16965,14 +16945,14 @@ DisplaySprite_Param:			; CODE XREF: ROM:00007BBAj
 
 locret_CE58:				; CODE XREF: ROM:0000CE50j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR sub_8CEC
 
 MarkObjGone:				; CODE XREF: sub_8CEC+12j sub_8DD6+10j ...
 		tst.w	($FFFFFFE8).w
 		beq.s	loc_CE64
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CE64:				; CODE XREF: sub_8CEC+4172j
 		move.w	8(a0),d0
@@ -16981,7 +16961,7 @@ loc_CE64:				; CODE XREF: sub_8CEC+4172j
 		cmpi.w	#$280,d0
 		bhi.w	loc_CE7C
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CE7C:				; CODE XREF: sub_8CEC+4188j
 		lea	($FFFFFC00).w,a2
@@ -16993,13 +16973,13 @@ loc_CE7C:				; CODE XREF: sub_8CEC+4188j
 loc_CE8E:				; CODE XREF: sub_8CEC+419Aj
 		bra.w	DeleteObject
 ; END OF FUNCTION CHUNK	FOR sub_8CEC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CE92:				; CODE XREF: ROM:00013E3Ej
 		tst.w	($FFFFFFE8).w
 		beq.s	loc_CE9A
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CE9A:				; CODE XREF: ROM:0000CE96j
 		move.w	8(a0),d0
@@ -17008,7 +16988,7 @@ loc_CE9A:				; CODE XREF: ROM:0000CE96j
 		cmpi.w	#$280,d0
 		bhi.w	loc_CEB0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CEB0:				; CODE XREF: ROM:0000CEAAj
 		lea	($FFFFFC00).w,a2
@@ -17019,7 +16999,7 @@ loc_CEB0:				; CODE XREF: ROM:0000CEAAj
 
 loc_CEC2:				; CODE XREF: ROM:0000CEBAj
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CEC6:				; CODE XREF: ROM:loc_16A8Cj
 					; ROM:loc_1786Cj
@@ -17031,7 +17011,7 @@ loc_CEC6:				; CODE XREF: ROM:loc_16A8Cj
 		cmpi.w	#$280,d0
 		bhi.w	loc_CEE4
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CEE4:				; CODE XREF: ROM:0000CEDCj
 		lea	($FFFFFC00).w,a2
@@ -17042,7 +17022,7 @@ loc_CEE4:				; CODE XREF: ROM:0000CEDCj
 
 loc_CEF6:				; CODE XREF: ROM:0000CEEEj
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CEFA:				; CODE XREF: ROM:0000CECAj
 		move.w	8(a0),d0
@@ -17052,14 +17032,14 @@ loc_CEFA:				; CODE XREF: ROM:0000CECAj
 		cmpi.w	#$280,d0
 		bhi.w	loc_CF14
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CF14:				; CODE XREF: ROM:0000CF0Cj
 		sub.w	($FFFFF7DC).w,d1
 		cmpi.w	#$280,d1
 		bhi.w	loc_CF24
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CF24:				; CODE XREF: ROM:0000CF1Cj
 		lea	($FFFFFC00).w,a2
@@ -17077,7 +17057,7 @@ DeleteObject:				; CODE XREF: ROM:loc_7D56j
 		movea.l	a0,a1
 ; END OF FUNCTION CHUNK	FOR sub_8CEC
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_CF3C:				; CODE XREF: ROM:00007D42p
@@ -17092,7 +17072,7 @@ loc_CF40:				; CODE XREF: sub_CF3C+6j
 ; End of function sub_CF3C
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 AnimateSprite:				; CODE XREF: ROM:0000946Ap
@@ -17131,7 +17111,7 @@ loc_CF80:				; CODE XREF: AnimateSprite+6Cj
 
 locret_CFA4:				; CODE XREF: AnimateSprite+20j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CFA6:				; CODE XREF: AnimateSprite+36j
 		addq.b	#1,d0
@@ -17139,7 +17119,7 @@ loc_CFA6:				; CODE XREF: AnimateSprite+36j
 		move.b	#0,$1B(a0)
 		move.b	1(a1),d0
 		bra.s	loc_CF80
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CFB6:				; CODE XREF: AnimateSprite+60j
 		addq.b	#1,d0
@@ -17149,21 +17129,21 @@ loc_CFB6:				; CODE XREF: AnimateSprite+60j
 		sub.b	d0,d1
 		move.b	1(a1,d1.w),d0
 		bra.s	loc_CF80
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CFCA:				; CODE XREF: AnimateSprite+70j
 		addq.b	#1,d0
 		bne.s	loc_CFD6
 		move.b	2(a1,d1.w),$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CFD6:				; CODE XREF: AnimateSprite+84j
 		addq.b	#1,d0
 		bne.s	loc_CFE0
 		addq.b	#2,$24(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CFE0:				; CODE XREF: AnimateSprite+90j
 		addq.b	#1,d0
@@ -17171,26 +17151,26 @@ loc_CFE0:				; CODE XREF: AnimateSprite+90j
 		move.b	#0,$1B(a0)
 		clr.b	$25(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_CFF0:				; CODE XREF: AnimateSprite+9Aj
 		addq.b	#1,d0
 		bne.s	locret_CFFA
 		addq.b	#2,$25(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_CFFA:				; CODE XREF: AnimateSprite+AAj
 		rts
 ; End of function AnimateSprite
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 BldSpr_ScrPos:	dc.l 0
 		dc.l $FFFFEE00
 		dc.l $FFFFEE08
 		dc.l $FFFFEE18
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 BuildSprites:				; CODE XREF: ROM:000033B8p
@@ -17258,13 +17238,13 @@ loc_D034:				; CODE XREF: BuildSprites+F2j
 		bge.s	loc_D0FA
 		addi.w	#$80,d2	; 'Ђ'
 		bra.s	loc_D0D4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D0B2:				; CODE XREF: BuildSprites+52j
 		move.w	$A(a0),d2
 		move.w	8(a0),d3
 		bra.s	loc_D0D4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D0BC:				; CODE XREF: BuildSprites+80j
 		move.w	$C(a0),d2
@@ -17308,17 +17288,17 @@ loc_D102:				; CODE XREF: BuildSprites+22j
 		beq.s	loc_D11C
 		move.l	#0,(a2)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D11C:				; CODE XREF: BuildSprites+106j
 		move.b	#0,-5(a2)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D124:				; CODE XREF: BuildSprites+2Ej
 					; BuildSprites+36j
 		bra.s	loc_D0FA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D126:				; CODE XREF: BuildSprites+4Aj
 		move.l	a4,-(sp)
@@ -17380,7 +17360,7 @@ loc_D1B0:				; CODE XREF: BuildSprites+138j
 ; End of function BuildSprites
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_D1B6:				; CODE XREF: BuildSprites:loc_D0F0p
@@ -17388,7 +17368,7 @@ sub_D1B6:				; CODE XREF: BuildSprites:loc_D0F0p
 ; End of function sub_D1B6
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_D1BA:				; CODE XREF: BuildSprites+19Ap
@@ -17424,7 +17404,7 @@ loc_D1F0:				; CODE XREF: sub_D1BA+32j
 
 locret_D1F6:				; CODE XREF: sub_D1BA+4j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D1F8:				; CODE XREF: sub_D1BA+Aj
 		btst	#1,d4
@@ -17457,7 +17437,7 @@ loc_D230:				; CODE XREF: sub_D1BA+72j
 		move.w	d0,(a2)+
 		dbf	d1,loc_D200
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_D238:	dc.b   8,  8,  8,  8	; 0
 		dc.b $10,$10,$10,$10	; 4
 		dc.b $18,$18,$18,$18	; 8
@@ -17466,7 +17446,7 @@ byte_D248:	dc.b   8,$10,$18,$20	; 0
 		dc.b   8,$10,$18,$20	; 4
 		dc.b   8,$10,$18,$20	; 8
 		dc.b   8,$10,$18,$20	; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D258:				; CODE XREF: sub_D1BA+10j sub_D1BA+D0j
 		move.b	(a1)+,d0
@@ -17495,12 +17475,12 @@ loc_D288:				; CODE XREF: sub_D1BA+CAj
 		move.w	d0,(a2)+
 		dbf	d1,loc_D258
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_D290:	dc.b   8,$10,$18,$20	; 0
 		dc.b   8,$10,$18,$20	; 4
 		dc.b   8,$10,$18,$20	; 8
 		dc.b   8,$10,$18,$20	; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D2A0:				; CODE XREF: sub_D1BA+42j
 					; sub_D1BA+122j
@@ -17536,7 +17516,7 @@ loc_D2DA:				; CODE XREF: sub_D1BA+11Cj
 		rts
 ; End of function sub_D1BA
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_D2E2:	dc.b   8,  8,  8,  8	; 0
 		dc.b $10,$10,$10,$10	; 4
 		dc.b $18,$18,$18,$18	; 8
@@ -17545,7 +17525,7 @@ BldSpr_ScrPos_2p:dc.l 0
 		dc.l $FFFFEE00
 		dc.l $FFFFEE08
 		dc.l $FFFFEE18
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR BuildSprites
 
 BuildSprites_2p:			; CODE XREF: BuildSprites+4j
@@ -17612,14 +17592,14 @@ loc_D342:				; CODE XREF: BuildSprites+3FEj
 		bge.s	loc_D406
 		addi.w	#$100,d2
 		bra.s	loc_D3E0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D3B6:				; CODE XREF: BuildSprites+358j
 		move.w	$A(a0),d2
 		move.w	8(a0),d3
 		addi.w	#$80,d2	; 'Ђ'
 		bra.s	loc_D3E0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D3C4:				; CODE XREF: BuildSprites+384j
 		move.w	$C(a0),d2
@@ -17665,18 +17645,18 @@ loc_D410:				; CODE XREF: BuildSprites+32Ej
 		bcc.s	loc_D42A
 		move.l	#0,(a2)
 		bra.s	loc_D442
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D42A:				; CODE XREF: BuildSprites+414j
 		move.b	#0,-5(a2)
 		bra.s	loc_D442
 ; END OF FUNCTION CHUNK	FOR BuildSprites
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 dword_D432:	dc.l 0
 		dc.l $FFFFEE20
 		dc.l $FFFFEE28
 		dc.l $FFFFEE38
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR BuildSprites
 
 loc_D442:				; CODE XREF: BuildSprites+41Cj
@@ -17735,14 +17715,14 @@ loc_D462:				; CODE XREF: BuildSprites+518j
 		bge.s	loc_D520
 		addi.w	#$1E0,d2
 		bra.s	loc_D4FA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D4D0:				; CODE XREF: BuildSprites+472j
 		move.w	$A(a0),d2
 		move.w	8(a0),d3
 		addi.w	#$160,d2
 		bra.s	loc_D4FA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D4DE:				; CODE XREF: BuildSprites+49Ej
 		move.w	$C(a0),d2
@@ -17787,12 +17767,12 @@ loc_D528:				; CODE XREF: BuildSprites+450j
 		beq.s	loc_D542
 		move.l	#0,(a2)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D542:				; CODE XREF: BuildSprites+52Cj
 		move.b	#0,-5(a2)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D54A:				; CODE XREF: BuildSprites+350j
 		move.l	a4,-(sp)
@@ -17851,7 +17831,7 @@ loc_D5D4:				; CODE XREF: BuildSprites+55Cj
 					; BuildSprites+568j ...
 		movea.l	(sp)+,a4
 		bra.w	loc_D406
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D5DA:				; CODE XREF: BuildSprites+46Aj
 		move.l	a4,-(sp)
@@ -17912,7 +17892,7 @@ loc_D664:				; CODE XREF: BuildSprites+5ECj
 		bra.w	loc_D520
 ; END OF FUNCTION CHUNK	FOR BuildSprites
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ModifySpriteAttr_2P:			; CODE XREF: ROM:loc_7C14p
@@ -17930,7 +17910,7 @@ locret_D684:				; CODE XREF: ModifySpriteAttr_2P+4j
 ; End of function ModifySpriteAttr_2P
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ModifyA1SpriteAttr_2P:			; CODE XREF: ROM:0000870Ap
@@ -17948,7 +17928,7 @@ ModifySpriteAttr_Not2pmode:		; CODE XREF: ModifyA1SpriteAttr_2P+4j
 ; End of function ModifyA1SpriteAttr_2P
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_D6A2:				; CODE XREF: BuildSprites:loc_D3FCp
@@ -17957,7 +17937,7 @@ sub_D6A2:				; CODE XREF: BuildSprites:loc_D3FCp
 ; End of function sub_D6A2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_D6A6:				; CODE XREF: BuildSprites+5BEp
@@ -17994,7 +17974,7 @@ loc_D6E0:				; CODE XREF: sub_D6A6+36j
 
 locret_D6E6:				; CODE XREF: sub_D6A6+4j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_D6E8:	dc.b   0,  0		; 0
 		dc.b   1,  1		; 2
 		dc.b   4,  4		; 4
@@ -18003,7 +17983,7 @@ byte_D6E8:	dc.b   0,  0		; 0
 		dc.b   9,  9		; 10
 		dc.b  $C, $C		; 12
 		dc.b  $D, $D		; 14
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D6F8:				; CODE XREF: sub_D6A6+Aj
 		btst	#1,d4
@@ -18036,7 +18016,7 @@ loc_D732:				; CODE XREF: sub_D6A6+88j
 		move.w	d0,(a2)+
 		dbf	d1,loc_D700
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_D73A:	dc.b   8,  8		; 0
 		dc.b   8,  8		; 2
 		dc.b $10,$10		; 4
@@ -18049,7 +18029,7 @@ byte_D74A:	dc.b   8,$10,$18,$20	; 0
 		dc.b   8,$10,$18,$20	; 4
 		dc.b   8,$10,$18,$20	; 8
 		dc.b   8,$10,$18,$20	; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D75A:				; CODE XREF: sub_D6A6+10j sub_D6A6+EAj
 		move.b	(a1)+,d0
@@ -18079,7 +18059,7 @@ loc_D78E:				; CODE XREF: sub_D6A6+E4j
 		move.w	d0,(a2)+
 		dbf	d1,loc_D75A
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_D796:	dc.b   0,  0,  1,  1	; 0
 		dc.b   4,  4,  5,  5	; 4
 		dc.b   8,  8,  9,  9	; 8
@@ -18088,7 +18068,7 @@ byte_D7A6:	dc.b   8,$10,$18,$20	; 0
 		dc.b   8,$10,$18,$20	; 4
 		dc.b   8,$10,$18,$20	; 8
 		dc.b   8,$10,$18,$20	; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D7B6:				; CODE XREF: sub_D6A6+56j
 					; sub_D6A6+14Ej
@@ -18124,13 +18104,13 @@ loc_D7F2:				; CODE XREF: sub_D6A6+148j
 		rts
 ; End of function sub_D6A6
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_D7FA:	dc.b   8,  8,  8,  8	; 0
 		dc.b $10,$10,$10,$10	; 4
 		dc.b $18,$18,$18,$18	; 8
 		dc.b $20,$20,$20,$20	; 12
 		dc.b $30,$28,  0,  8	; 16
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		sub.w	($FFFFEE00).w,d0
 		bmi.s	loc_D82E
 		cmpi.w	#$140,d0
@@ -18142,13 +18122,13 @@ byte_D7FA:	dc.b   8,  8,  8,  8	; 0
 		bge.s	loc_D82E
 		moveq	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D82E:				; CODE XREF: ROM:0000D812j
 					; ROM:0000D818j ...
 		moveq	#1,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		moveq	#0,d1
 		move.b	$19(a0),d1
 		move.w	8(a0),d0
@@ -18166,19 +18146,18 @@ loc_D82E:				; CODE XREF: ROM:0000D812j
 		bge.s	loc_D862
 		moveq	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D862:				; CODE XREF: ROM:0000D842j
 					; ROM:0000D84Cj ...
 		moveq	#1,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 RingPosLoad:				; CODE XREF: ROM:00003DD6p
@@ -18189,11 +18168,11 @@ RingPosLoad:				; CODE XREF: ROM:00003DD6p
 		jmp	RPL_Index(pc,d0.w)
 ; End of function RingPosLoad
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 RPL_Index:	dc.w RPL_Main-RPL_Index	; DATA XREF: ROM:RPL_Indexo
 					; ROM:0000D878o
 		dc.w RPL_Next-RPL_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 RPL_Main:				; DATA XREF: ROM:RPL_Indexo
 		addq.b	#2,($FFFFF710).w
@@ -18204,7 +18183,7 @@ RPL_Main:				; DATA XREF: ROM:RPL_Indexo
 		bhi.s	loc_D896
 		moveq	#1,d4
 		bra.s	loc_D896
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D892:				; CODE XREF: ROM:0000D89Aj
 		lea	6(a1),a1
@@ -18217,7 +18196,7 @@ loc_D896:				; CODE XREF: ROM:0000D88Cj
 		move.w	a1,($FFFFF716).w
 		addi.w	#$150,d4
 		bra.s	loc_D8AE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D8AA:				; CODE XREF: ROM:0000D8B2j
 		lea	6(a1),a1
@@ -18229,7 +18208,7 @@ loc_D8AE:				; CODE XREF: ROM:0000D8A8j
 		move.w	a1,($FFFFF718).w
 		move.b	#1,($FFFFF711).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 RPL_Next:				; DATA XREF: ROM:0000D878o
 		lea	($FFFFE800).w,a1
@@ -18257,7 +18236,7 @@ loc_D8EA:				; CODE XREF: ROM:0000D8CEj
 		bhi.s	loc_D906
 		moveq	#1,d4
 		bra.s	loc_D906
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D902:				; CODE XREF: ROM:0000D90Aj
 		lea	6(a1),a1
@@ -18267,7 +18246,7 @@ loc_D906:				; CODE XREF: ROM:0000D8FCj
 		cmp.w	2(a1),d4
 		bhi.s	loc_D902
 		bra.s	loc_D910
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D90E:				; CODE XREF: ROM:0000D914j
 		subq.w	#6,a1
@@ -18279,7 +18258,7 @@ loc_D910:				; CODE XREF: ROM:0000D90Cj
 		movea.w	($FFFFF714).w,a2
 		addi.w	#$150,d4
 		bra.s	loc_D928
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D924:				; CODE XREF: ROM:0000D92Cj
 		lea	6(a2),a2
@@ -18288,7 +18267,7 @@ loc_D928:				; CODE XREF: ROM:0000D922j
 		cmp.w	2(a2),d4
 		bhi.s	loc_D924
 		bra.s	loc_D932
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D930:				; CODE XREF: ROM:0000D936j
 		subq.w	#6,a2
@@ -18302,7 +18281,7 @@ loc_D932:				; CODE XREF: ROM:0000D92Ej
 		move.w	a1,($FFFFF716).w
 		move.w	a2,($FFFFF718).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D94C:				; CODE XREF: ROM:0000D940j
 		movea.w	($FFFFF716).w,a1
@@ -18311,7 +18290,7 @@ loc_D94C:				; CODE XREF: ROM:0000D940j
 		bhi.s	loc_D960
 		moveq	#1,d4
 		bra.s	loc_D960
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D95C:				; CODE XREF: ROM:0000D964j
 		lea	6(a1),a1
@@ -18321,7 +18300,7 @@ loc_D960:				; CODE XREF: ROM:0000D956j
 		cmp.w	2(a1),d4
 		bhi.s	loc_D95C
 		bra.s	loc_D96A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D968:				; CODE XREF: ROM:0000D96Ej
 		subq.w	#6,a1
@@ -18333,7 +18312,7 @@ loc_D96A:				; CODE XREF: ROM:0000D966j
 		movea.w	($FFFFF718).w,a2
 		addi.w	#$150,d4
 		bra.s	loc_D982
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D97E:				; CODE XREF: ROM:0000D986j
 		lea	6(a2),a2
@@ -18342,7 +18321,7 @@ loc_D982:				; CODE XREF: ROM:0000D97Cj
 		cmp.w	2(a2),d4
 		bhi.s	loc_D97E
 		bra.s	loc_D98C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_D98A:				; CODE XREF: ROM:0000D990j
 		subq.w	#6,a2
@@ -18353,7 +18332,7 @@ loc_D98C:				; CODE XREF: ROM:0000D988j
 		move.w	a2,($FFFFF718).w
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_D998:				; CODE XREF: ROM:loc_19B7Aj
@@ -18397,7 +18376,7 @@ loc_D9EE:				; CODE XREF: sub_D998+9Aj
 		add.w	d6,d0
 		bcs.s	loc_DA0C
 		bra.w	loc_DA2C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DA06:				; CODE XREF: sub_D998+64j
 		cmp.w	d4,d0
@@ -18411,7 +18390,7 @@ loc_DA0C:				; CODE XREF: sub_D998+68j
 		add.w	d6,d0
 		bcs.s	loc_DA24
 		bra.w	loc_DA2C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DA1E:				; CODE XREF: sub_D998+7Cj
 		cmp.w	d5,d0
@@ -18431,7 +18410,7 @@ locret_DA36:				; CODE XREF: sub_D998+18j sub_D998+22j
 ; End of function sub_D998
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 BuildSprites2:				; CODE XREF: BuildSprites+16p
@@ -18440,7 +18419,7 @@ BuildSprites2:				; CODE XREF: BuildSprites+16p
 		cmpa.l	a0,a4
 		bne.s	loc_DA46
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DA46:				; CODE XREF: BuildSprites2+Aj
 		lea	($FFFFEE00).w,a3
@@ -18491,7 +18470,7 @@ loc_DAA8:				; CODE XREF: BuildSprites2+14j
 ; End of function BuildSprites2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 BuildSprites2_2p:			; CODE XREF: BuildSprites+322p
@@ -18505,7 +18484,7 @@ BuildSprites2_2p:			; CODE XREF: BuildSprites+322p
 ; End of function BuildSprites2_2p
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_DACA:				; CODE XREF: BuildSprites+444p
@@ -18516,7 +18495,7 @@ sub_DACA:				; CODE XREF: BuildSprites+444p
 		cmpa.l	a0,a4
 		bne.s	loc_DAE0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DAE0:				; CODE XREF: BuildSprites2_2p+12j
 					; sub_DACA+12j	...
@@ -18564,13 +18543,13 @@ loc_DB40:				; CODE XREF: sub_DACA+18j sub_DACA+32j ...
 		rts
 ; End of function sub_DACA
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_DB4C:	dc.b   0,  0,  1,  1	; 0
 		dc.b   4,  4,  5,  5	; 4
 		dc.b   8,  8,  9,  9	; 8
 		dc.b  $C, $C, $D, $D	; 12
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 RingPosLoad2:				; CODE XREF: ROM:0000D87Ep
@@ -18608,7 +18587,7 @@ loc_DB9C:				; CODE XREF: RingPosLoad2+4Cj
 		addi.w	#$18,d2
 		dbf	d0,loc_DB9C
 		bra.s	loc_DB88
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DBAE:				; CODE XREF: RingPosLoad2+32j
 		move.w	d3,d0
@@ -18623,7 +18602,7 @@ loc_DBBA:				; CODE XREF: RingPosLoad2+6Aj
 		addi.w	#$18,d3
 		dbf	d0,loc_DBBA
 		bra.s	loc_DB88
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DBCC:				; CODE XREF: RingPosLoad2+2Ej
 		moveq	#-1,d0
@@ -18656,7 +18635,7 @@ loc_DBF2:				; CODE XREF: RingPosLoad2+86j
 		rts
 ; End of function RingPosLoad2
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_DC04:	dc.w word_DC14-off_DC04	; DATA XREF: BuildSprites2+3Ao
 					; sub_DACA+3Co	...
 		dc.w word_DC1C-off_DC04
@@ -18675,7 +18654,7 @@ word_DC3C:	dc.w $F805,$180A,$1805,$FFF8; 0	; DATA XREF: ROM:0000DC0Eo
 word_DC44:	dc.w $F805, $80A, $805,$FFF8; 0	; DATA XREF: ROM:0000DC10o
 word_DC4C:	dc.w $F805,$100A,$1005,$FFF8; 0	; DATA XREF: ROM:0000DC12o
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ObjPosLoad:				; CODE XREF: ROM:loc_3DD0p
@@ -18686,12 +18665,12 @@ ObjPosLoad:				; CODE XREF: ROM:loc_3DD0p
 		jmp	OPL_Index(pc,d0.w)
 ; End of function ObjPosLoad
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 OPL_Index:	dc.w loc_DC68-OPL_Index	; DATA XREF: ROM:OPL_Indexo
 					; ROM:0000DC64o ...
 		dc.w loc_DD14-OPL_Index
 		dc.w loc_DE5C-OPL_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DC68:				; DATA XREF: ROM:OPL_Indexo
 		addq.b	#2,($FFFFF76C).w
@@ -18734,7 +18713,7 @@ loc_DCBC:				; CODE XREF: ROM:0000DCCCj
 loc_DCCA:				; CODE XREF: ROM:0000DCC4j
 		addq.w	#6,a0
 		bra.s	loc_DCBC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DCCE:				; CODE XREF: ROM:0000DCBEj
 		move.l	a0,($FFFFF770).w
@@ -18753,7 +18732,7 @@ loc_DCE0:				; CODE XREF: ROM:0000DCF0j
 loc_DCEE:				; CODE XREF: ROM:0000DCE8j
 		addq.w	#6,a0
 		bra.s	loc_DCE0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DCF2:				; CODE XREF: ROM:0000DCDEj
 					; ROM:0000DCE2j
@@ -18765,7 +18744,7 @@ loc_DCF2:				; CODE XREF: ROM:0000DCDEj
 		beq.s	loc_DD14
 		addq.b	#2,($FFFFF76C).w
 		bra.w	loc_DDE0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DD14:				; CODE XREF: ROM:0000DD0Aj
 					; DATA XREF: ROM:0000DC64o
@@ -18799,7 +18778,7 @@ loc_DD60:				; CODE XREF: ROM:0000DD56j
 		bne.s	loc_DD6A
 		subq.w	#6,a0
 		bra.s	loc_DD4A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DD6A:				; CODE XREF: ROM:0000DD64j
 		tst.b	4(a0)
@@ -18825,12 +18804,12 @@ loc_DD82:				; CODE XREF: ROM:0000DD92j
 loc_DD90:				; CODE XREF: ROM:0000DD8Cj
 		subq.w	#6,a0
 		bra.s	loc_DD82
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DD94:				; CODE XREF: ROM:0000DD86j
 		move.l	a0,($FFFFF770).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DD9A:				; CODE XREF: ROM:0000DD3Aj
 		move.w	d6,($FFFFF76E).w
@@ -18865,7 +18844,7 @@ loc_DDC8:				; CODE XREF: ROM:0000DDD8j
 loc_DDD6:				; CODE XREF: ROM:0000DDD0j
 		addq.w	#6,a0
 		bra.s	loc_DDC8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DDDA:				; CODE XREF: ROM:0000DDC6j
 					; ROM:0000DDCAj
@@ -18875,7 +18854,7 @@ loc_DDDA:				; CODE XREF: ROM:0000DDC6j
 locret_DDDE:				; CODE XREF: ROM:0000DD36j sub_DED2+8j
 		rts
 ; END OF FUNCTION CHUNK	FOR sub_DED2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DDE0:				; CODE XREF: ROM:0000DD10j
 		moveq	#-1,d0
@@ -18950,7 +18929,7 @@ loc_DEC4:				; CODE XREF: ROM:0000DEACj
 		move.w	($FFFFF78E).w,($FFFFFFEE).w
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_DED2:				; CODE XREF: ROM:0000DE9Ap
@@ -18975,7 +18954,7 @@ sub_DED2:				; CODE XREF: ROM:0000DE9Ap
 		beq.s	loc_DF08
 		bsr.w	sub_E062
 		bra.s	loc_DF0C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DF08:				; CODE XREF: sub_DED2+22j sub_DED2+28j ...
 		bsr.w	sub_E026
@@ -18995,12 +18974,12 @@ loc_DF16:				; CODE XREF: sub_DED2+56j
 loc_DF26:				; CODE XREF: sub_DED2+4Ej
 		subq.w	#6,a0
 		bra.s	loc_DF16
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DF2A:				; CODE XREF: sub_DED2+48j
 		move.l	a0,4(a4)
 		bra.s	loc_DF66
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DF30:				; CODE XREF: sub_DED2+3Ej
 		movea.l	4(a4),a0
@@ -19020,7 +18999,7 @@ loc_DF4C:				; CODE XREF: sub_DED2+70j
 		bne.s	loc_DF56
 		subq.w	#6,a0
 		bra.s	loc_DF36
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DF56:				; CODE XREF: sub_DED2+7Ej
 		tst.b	4(a0)
@@ -19047,7 +19026,7 @@ loc_DF6A:				; CODE XREF: sub_DED2+A8j
 loc_DF78:				; CODE XREF: sub_DED2+A2j
 		subq.w	#6,a0
 		bra.s	loc_DF6A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DF7C:				; CODE XREF: sub_DED2+9Cj
 		move.l	a0,(a4)
@@ -19055,7 +19034,7 @@ loc_DF7C:				; CODE XREF: sub_DED2+9Cj
 ; End of function sub_DED2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_DF80:				; CODE XREF: ROM:0000DE1Ap
@@ -19073,7 +19052,7 @@ sub_DF80:				; CODE XREF: ROM:0000DE1Ap
 		beq.s	loc_DFA8
 		bsr.w	sub_E062
 		bra.s	loc_DFAC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DFA8:				; CODE XREF: sub_DF80+14j sub_DF80+1Aj ...
 		bsr.w	sub_E026
@@ -19093,12 +19072,12 @@ loc_DFB4:				; CODE XREF: sub_DF80+42j
 loc_DFC0:				; CODE XREF: sub_DF80+3Cj
 		addq.w	#6,a0
 		bra.s	loc_DFB4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DFC4:				; CODE XREF: sub_DF80+36j
 		move.l	a0,(a4)
 		bra.s	loc_DFE2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DFC8:				; CODE XREF: sub_DF80+30j
 		movea.l	(a4),a0
@@ -19134,7 +19113,7 @@ loc_DFEA:				; CODE XREF: sub_DF80+7Aj
 loc_DFF8:				; CODE XREF: sub_DF80+72j
 		addq.w	#6,a0
 		bra.s	loc_DFEA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_DFFC:				; CODE XREF: sub_DF80+68j sub_DF80+6Cj
 		move.l	a0,4(a4)
@@ -19142,7 +19121,7 @@ loc_DFFC:				; CODE XREF: sub_DF80+68j sub_DF80+6Cj
 ; End of function sub_DF80
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E002:				; CODE XREF: sub_DED2:loc_DF0Cp
@@ -19169,7 +19148,7 @@ loc_E022:				; CODE XREF: sub_E002+8j sub_E002+Cj ...
 ; End of function sub_E002
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E026:				; CODE XREF: sub_DED2:loc_DF08p
@@ -19202,7 +19181,7 @@ loc_E05E:				; CODE XREF: sub_E026+Aj sub_E026+12j	...
 ; End of function sub_E026
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E062:				; CODE XREF: sub_DED2+30p sub_DF80+22p
@@ -19259,7 +19238,7 @@ loc_E0C2:				; CODE XREF: sub_E062+46j
 ; End of function sub_E062
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E0D2:				; CODE XREF: ROM:loc_DD60p
@@ -19271,7 +19250,7 @@ sub_E0D2:				; CODE XREF: ROM:loc_DD60p
 		addq.w	#6,a0
 		moveq	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E0E6:				; CODE XREF: sub_E0D2+4j sub_E0D2+Cj
 		bsr.w	SingleObjectLoad
@@ -19300,7 +19279,7 @@ locret_E120:				; CODE XREF: sub_E0D2+18j
 ; End of function sub_E0D2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E122:				; CODE XREF: sub_DED2:loc_DF4Cp
@@ -19312,7 +19291,7 @@ sub_E122:				; CODE XREF: sub_DED2:loc_DF4Cp
 		addq.w	#6,a0
 		moveq	#0,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E136:				; CODE XREF: sub_E122+4j sub_E122+Cj
 		btst	#5,2(a0)
@@ -19320,7 +19299,7 @@ loc_E136:				; CODE XREF: sub_E122+4j sub_E122+Cj
 		bsr.w	SingleObjectLoad
 		bne.s	locret_E180
 		bra.s	loc_E14C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E146:				; CODE XREF: sub_E122+1Aj
 		bsr.w	sub_E1B4
@@ -19351,7 +19330,7 @@ locret_E180:				; CODE XREF: sub_E122+20j sub_E122+28j
 ; End of function sub_E122
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 SingleObjectLoad:			; CODE XREF: ROM:0000767Ap
@@ -19370,7 +19349,7 @@ locret_E196:				; CODE XREF: SingleObjectLoad+Aj
 ; End of function SingleObjectLoad
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 S1SingleObjectLoad2:			; CODE XREF: sub_7C76p	ROM:loc_82F0p ...
@@ -19393,7 +19372,7 @@ locret_E1B2:				; CODE XREF: S1SingleObjectLoad2+Cj
 ; End of function S1SingleObjectLoad2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E1B4:				; CODE XREF: sub_E122:loc_E146p
@@ -19410,7 +19389,7 @@ locret_E1C6:				; CODE XREF: sub_E1B4+8j
 		rts
 ; End of function sub_E1B4
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 41 - springs
 ;----------------------------------------------------
@@ -19423,7 +19402,7 @@ Obj41:					; DATA XREF: ROM:Obj_Indexo
 		tst.w	($FFFFFFE8).w
 		beq.s	loc_E1E0
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E1E0:				; CODE XREF: ROM:0000E1DAj
 		move.w	8(a0),d0
@@ -19432,7 +19411,7 @@ loc_E1E0:				; CODE XREF: ROM:0000E1DAj
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj41_Index:	dc.w loc_E204-Obj41_Index ; DATA XREF: ROM:Obj41_Indexo
 					; ROM:0000E1FAo ...
 		dc.w loc_E302-Obj41_Index
@@ -19440,7 +19419,7 @@ Obj41_Index:	dc.w loc_E204-Obj41_Index ; DATA XREF: ROM:Obj41_Indexo
 		dc.w loc_E606-Obj41_Index
 		dc.w loc_E6F2-Obj41_Index
 		dc.w loc_E828-Obj41_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E204:				; DATA XREF: ROM:Obj41_Indexo
 		addq.b	#2,$24(a0)
@@ -19460,14 +19439,14 @@ loc_E22A:				; CODE XREF: ROM:0000E21Aj
 		andi.w	#$E,d0
 		move.w	off_E24E(pc,d0.w),d0
 		jmp	off_E24E(pc,d0.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_E24E:	dc.w loc_E2D0-off_E24E	; DATA XREF: ROM:off_E24Eo
 					; ROM:0000E250o ...
 		dc.w loc_E258-off_E24E
 		dc.w loc_E284-off_E24E
 		dc.w loc_E298-off_E24E
 		dc.w loc_E2B2-off_E24E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E258:				; DATA XREF: ROM:0000E250o
 		move.b	#4,$24(a0)
@@ -19481,14 +19460,14 @@ loc_E258:				; DATA XREF: ROM:0000E250o
 loc_E27C:				; CODE XREF: ROM:0000E274j
 		move.b	#8,$19(a0)
 		bra.s	loc_E2D0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E284:				; DATA XREF: ROM:0000E252o
 		move.b	#6,$24(a0)
 		move.b	#6,$1A(a0)
 		bset	#1,$22(a0)
 		bra.s	loc_E2D0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E298:				; DATA XREF: ROM:0000E254o
 		move.b	#8,$24(a0)
@@ -19496,7 +19475,7 @@ loc_E298:				; DATA XREF: ROM:0000E254o
 		move.b	#7,$1A(a0)
 		move.w	#$43C,2(a0)
 		bra.s	loc_E2D0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E2B2:				; DATA XREF: ROM:0000E256o
 		move.b	#$A,$24(a0)
@@ -19521,10 +19500,10 @@ loc_E2F8:				; CODE XREF: ROM:0000E2E2j
 					; ROM:0000E2EEj
 		bsr.w	ModifySpriteAttr_2P
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 word_E2FE:	dc.w $F000
 		dc.w $F600
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E302:				; DATA XREF: ROM:0000E1FAo
 		move.w	#$1B,d1
@@ -19551,10 +19530,10 @@ loc_E32A:				; CODE XREF: ROM:0000E326j
 loc_E342:				; CODE XREF: ROM:0000E33Ej
 		lea	(Ani_Obj41).l,a1
 		bra.w	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E34E:				; CODE XREF: ROM:0000E328p
@@ -19606,7 +19585,7 @@ loc_E3EA:				; CODE XREF: sub_E34E+8Ej
 		jmp	(PlaySound_Special).l
 ; End of function sub_E34E
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E3F4:				; DATA XREF: ROM:0000E1FCo
 		move.w	#$13,d1
@@ -19654,10 +19633,10 @@ loc_E464:				; CODE XREF: ROM:0000E448j
 		bsr.w	sub_E54C
 		lea	(Ani_Obj41).l,a1
 		bra.w	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E474:				; CODE XREF: ROM:0000E432p
@@ -19724,7 +19703,7 @@ loc_E530:				; CODE XREF: sub_E474+AEj
 ; End of function sub_E474
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E54C:				; CODE XREF: ROM:loc_E464p
@@ -19796,7 +19775,7 @@ locret_E604:				; CODE XREF: sub_E54C+6j sub_E54C+80j	...
 		rts
 ; End of function sub_E54C
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E606:				; DATA XREF: ROM:0000E1FEo
 		move.w	#$1B,d1
@@ -19823,10 +19802,10 @@ loc_E62C:				; CODE XREF: ROM:0000E628j
 loc_E642:				; CODE XREF: ROM:0000E63Ej
 		lea	(Ani_Obj41).l,a1
 		bra.w	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E64E:				; CODE XREF: ROM:0000E62Ap
@@ -19878,7 +19857,7 @@ loc_E6D6:				; CODE XREF: sub_E64E+7Aj
 		jmp	(PlaySound_Special).l
 ; End of function sub_E64E
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E6F2:				; DATA XREF: ROM:0000E200o
 		move.w	#$1B,d1
@@ -19905,10 +19884,10 @@ loc_E71A:				; CODE XREF: ROM:0000E716j
 loc_E732:				; CODE XREF: ROM:0000E72Ej
 		lea	(Ani_Obj41).l,a1
 		bra.w	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E73E:				; CODE XREF: ROM:0000E718p
@@ -19920,7 +19899,7 @@ sub_E73E:				; CODE XREF: ROM:0000E718p
 		cmp.w	8(a1),d0
 		bcs.s	loc_E762
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E754:				; CODE XREF: sub_E73E+6j
 		move.w	8(a0),d0
@@ -19928,7 +19907,7 @@ loc_E754:				; CODE XREF: sub_E73E+6j
 		cmp.w	8(a1),d0
 		bcc.s	loc_E762
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E762:				; CODE XREF: sub_E73E+12j sub_E73E+20j
 		move.w	#$500,$1C(a0)
@@ -19984,7 +19963,7 @@ loc_E81E:				; CODE XREF: sub_E73E+D2j
 		jmp	(PlaySound_Special).l
 ; End of function sub_E73E
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_E828:				; DATA XREF: ROM:0000E202o
 		move.w	#$1B,d1
@@ -20011,10 +19990,10 @@ loc_E84E:				; CODE XREF: ROM:0000E84Aj
 loc_E864:				; CODE XREF: ROM:0000E860j
 		lea	(Ani_Obj41).l,a1
 		bra.w	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_E870:				; CODE XREF: ROM:0000E84Cp
@@ -20072,7 +20051,7 @@ loc_E92A:				; CODE XREF: sub_E870+ACj
 		jmp	(PlaySound_Special).l
 ; End of function sub_E870
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_E934:	dc.b $10,$10,$10,$10	; 0 ; DATA XREF: ROM:0000E6FEt
 		dc.b $10,$10,$10,$10	; 4
 		dc.b $10,$10,$10,$10	; 8
@@ -20217,7 +20196,7 @@ word_EB96:	dc.w 4			; DATA XREF: ROM:0000EA48o
 		dc.w $F005,$1008,$1004,	   0; 4
 		dc.w $F505,$100C,$1006,$FFF6; 8
 		dc.w $F005,$101C,$100E,$FFF0; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 42 - GHZ Newtron badnik
 ;----------------------------------------------------
@@ -20227,12 +20206,12 @@ Obj42:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj42_Index(pc,d0.w),d1
 		jmp	Obj42_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj42_Index:	dc.w loc_EBCC-Obj42_Index ; DATA XREF: ROM:Obj42_Indexo
 					; ROM:0000EBC8o ...
 		dc.w loc_EC00-Obj42_Index
 		dc.w loc_ED6E-Obj42_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_EBCC:				; DATA XREF: ROM:Obj42_Indexo
 		addq.b	#2,$24(a0)
@@ -20253,14 +20232,14 @@ loc_EC00:				; DATA XREF: ROM:0000EBC8o
 		lea	(Ani_Obj32).l,a1
 		bsr.w	AnimateSprite
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_EC1C:	dc.w loc_EC26-off_EC1C	; DATA XREF: ROM:off_EC1Co
 					; ROM:0000EC1Eo ...
 		dc.w loc_EC6C-off_EC1C
 		dc.w loc_ECE0-off_EC1C
 		dc.w loc_ED00-off_EC1C
 		dc.w loc_ED06-off_EC1C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_EC26:				; DATA XREF: ROM:off_EC1Co
 		bset	#0,$22(a0)
@@ -20285,7 +20264,7 @@ loc_EC3E:				; CODE XREF: ROM:0000EC34j
 locret_EC6A:				; CODE XREF: ROM:0000EC42j
 					; ROM:0000EC52j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_EC6C:				; DATA XREF: ROM:0000EC1Eo
 		cmpi.b	#4,$1A(a0)
@@ -20298,7 +20277,7 @@ loc_EC6C:				; DATA XREF: ROM:0000EC1Eo
 
 locret_EC8A:				; CODE XREF: ROM:0000EC82j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_EC8C:				; CODE XREF: ROM:0000EC72j
 		cmpi.b	#1,$1A(a0)
@@ -20328,7 +20307,7 @@ loc_ECC6:				; CODE XREF: ROM:0000ECC0j
 locret_ECDE:				; CODE XREF: ROM:0000ECA4j
 					; ROM:0000ECD8j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_ECE0:				; DATA XREF: ROM:0000EC20o
 		bsr.w	SpeedToPos
@@ -20339,18 +20318,18 @@ loc_ECE0:				; DATA XREF: ROM:0000EC20o
 		bge.s	loc_ECFA
 		add.w	d1,$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_ECFA:				; CODE XREF: ROM:0000ECECj
 					; ROM:0000ECF2j
 		addq.b	#2,$25(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_ED00:				; DATA XREF: ROM:0000EC22o
 		bsr.w	SpeedToPos
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_ED06:				; DATA XREF: ROM:0000EC24o
 		cmpi.b	#1,$1A(a0)
@@ -20384,11 +20363,11 @@ loc_ED5C:				; CODE XREF: ROM:0000ED54j
 locret_ED6C:				; CODE XREF: ROM:0000ED1Aj
 					; ROM:0000ED20j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_ED6E:				; DATA XREF: ROM:0000EBCAo
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj32:	dc.w byte_ED7C-Ani_Obj32 ; DATA	XREF: ROM:0000EC0Eo
 					; ROM:Ani_Obj32o ...
 		dc.w byte_ED7F-Ani_Obj32
@@ -20454,7 +20433,7 @@ word_EE98:	dc.w 3			; DATA XREF: ROM:0000EDAAo
 		dc.w $F801,  $50,  $28,	  $C; 4
 		dc.w $FE04,$E053,$E029,	 $14; 8
 word_EEB2:	dc.w 0			; DATA XREF: ROM:0000EDACo
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 44 - GHZ wall
 ;----------------------------------------------------
@@ -20464,12 +20443,12 @@ Obj44:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj44_Index(pc,d0.w),d1
 		jmp	Obj44_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj44_Index:	dc.w loc_EEC8-Obj44_Index ; DATA XREF: ROM:Obj44_Indexo
 					; ROM:0000EEC4o ...
 		dc.w loc_EF04-Obj44_Index
 		dc.w loc_EF18-Obj44_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_EEC8:				; DATA XREF: ROM:Obj44_Indexo
 		addq.b	#2,$24(a0)
@@ -20484,7 +20463,7 @@ loc_EEC8:				; DATA XREF: ROM:Obj44_Indexo
 		beq.s	loc_EF04
 		addq.b	#2,$24(a0)
 		bra.s	loc_EF18
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_EF04:				; CODE XREF: ROM:0000EEFCj
 					; DATA XREF: ROM:0000EEC4o
@@ -20503,7 +20482,7 @@ loc_EF18:				; CODE XREF: ROM:0000EF02j
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj44:	dc.w word_EF36-Map_Obj44 ; DATA	XREF: ROM:0000EECCo
 					; ROM:Map_Obj44o ...
 		dc.w word_EF58-Map_Obj44
@@ -20523,7 +20502,7 @@ word_EF7A:	dc.w 4			; DATA XREF: ROM:0000EF34o
 		dc.w $F005,    0,    0,$FFF8; 4
 		dc.w	 5,    0,    0,$FFF8; 8
 		dc.w $1005,    0,    0,$FFF8; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 0D - end of level signpost
 ;----------------------------------------------------
@@ -20541,14 +20520,14 @@ Obj0D:					; DATA XREF: ROM:Obj_Indexo
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj0D_Index:	dc.w loc_EFD6-Obj0D_Index ; DATA XREF: ROM:Obj0D_Indexo
 					; ROM:0000EFCEo ...
 		dc.w loc_EFFE-Obj0D_Index
 		dc.w loc_F028-Obj0D_Index
 		dc.w loc_F0C4-Obj0D_Index
 		dc.w locret_F18A-Obj0D_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_EFD6:				; DATA XREF: ROM:Obj0D_Indexo
 		addq.b	#2,$24(a0)
@@ -20574,7 +20553,7 @@ loc_EFFE:				; DATA XREF: ROM:0000EFCEo
 locret_F026:				; CODE XREF: ROM:0000F006j
 					; ROM:0000F00Cj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F028:				; DATA XREF: ROM:0000EFD0o
 		subq.w	#1,$30(a0)
@@ -20617,12 +20596,12 @@ loc_F044:				; CODE XREF: ROM:0000F02Cj
 locret_F0B2:				; CODE XREF: ROM:0000F048j
 					; ROM:0000F068j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 dword_F0B4:	dc.l $E8F00808
 		dc.l $F00018F8
 		dc.l $F81000
 		dc.l $E8081810
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F0C4:				; DATA XREF: ROM:0000EFD2o
 		tst.w	($FFFFFE08).w
@@ -20644,7 +20623,7 @@ loc_F0E0:				; CODE XREF: ROM:0000F0D2j
 loc_F0F6:				; CODE XREF: ROM:0000F0E4j
 		addq.b	#2,$24(a0)
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 GotThroughAct:				; CODE XREF: ROM:0001971Ep
@@ -20683,18 +20662,18 @@ locret_F15E:				; CODE XREF: ROM:0000F0C8j
 		rts
 ; End of function GotThroughAct
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 TimeBonuses:	dc.w  5000, 5000, 1000,	 500; 0
 		dc.w   400,  400,  300,	 300; 4
 		dc.w   200,  200,  200,	 200; 8
 		dc.w   100,  100,  100,	 100; 12
 		dc.w	50,   50,   50,	  50; 16
 		dc.w	 0		; 20
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_F18A:				; DATA XREF: ROM:0000EFD4o
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj0D:	dc.w byte_F194-Ani_Obj0D ; DATA	XREF: ROM:0000EFAAo
 					; ROM:Ani_Obj0Do ...
 		dc.w byte_F197-Ani_Obj0D
@@ -20734,10 +20713,11 @@ word_F222:	dc.w 2			; DATA XREF: ROM:0000F1BEo
 word_F234:	dc.w 2			; DATA XREF: ROM:0000F1C0o
 		dc.w $F00F, $824, $812,$FFF0; 0
 		dc.w $1001,  $38,  $1C,$FFFC; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 40 - GHZ Motobug
@@ -20748,13 +20728,13 @@ Obj40:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	off_F256(pc,d0.w),d1
 		jmp	off_F256(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_F256:	dc.w loc_F25E-off_F256	; DATA XREF: ROM:off_F256o
 					; ROM:0000F258o ...
 		dc.w loc_F2C6-off_F256
 		dc.w loc_F36E-off_F256
 		dc.w loc_F37C-off_F256
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F25E:				; DATA XREF: ROM:off_F256o
 		move.l	#Map_Obj40,4(a0)
@@ -20779,12 +20759,12 @@ loc_F25E:				; DATA XREF: ROM:off_F256o
 
 locret_F2BC:				; CODE XREF: ROM:0000F2A6j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F2BE:				; CODE XREF: ROM:0000F286j
 		addq.b	#4,$24(a0)
 		bra.w	loc_F36E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F2C6:				; DATA XREF: ROM:0000F258o
 		moveq	#0,d0
@@ -20794,11 +20774,11 @@ loc_F2C6:				; DATA XREF: ROM:0000F258o
 		lea	(Ani_Obj40).l,a1
 		bsr.w	AnimateSprite
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_F2E2:	dc.w loc_F2E6-off_F2E2	; DATA XREF: ROM:off_F2E2o
 					; ROM:0000F2E4o
 		dc.w loc_F30A-off_F2E2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F2E6:				; DATA XREF: ROM:off_F2E2o
 		subq.w	#1,$30(a0)
@@ -20813,7 +20793,7 @@ loc_F2E6:				; DATA XREF: ROM:off_F2E2o
 locret_F308:				; CODE XREF: ROM:0000F2EAj
 					; ROM:0000F302j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F30A:				; DATA XREF: ROM:0000F2E4o
 		bsr.w	SpeedToPos
@@ -20837,7 +20817,7 @@ loc_F30A:				; DATA XREF: ROM:0000F2E4o
 locret_F354:				; CODE XREF: ROM:0000F328j
 					; ROM:0000F334j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F356:				; CODE XREF: ROM:0000F318j
 					; ROM:0000F31Ej
@@ -20846,18 +20826,18 @@ loc_F356:				; CODE XREF: ROM:0000F318j
 		move.w	#0,$10(a0)
 		move.b	#0,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F36E:				; CODE XREF: ROM:0000F2C2j
 					; DATA XREF: ROM:0000F25Ao
 		lea	(Ani_Obj40).l,a1
 		bsr.w	AnimateSprite
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F37C:				; DATA XREF: ROM:0000F25Co
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj40:	dc.w byte_F386-Ani_Obj40 ; DATA	XREF: ROM:0000F2D4o
 					; ROM:loc_F36Eo ...
 		dc.w byte_F389-Ani_Obj40
@@ -20898,7 +20878,7 @@ word_F42C:	dc.w 1			; DATA XREF: ROM:0000F3A6o
 		dc.w $FA00,  $1C,   $E,	 $10; 0
 word_F436:	dc.w 0			; DATA XREF: ROM:0000F3A8o
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 SolidObject:				; CODE XREF: ROM:00009584p
@@ -20915,7 +20895,7 @@ SolidObject:				; CODE XREF: ROM:00009584p
 ; End of function SolidObject
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F456:				; CODE XREF: SolidObject+Ap
@@ -20940,7 +20920,7 @@ loc_F47A:				; CODE XREF: sub_F456+12j sub_F456+1Ej
 		bclr	d6,$22(a0)
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F488:				; CODE XREF: sub_F456+22j
 		move.w	d4,d2
@@ -20949,7 +20929,7 @@ loc_F488:				; CODE XREF: sub_F456+22j
 
 locret_F490:				; CODE XREF: SolidObject+18j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		lea	($FFFFB000).w,a1
 		moveq	#3,d6
 		movem.l	d1-d4,-(sp)
@@ -20978,14 +20958,14 @@ loc_F4CC:				; CODE XREF: sub_F456+64j sub_F456+70j
 		bclr	d6,$22(a0)
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F4DA:				; CODE XREF: sub_F456+74j
 		move.w	d4,d2
 		bsr.w	sub_F70E
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		lea	($FFFFB000).w,a1
 		moveq	#3,d6
 		movem.l	d1-d4,-(sp)
@@ -21014,14 +20994,14 @@ loc_F51E:				; CODE XREF: sub_F456+B6j sub_F456+C2j
 		bclr	d6,$22(a0)
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F52C:				; CODE XREF: sub_F456+C6j
 		move.w	d4,d2
 		bsr.w	sub_F748
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F536:				; CODE XREF: sub_F456+A8j
 		move.w	8(a1),d0
@@ -21058,7 +21038,7 @@ loc_F55C:				; CODE XREF: sub_F456+100j
 		cmp.w	d4,d3
 		bcc.w	loc_F668
 		bra.w	loc_F5D2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F590:				; CODE XREF: sub_F456+4j
 		tst.b	1(a0)
@@ -21121,7 +21101,7 @@ loc_F608:				; CODE XREF: sub_F456+1A8j
 		tst.w	$10(a1)
 		bmi.s	loc_F634
 		bra.s	loc_F628
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F622:				; CODE XREF: sub_F456+1C2j
 		tst.w	$10(a1)
@@ -21145,7 +21125,7 @@ loc_F634:				; CODE XREF: sub_F456+1C0j
 		bset	d4,d6
 		moveq	#1,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F65A:				; CODE XREF: sub_F456+1BCj
 					; sub_F456+1E8j
@@ -21155,7 +21135,7 @@ loc_F65A:				; CODE XREF: sub_F456+1BCj
 		bset	d4,d6
 		moveq	#1,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F668:				; CODE XREF: sub_F456+EAj sub_F456+F4j ...
 		move.l	d6,d4
@@ -21166,7 +21146,7 @@ loc_F668:				; CODE XREF: sub_F456+EAj sub_F456+F4j ...
 ; End of function sub_F456
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F678:				; CODE XREF: sub_F456:loc_F65Ap
@@ -21180,7 +21160,7 @@ loc_F680:				; CODE XREF: sub_F456+18Aj
 		rts
 ; End of function sub_F678
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR sub_F456
 
 loc_F684:				; CODE XREF: sub_F456+1B4j
@@ -21189,7 +21169,7 @@ loc_F684:				; CODE XREF: sub_F456+1B4j
 		cmpi.w	#$10,d3
 		bcs.s	loc_F6D2
 		bra.s	loc_F668
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F690:				; CODE XREF: sub_F456+230j
 		tst.w	$12(a1)
@@ -21207,7 +21187,7 @@ loc_F6A6:				; CODE XREF: sub_F456+240j
 		bset	d4,d6
 		moveq	#$FFFFFFFE,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F6B2:				; CODE XREF: sub_F456+23Ej
 		btst	#1,$22(a1)
@@ -21221,7 +21201,7 @@ loc_F6B2:				; CODE XREF: sub_F456+23Ej
 		bset	d4,d6
 		moveq	#$FFFFFFFE,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F6D2:				; CODE XREF: sub_F456+236j
 		subq.w	#4,d3
@@ -21244,7 +21224,7 @@ loc_F6D2:				; CODE XREF: sub_F456+236j
 		bset	d4,d6
 		moveq	#-1,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F70A:				; CODE XREF: sub_F456+290j
 					; sub_F456+294j ...
@@ -21252,7 +21232,7 @@ loc_F70A:				; CODE XREF: sub_F456+290j
 		rts
 ; END OF FUNCTION CHUNK	FOR sub_F456
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F70E:				; CODE XREF: ROM:0000AF08p
@@ -21260,7 +21240,7 @@ sub_F70E:				; CODE XREF: ROM:0000AF08p
 		move.w	$C(a0),d0
 		sub.w	d3,d0
 		bra.s	loc_F71E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		move.w	$C(a0),d0
 		subi.w	#9,d0
 
@@ -21283,7 +21263,7 @@ locret_F746:				; CODE XREF: sub_F70E+14j sub_F70E+1Cj ...
 ; End of function sub_F70E
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F748:				; CODE XREF: sub_F456+D8p sub_F7F2+34p
@@ -21315,7 +21295,7 @@ locret_F788:				; CODE XREF: sub_F748+6j
 ; End of function sub_F748
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F78A:				; CODE XREF: ROM:000088DAp sub_8DD6+Cp ...
@@ -21329,7 +21309,7 @@ sub_F78A:				; CODE XREF: ROM:000088DAp sub_8DD6+Cp ...
 ; End of function sub_F78A
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F7A0:				; CODE XREF: sub_F78A+Ap
@@ -21351,7 +21331,7 @@ loc_F7C4:				; CODE XREF: sub_F7A0+12j sub_F7A0+1Ej
 		bclr	d6,$22(a0)
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F7D2:				; CODE XREF: sub_F7A0+22j
 		move.w	d4,d2
@@ -21361,7 +21341,7 @@ loc_F7D2:				; CODE XREF: sub_F7A0+22j
 ; End of function sub_F7A0
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F7DC:				; CODE XREF: sub_8CEC+Ep ROM:00014DEEj
@@ -21375,7 +21355,7 @@ sub_F7DC:				; CODE XREF: sub_8CEC+Ep ROM:00014DEEj
 ; End of function sub_F7DC
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F7F2:				; CODE XREF: sub_F7DC+Ap
@@ -21400,7 +21380,7 @@ loc_F816:				; CODE XREF: sub_F7F2+12j sub_F7F2+1Ej
 		bclr	d6,$22(a0)
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F824:				; CODE XREF: sub_F7F2+22j
 		move.w	d4,d2
@@ -21410,7 +21390,7 @@ loc_F824:				; CODE XREF: sub_F7F2+22j
 ; End of function sub_F7F2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F82E:				; CODE XREF: ROM:000083C2p
@@ -21424,7 +21404,7 @@ sub_F82E:				; CODE XREF: ROM:000083C2p
 ; End of function sub_F82E
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F844:				; CODE XREF: sub_F82E+Ap
@@ -21449,7 +21429,7 @@ loc_F868:				; CODE XREF: sub_F844+12j sub_F844+1Ej
 		bclr	d6,$22(a0)
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F876:				; CODE XREF: sub_F844+22j
 		move.w	d4,d2
@@ -21459,7 +21439,7 @@ loc_F876:				; CODE XREF: sub_F844+22j
 ; End of function sub_F844
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F880:				; CODE XREF: sub_7DDA+66p
@@ -21472,7 +21452,7 @@ sub_F880:				; CODE XREF: sub_7DDA+66p
 		cmp.w	d2,d0
 		bcc.w	locret_F966
 		bra.s	loc_F8BC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F89E:				; CODE XREF: sub_F7A0+4j
 		tst.w	$12(a1)
@@ -21510,7 +21490,7 @@ loc_F8C2:				; CODE XREF: sub_F7F2+1AAj
 ; End of function sub_F880
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F8F8:				; CODE XREF: ROM:0000AF56p
@@ -21542,7 +21522,7 @@ loc_F916:				; CODE XREF: sub_F8F8+6j
 		bne.s	loc_F954
 		jsr	Sonic_ResetOnFloor
 		bra.s	loc_F95A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_F954:				; CODE XREF: sub_F8F8+52j
 		jsr	Tails_ResetTailsOnFloor
@@ -21558,7 +21538,7 @@ locret_F966:				; CODE XREF: sub_F880+4j sub_F880+12j	...
 		rts
 ; End of function sub_F8F8
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR sub_F7F2
 
 loc_F968:				; CODE XREF: sub_F7F2+4j
@@ -21584,7 +21564,7 @@ loc_F98E:				; CODE XREF: sub_F7F2+196j
 		sub.w	d3,d0
 		bra.w	loc_F8C2
 ; END OF FUNCTION CHUNK	FOR sub_F7F2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR sub_F844
 
 loc_F9A0:				; CODE XREF: sub_F844+4j
@@ -21602,7 +21582,7 @@ loc_F9A0:				; CODE XREF: sub_F844+4j
 		bra.w	loc_F8C2
 ; END OF FUNCTION CHUNK	FOR sub_F844
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_F9C8:				; CODE XREF: ROM:0000AEEAp
@@ -21627,7 +21607,7 @@ locret_F9FA:				; CODE XREF: sub_F9C8+1Ej
 		rts
 ; End of function sub_F9C8
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 01 - Sonic
 ;----------------------------------------------------
@@ -21636,21 +21616,21 @@ Obj01:					; DATA XREF: ROM:Obj_Indexo
 		tst.w	($FFFFFE08).w
 		beq.s	Obj01_Normal
 		jmp	DebugMode
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_Normal:				; CODE XREF: ROM:0000FA00j
 		moveq	#0,d0
 		move.b	$24(a0),d0
 		move.w	Obj01_Index(pc,d0.w),d1
 		jmp	Obj01_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj01_Index:	dc.w Obj01_Main-Obj01_Index ; DATA XREF: ROM:Obj01_Indexo
 					; ROM:0000FA18o ...
 		dc.w Obj01_Control-Obj01_Index
 		dc.w Obj01_Hurt-Obj01_Index
 		dc.w Obj01_Death-Obj01_Index
 		dc.w Obj01_ResetLevel-Obj01_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_Main:				; DATA XREF: ROM:Obj01_Indexo
 		addq.b	#2,$24(a0)
@@ -21685,7 +21665,7 @@ Obj01_Control:				; DATA XREF: ROM:0000FA18o
 		move.w	#1,($FFFFFE08).w
 		clr.b	($FFFFF7CC).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_FAB0:				; CODE XREF: ROM:0000FA9Aj
 					; ROM:0000FAA2j
@@ -21723,7 +21703,7 @@ loc_FAFE:				; CODE XREF: ROM:0000FAF0j
 
 loc_FB0E:				; CODE XREF: ROM:0000FB06j
 		bra.w	LoadSonicDynPLC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj01_Modes:	dc.w Obj01_MdNormal-Obj01_Modes	; DATA XREF: ROM:Obj01_Modeso
 					; ROM:0000FB14o ...
 		dc.w Obj01_MdJump-Obj01_Modes
@@ -21732,7 +21712,7 @@ Obj01_Modes:	dc.w Obj01_MdNormal-Obj01_Modes	; DATA XREF: ROM:Obj01_Modeso
 MusicList_Sonic:incbin	misc/MusicList2.bin
 		even
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_Display:				; CODE XREF: ROM:Obj01_ControlsLockp
@@ -21751,7 +21731,7 @@ loc_FB34:				; CODE XREF: Sonic_Display+Cj
 		tst.w	$32(a0)
 		beq.s	loc_FB7A
 		bra.s	loc_FB7A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		subq.w	#1,$32(a0)
 		bne.s	loc_FB7A
 		tst.b	($FFFFF7AA).w
@@ -21787,7 +21767,7 @@ loc_FB7A:				; CODE XREF: Sonic_Display+18j
 		move.b	#0,($FFFFFE2E).w
 		move.w	#$E3,d0	; 'г'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_FBAE:				; CODE XREF: Sonic_Display+5Ej
 					; Sonic_Display+64j ...
@@ -21795,7 +21775,7 @@ locret_FBAE:				; CODE XREF: Sonic_Display+5Ej
 ; End of function Sonic_Display
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 CopySonicMovesForTails:			; CODE XREF: ROM:loc_FA88p
@@ -21811,7 +21791,7 @@ CopySonicMovesForTails:			; CODE XREF: ROM:loc_FA88p
 		rts
 ; End of function CopySonicMovesForTails
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; unused subroutine for	recording Sonic's position
 ;----------------------------------------------------
@@ -21835,7 +21815,7 @@ Unused_PosRecord:
 locret_FC02:				; CODE XREF: ROM:0000FBEEj
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_Water:				; CODE XREF: ROM:0000FADCp
@@ -21845,7 +21825,7 @@ Sonic_Water:				; CODE XREF: ROM:0000FADCp
 locret_FC0A:				; CODE XREF: Sonic_Water+18j
 					; Sonic_Water+48j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_InLevelWithWater:			; CODE XREF: Sonic_Water+4j
 		move.w	($FFFFF646).w,d0
@@ -21866,7 +21846,7 @@ Obj01_InLevelWithWater:			; CODE XREF: Sonic_Water+4j
 		move.b	#8,($FFFFB300).w
 		move.w	#$AA,d0	; 'Є'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_NotInWater:			; CODE XREF: Sonic_Water+10j
 		bclr	#6,$22(a0)
@@ -21887,7 +21867,7 @@ loc_FC98:				; CODE XREF: Sonic_Water+8Cj
 		jmp	(PlaySound_Special).l
 ; End of function Sonic_Water
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_MdNormal:				; DATA XREF: ROM:Obj01_Modeso
 		bsr.w	Sonic_Spindash
@@ -21900,7 +21880,7 @@ Obj01_MdNormal:				; DATA XREF: ROM:Obj01_Modeso
 		bsr.w	Sonic_AnglePos
 		bsr.w	Sonic_SlopeRepel
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_MdJump:				; DATA XREF: ROM:0000FB14o
 		bsr.w	Sonic_JumpHeight
@@ -21915,7 +21895,7 @@ loc_FCEA:				; CODE XREF: ROM:0000FCE2j
 		bsr.w	Sonic_JumpAngle
 		bsr.w	Sonic_Floor
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_MdRoll:				; DATA XREF: ROM:0000FB16o
 		bsr.w	Sonic_Jump
@@ -21926,7 +21906,7 @@ Obj01_MdRoll:				; DATA XREF: ROM:0000FB16o
 		bsr.w	Sonic_AnglePos
 		bsr.w	Sonic_SlopeRepel
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_MdJump2:				; DATA XREF: ROM:0000FB18o
 		bsr.w	Sonic_JumpHeight
@@ -21942,7 +21922,7 @@ loc_FD34:				; CODE XREF: ROM:0000FD2Cj
 		bsr.w	Sonic_Floor
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_Move:				; CODE XREF: ROM:0000FCAEp
@@ -21996,7 +21976,7 @@ loc_FD9E:				; CODE XREF: Sonic_Move+58j
 		cmp.w	d2,d1
 		bge.s	loc_FDF0
 		bra.s	Sonic_LookUp
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Sonic_Balance:				; CODE XREF: Sonic_Move+66j
 		jsr	Sonic_HitFloor
@@ -22008,7 +21988,7 @@ Sonic_Balance:				; CODE XREF: Sonic_Move+66j
 loc_FDF0:				; CODE XREF: Sonic_Move+9Aj
 		bclr	#0,$22(a0)
 		bra.s	loc_FE06
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_FDF8:				; CODE XREF: Sonic_Move+B0j
 		cmpi.b	#3,$37(a0)
@@ -22020,7 +22000,7 @@ loc_FE00:				; CODE XREF: Sonic_Move+96j
 loc_FE06:				; CODE XREF: Sonic_Move+B8j
 		move.b	#6,$1C(a0)
 		bra.s	loc_FE2C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Sonic_LookUp:				; CODE XREF: Sonic_Move+7Cj
 					; Sonic_Move+9Cj ...
@@ -22028,7 +22008,7 @@ Sonic_LookUp:				; CODE XREF: Sonic_Move+7Cj
 		beq.s	Sonic_Duck
 		move.b	#7,$1C(a0)
 		bra.s	loc_FE2C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Sonic_Duck:				; CODE XREF: Sonic_Move+D6j
 		btst	#1,($FFFFF602).w
@@ -22050,7 +22030,7 @@ loc_FE2C:				; CODE XREF: Sonic_Move+18j
 loc_FE46:				; CODE XREF: Sonic_Move+102j
 		move.w	d0,$14(a0)
 		bra.s	loc_FE58
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_FE4C:				; CODE XREF: Sonic_Move+FEj
 		add.w	d5,d0
@@ -22103,12 +22083,12 @@ loc_FE8E:				; CODE XREF: Sonic_Move+14Cj
 		bset	#5,$22(a0)
 		move.w	#0,$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_FED2:				; CODE XREF: Sonic_Move+178j
 		sub.w	d1,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_FED8:				; CODE XREF: Sonic_Move+172j
 		cmpi.w	#$FA00,$10(a0)
@@ -22117,7 +22097,7 @@ loc_FED8:				; CODE XREF: Sonic_Move+172j
 		bset	#5,$22(a0)
 		move.w	#0,$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_FEF2:				; CODE XREF: Sonic_Move+16Cj
 		add.w	d1,$12(a0)
@@ -22125,7 +22105,7 @@ loc_FEF2:				; CODE XREF: Sonic_Move+16Cj
 locret_FEF6:				; CODE XREF: Sonic_Move+140j
 					; Sonic_Move+14Aj ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Sonic_WallRecoil:			; CODE XREF: Sonic_Move+180j
 					; Sonic_Move+1A0j
@@ -22149,7 +22129,7 @@ Sonic_WallRecoil_Right:			; CODE XREF: Sonic_Move+1D2j
 ; End of function Sonic_Move
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_MoveLeft:				; CODE XREF: Sonic_Move+24p
@@ -22175,7 +22155,7 @@ loc_FF64:				; CODE XREF: Sonic_MoveLeft+24j
 		move.w	d0,$14(a0)
 		move.b	#0,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_FF70:				; CODE XREF: Sonic_MoveLeft+6j
 		sub.w	d4,d0
@@ -22201,7 +22181,7 @@ locret_FFA6:				; CODE XREF: Sonic_MoveLeft+4Cj
 ; End of function Sonic_MoveLeft
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_MoveRight:			; CODE XREF: Sonic_Move+30p
@@ -22222,7 +22202,7 @@ loc_FFCA:				; CODE XREF: Sonic_MoveRight+1Ej
 		move.w	d0,$14(a0)
 		move.b	#0,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_FFD6:				; CODE XREF: Sonic_MoveRight+4j
 		add.w	d4,d0
@@ -22252,7 +22232,7 @@ locret_1000C:				; CODE XREF: Sonic_MoveRight+46j
 ; End of function Sonic_MoveRight
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_RollSpeed:			; CODE XREF: ROM:0000FCFCp
@@ -22287,7 +22267,7 @@ loc_10046:				; CODE XREF: Sonic_RollSpeed+1Ej
 loc_10056:				; CODE XREF: Sonic_RollSpeed+42j
 		move.w	d0,$14(a0)
 		bra.s	loc_10068
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1005C:				; CODE XREF: Sonic_RollSpeed+3Ej
 		add.w	d5,d0
@@ -22331,7 +22311,7 @@ loc_100B8:				; CODE XREF: Sonic_RollSpeed+A4j
 ; End of function Sonic_RollSpeed
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_RollLeft:				; CODE XREF: Sonic_RollSpeed+28p
@@ -22343,7 +22323,7 @@ loc_100C8:				; CODE XREF: Sonic_RollLeft+4j
 		bset	#0,$22(a0)
 		move.b	#2,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_100D6:				; CODE XREF: Sonic_RollLeft+6j
 		sub.w	d4,d0
@@ -22356,7 +22336,7 @@ loc_100DE:				; CODE XREF: Sonic_RollLeft+18j
 ; End of function Sonic_RollLeft
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_RollRight:			; CODE XREF: Sonic_RollSpeed+34p
@@ -22365,7 +22345,7 @@ Sonic_RollRight:			; CODE XREF: Sonic_RollSpeed+34p
 		bclr	#0,$22(a0)
 		move.b	#2,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_100F8:				; CODE XREF: Sonic_RollRight+4j
 		add.w	d4,d0
@@ -22378,7 +22358,7 @@ loc_10100:				; CODE XREF: Sonic_RollRight+16j
 ; End of function Sonic_RollRight
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_ChgJumpDir:			; CODE XREF: ROM:0000FCCEp
@@ -22437,7 +22417,7 @@ loc_10162:				; CODE XREF: Sonic_ChgJumpDir+50j
 loc_1017E:				; CODE XREF: Sonic_ChgJumpDir+72j
 		move.w	d0,$10(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10184:				; CODE XREF: Sonic_ChgJumpDir+6Ej
 		sub.w	d1,d0
@@ -22453,7 +22433,7 @@ locret_10190:				; CODE XREF: Sonic_ChgJumpDir+62j
 ; End of function Sonic_ChgJumpDir
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_LevelBoundaries:			; CODE XREF: ROM:0000FCB6p
@@ -22487,7 +22467,7 @@ loc_101C4:				; CODE XREF: Sonic_LevelBoundaries+7Ej
 		cmp.w	$C(a0),d0
 		blt.s	loc_101D4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_101D4:				; CODE XREF: Sonic_LevelBoundaries+3Ej
 		cmpi.w	#$501,($FFFFFE10).w
@@ -22498,7 +22478,7 @@ loc_101D4:				; CODE XREF: Sonic_LevelBoundaries+3Ej
 		move.w	#1,($FFFFFE02).w
 		move.w	#$103,($FFFFFE10).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_101FA:				; CODE XREF: Sonic_LevelBoundaries+1Aj
 					; Sonic_LevelBoundaries+30j
@@ -22510,7 +22490,7 @@ loc_101FA:				; CODE XREF: Sonic_LevelBoundaries+1Aj
 ; End of function Sonic_LevelBoundaries
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_Roll:				; CODE XREF: ROM:0000FCB2p
@@ -22532,13 +22512,13 @@ loc_10220:				; CODE XREF: Sonic_Roll+Aj
 Obj01_NoRoll:				; CODE XREF: Sonic_Roll+4j
 					; Sonic_Roll+12j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1023A:				; CODE XREF: Sonic_Roll+24j
 		btst	#2,$22(a0)
 		beq.s	Obj01_DoRoll
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_DoRoll:				; CODE XREF: Sonic_Roll+2Ej
 		bset	#2,$22(a0)
@@ -22557,7 +22537,7 @@ locret_10276:				; CODE XREF: Sonic_Roll+5Cj
 ; End of function Sonic_Roll
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_Jump:				; CODE XREF: ROM:0000FCA6p
@@ -22607,7 +22587,7 @@ loc_102AA:				; CODE XREF: Sonic_Jump+2Cj
 locret_1031C:				; CODE XREF: Sonic_Jump+8j
 					; Sonic_Jump+1Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1031E:				; CODE XREF: Sonic_Jump+86j
 		bset	#4,$22(a0)
@@ -22615,7 +22595,7 @@ loc_1031E:				; CODE XREF: Sonic_Jump+86j
 ; End of function Sonic_Jump
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_JumpHeight:			; CODE XREF: ROM:Obj01_MdJumpp
@@ -22638,7 +22618,7 @@ loc_1033C:				; CODE XREF: Sonic_JumpHeight+10j
 locret_10350:				; CODE XREF: Sonic_JumpHeight+1Aj
 					; Sonic_JumpHeight+24j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10352:				; CODE XREF: Sonic_JumpHeight+4j
 		cmpi.w	#$F040,$12(a0)
@@ -22650,7 +22630,7 @@ locret_10360:				; CODE XREF: Sonic_JumpHeight+32j
 ; End of function Sonic_JumpHeight
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_Spindash:				; CODE XREF: ROM:Obj01_MdNormalp
@@ -22670,7 +22650,7 @@ Sonic_Spindash:				; CODE XREF: ROM:Obj01_MdNormalp
 locret_10394:				; CODE XREF: Sonic_Spindash+Cj
 					; Sonic_Spindash+16j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10396:				; CODE XREF: Sonic_Spindash+4j
 		move.b	($FFFFF602).w,d0
@@ -22690,7 +22670,7 @@ loc_10396:				; CODE XREF: Sonic_Spindash+4j
 loc_103D4:				; CODE XREF: Sonic_Spindash+6Cj
 		bset	#2,$22(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_103DC:				; CODE XREF: Sonic_Spindash+3Cj
 		move.b	($FFFFF603).w,d0
@@ -22704,7 +22684,7 @@ loc_103EA:				; CODE XREF: Sonic_Spindash+82j
 ; End of function Sonic_Spindash
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_SlopeResist:			; CODE XREF: ROM:0000FCAAp
@@ -22727,7 +22707,7 @@ loc_10400:
 
 locret_1041C:				; CODE XREF: Sonic_SlopeResist+28j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1041E:				; CODE XREF: Sonic_SlopeResist+24j
 		add.w	d0,$14(a0)
@@ -22738,7 +22718,7 @@ locret_10422:				; CODE XREF: Sonic_SlopeResist+Cj
 ; End of function Sonic_SlopeResist
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_RollRepel:			; CODE XREF: ROM:0000FCF8p
@@ -22759,7 +22739,7 @@ Sonic_RollRepel:			; CODE XREF: ROM:0000FCF8p
 loc_1044E:				; CODE XREF: Sonic_RollRepel+26j
 		add.w	d0,$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10454:				; CODE XREF: Sonic_RollRepel+22j
 		tst.w	d0
@@ -22774,14 +22754,13 @@ locret_1045E:				; CODE XREF: Sonic_RollRepel+Cj
 ; End of function Sonic_RollRepel
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_SlopeRepel:			; CODE XREF: ROM:0000FCC4p
 					; ROM:0000FD0Ep
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 		tst.b	$38(a0)
 		bne.s	locret_1049A
@@ -22805,7 +22784,7 @@ loc_10484:				; CODE XREF: Sonic_SlopeRepel+20j
 locret_1049A:				; CODE XREF: Sonic_SlopeRepel+6j
 					; Sonic_SlopeRepel+1Aj	...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1049C:				; CODE XREF: Sonic_SlopeRepel+Cj
 		subq.w	#1,$2E(a0)
@@ -22813,7 +22792,7 @@ loc_1049C:				; CODE XREF: Sonic_SlopeRepel+Cj
 ; End of function Sonic_SlopeRepel
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_JumpAngle:			; CODE XREF: ROM:loc_FCEAp
@@ -22827,7 +22806,7 @@ Sonic_JumpAngle:			; CODE XREF: ROM:loc_FCEAp
 
 loc_104B0:				; CODE XREF: Sonic_JumpAngle+Aj
 		bra.s	loc_104B8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_104B2:				; CODE XREF: Sonic_JumpAngle+6j
 		subq.b	#2,d0
@@ -22854,7 +22833,7 @@ loc_104BC:				; CODE XREF: Sonic_JumpAngle+4j
 loc_104DE:				; CODE XREF: Sonic_JumpAngle+2Cj
 					; Sonic_JumpAngle+32j
 		bra.s	loc_104F6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_104E0:				; CODE XREF: Sonic_JumpAngle+24j
 		move.b	$2D(a0),d1
@@ -22874,7 +22853,7 @@ locret_104FA:				; CODE XREF: Sonic_JumpAngle+1Ej
 ; End of function Sonic_JumpAngle
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_Floor:				; CODE XREF: ROM:0000FCEEp
@@ -22937,13 +22916,13 @@ loc_10582:				; CODE XREF: Sonic_Floor+80j
 		beq.s	loc_105B2
 		asr	$12(a0)
 		bra.s	loc_105D4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_105B2:				; CODE XREF: Sonic_Floor+AEj
 		move.w	#0,$12(a0)
 		move.w	$10(a0),$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_105C0:				; CODE XREF: Sonic_Floor+A2j
 		move.w	#0,$10(a0)
@@ -22961,7 +22940,7 @@ loc_105D4:				; CODE XREF: Sonic_Floor+B4j
 locret_105E2:				; CODE XREF: Sonic_Floor+74j
 					; Sonic_Floor+84j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_105E4:				; CODE XREF: Sonic_Floor+36j
 		bsr.w	Sonic_HitWall
@@ -22971,7 +22950,7 @@ loc_105E4:				; CODE XREF: Sonic_Floor+36j
 		move.w	#0,$10(a0)
 		move.w	$12(a0),$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_105FE:				; CODE XREF: Sonic_Floor+EEj
 		bsr.w	Sonic_DontRunOnWalls
@@ -22984,7 +22963,7 @@ loc_105FE:				; CODE XREF: Sonic_Floor+EEj
 
 locret_10616:				; CODE XREF: Sonic_Floor+112j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10618:				; CODE XREF: Sonic_Floor+108j
 		tst.w	$12(a0)
@@ -23002,7 +22981,7 @@ loc_10618:				; CODE XREF: Sonic_Floor+108j
 locret_10644:				; CODE XREF: Sonic_Floor+120j
 					; Sonic_Floor+128j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10646:				; CODE XREF: Sonic_Floor+3Ej
 		bsr.w	Sonic_HitWall
@@ -23029,7 +23008,7 @@ loc_1066A:				; CODE XREF: Sonic_Floor+162j
 		bne.s	loc_1068A
 		move.w	#0,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1068A:				; CODE XREF: Sonic_Floor+184j
 		move.b	d3,$26(a0)
@@ -23042,7 +23021,7 @@ loc_1068A:				; CODE XREF: Sonic_Floor+184j
 locret_106A0:				; CODE XREF: Sonic_Floor+174j
 					; Sonic_Floor+19Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_106A2:				; CODE XREF: Sonic_Floor+46j
 		bsr.w	sub_132EE
@@ -23052,7 +23031,7 @@ loc_106A2:				; CODE XREF: Sonic_Floor+46j
 		move.w	#0,$10(a0)
 		move.w	$12(a0),$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_106BC:				; CODE XREF: Sonic_Floor+1ACj
 		bsr.w	Sonic_DontRunOnWalls
@@ -23065,7 +23044,7 @@ loc_106BC:				; CODE XREF: Sonic_Floor+1ACj
 
 locret_106D4:				; CODE XREF: Sonic_Floor+1D0j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_106D6:				; CODE XREF: Sonic_Floor+1C6j
 		tst.w	$12(a0)
@@ -23086,7 +23065,7 @@ locret_10702:				; CODE XREF: Sonic_Floor+1DEj
 ; End of function Sonic_Floor
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_ResetOnFloor:			; CODE XREF: sub_F8F8+54p
@@ -23116,7 +23095,7 @@ loc_10748:				; CODE XREF: Sonic_ResetOnFloor+26j
 		rts
 ; End of function Sonic_ResetOnFloor
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_Hurt:				; DATA XREF: ROM:0000FA1Ao
 		tst.b	$25(a0)
@@ -23135,7 +23114,7 @@ loc_1077E:				; CODE XREF: ROM:00010776j
 		bsr.w	LoadSonicDynPLC
 		jmp	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_HurtStop:				; CODE XREF: ROM:loc_1077Ep
@@ -23155,7 +23134,7 @@ Sonic_HurtStop:				; CODE XREF: ROM:loc_1077Ep
 		move.b	#$FF,$25(a0)
 		move.b	#$B,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_107D6:				; CODE XREF: Sonic_HurtStop+2Ej
 		move.b	#0,$1C(a0)
@@ -23166,7 +23145,7 @@ locret_107E6:				; CODE XREF: Sonic_HurtStop+1Aj
 		rts
 ; End of function Sonic_HurtStop
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_107E8:				; CODE XREF: ROM:00010760j
 		cmpi.b	#$B,$1C(a0)
@@ -23184,7 +23163,7 @@ loc_10804:				; CODE XREF: ROM:000107F8j
 		bsr.w	Sonic_Animate
 		bsr.w	LoadSonicDynPLC
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_Death:				; DATA XREF: ROM:0000FA1Co
 		bsr.w	Sonic_GameOver
@@ -23194,7 +23173,7 @@ Obj01_Death:				; DATA XREF: ROM:0000FA1Co
 		bsr.w	LoadSonicDynPLC
 		jmp	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_GameOver:				; CODE XREF: ROM:Obj01_Deathp
@@ -23219,7 +23198,7 @@ loc_10876:				; CODE XREF: Sonic_GameOver+80j
 		jsr	(PlaySound).l
 		moveq	#3,d0
 		jmp	(LoadPLC).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10888:				; CODE XREF: Sonic_GameOver+26j
 		move.w	#$3C,$3A(a0) ; '<'
@@ -23231,14 +23210,14 @@ loc_10888:				; CODE XREF: Sonic_GameOver+26j
 		move.b	#2,($FFFFB09A).w
 		move.b	#3,($FFFFB0DA).w
 		bra.s	loc_10876
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_108B4:				; CODE XREF: Sonic_GameOver+Cj
 					; Sonic_GameOver+60j
 		rts
 ; End of function Sonic_GameOver
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj01_ResetLevel:			; DATA XREF: ROM:0000FA1Eo
 		tst.w	$3A(a0)
@@ -23251,7 +23230,7 @@ locret_108C8:				; CODE XREF: ROM:000108BAj
 					; ROM:000108C0j
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_Animate:				; CODE XREF: ROM:loc_FAFEp
@@ -23283,7 +23262,7 @@ loc_108EC:				; CODE XREF: Sonic_Animate+10j
 ; End of function Sonic_Animate
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_10912:				; CODE XREF: Sonic_Animate+116p
@@ -23302,7 +23281,7 @@ loc_10922:				; CODE XREF: sub_10912+28j
 locret_1092A:				; CODE XREF: Sonic_Animate+42j
 					; Sonic_Animate+96j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1092C:				; CODE XREF: sub_10912+Ej
 		addq.b	#1,d0
@@ -23310,7 +23289,7 @@ loc_1092C:				; CODE XREF: sub_10912+Ej
 		move.b	#0,$1B(a0)
 		move.b	1(a1),d0
 		bra.s	loc_10922
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1093C:				; CODE XREF: sub_10912+1Cj
 		addq.b	#1,d0
@@ -23320,7 +23299,7 @@ loc_1093C:				; CODE XREF: sub_10912+1Cj
 		sub.b	d0,d1
 		move.b	1(a1,d1.w),d0
 		bra.s	loc_10922
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10950:				; CODE XREF: sub_10912+2Cj
 		addq.b	#1,d0
@@ -23331,7 +23310,7 @@ locret_1095A:				; CODE XREF: sub_10912+40j
 		rts
 ; End of function sub_10912
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR Sonic_Animate
 
 loc_1095C:				; CODE XREF: Sonic_Animate+2Aj
@@ -23391,7 +23370,7 @@ loc_109D8:				; CODE XREF: Sonic_Animate+10Aj
 		bsr.w	sub_10912
 		add.b	d3,$1A(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_109EA:				; CODE XREF: Sonic_Animate+A4j
 		move.b	$27(a0),d0
@@ -23408,7 +23387,7 @@ loc_109EA:				; CODE XREF: Sonic_Animate+A4j
 		move.b	d0,$1A(a0)
 		move.b	#0,$1E(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10A1E:				; CODE XREF: Sonic_Animate+12Ej
 		moveq	#3,d2
@@ -23421,7 +23400,7 @@ loc_10A1E:				; CODE XREF: Sonic_Animate+12Ej
 		move.b	d0,$1A(a0)
 		move.b	#0,$1E(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10A44:				; CODE XREF: Sonic_Animate+9Aj
 		addq.b	#1,d0
@@ -23450,7 +23429,7 @@ loc_10A6C:				; CODE XREF: Sonic_Animate+19Ej
 		andi.b	#$FC,1(a0)
 		or.b	d1,1(a0)
 		bra.w	sub_10912
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10A88:				; CODE XREF: Sonic_Animate+D4j
 					; Sonic_Animate+17Cj
@@ -23473,7 +23452,7 @@ loc_10A98:				; CODE XREF: Sonic_Animate+1CAj
 		or.b	d1,1(a0)
 		bra.w	sub_10912
 ; END OF FUNCTION CHUNK	FOR Sonic_Animate
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 SonicAniData:	dc.w SonicAni_Walk-SonicAniData,SonicAni_Run-SonicAniData; 0
 					; DATA XREF: Sonic_Animateo
 					; ROM:SonicAniDatao ...
@@ -23539,7 +23518,7 @@ SonicAni_1C:	dc.b $77,  0,$FD,  0	; 0 ; DATA XREF: ROM:SonicAniDatao
 SonicAni_Float3:dc.b   3,$91,$92,$93,$94,$95,$FF; 0 ; DATA XREF: ROM:SonicAniDatao
 SonicAni_1E:	dc.b   3,$3C,$FD,  0	; 0 ; DATA XREF: ROM:SonicAniDatao
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LoadSonicDynPLC:			; CODE XREF: ROM:loc_FB0Ej
@@ -23580,10 +23559,9 @@ locret_10C34:				; CODE XREF: LoadSonicDynPLC+Aj
 		rts
 ; End of function LoadSonicDynPLC
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 ; START	OF FUNCTION CHUNK FOR Sonic_LevelBoundaries
 
@@ -23591,10 +23569,9 @@ j_KillSonic:				; CODE XREF: Sonic_LevelBoundaries+48j
 					; Sonic_LevelBoundaries+52j ...
 		jmp	KillSonic
 ; END OF FUNCTION CHUNK	FOR Sonic_LevelBoundaries
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 02 - Tails
@@ -23605,14 +23582,14 @@ Obj02:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj02_Index(pc,d0.w),d1
 		jmp	Obj02_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj02_Index:	dc.w Obj02_Main-Obj02_Index; 0 ; DATA XREF: ROM:Obj02_Indexo
 					; ROM:Obj02_Index+2o ...
 		dc.w Obj02_Control-Obj02_Index;	1
 		dc.w Obj02_Hurt-Obj02_Index; 2
 		dc.w Obj02_Death-Obj02_Index; 3
 		dc.w Obj02_ResetLevel-Obj02_Index; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj02_Main:				; DATA XREF: ROM:Obj02_Indexo
 		addq.b	#2,$24(a0)
@@ -23656,7 +23633,7 @@ Obj02_ControlsLock:			; CODE XREF: ROM:00010CC6j
 loc_10CFC:				; CODE XREF: ROM:00010CF4j
 		bsr.w	LoadTailsDynPLC
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj02_Modes:	dc.w Obj02_MdNormal-Obj02_Modes	; DATA XREF: ROM:Obj02_Modeso
 					; ROM:00010D04o ...
 		dc.w Obj02_MdJump-Obj02_Modes
@@ -23665,7 +23642,7 @@ Obj02_Modes:	dc.w Obj02_MdNormal-Obj02_Modes	; DATA XREF: ROM:Obj02_Modeso
 MusicList_Tails:incbin	misc/MusicList2.bin
 		even
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_Display:				; CODE XREF: ROM:Obj02_ControlsLockp
@@ -23718,7 +23695,7 @@ loc_10D68:				; CODE XREF: Tails_Display+18j
 		move.b	#0,($FFFFFE2E).w
 		move.w	#$E3,d0	; 'г'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_10D9C:				; CODE XREF: Tails_Display+5Cj
 					; Tails_Display+62j ...
@@ -23726,7 +23703,7 @@ locret_10D9C:				; CODE XREF: Tails_Display+5Cj
 ; End of function Tails_Display
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_Control:				; CODE XREF: ROM:Obj02_Controlp
@@ -23736,14 +23713,14 @@ Tails_Control:				; CODE XREF: ROM:Obj02_Controlp
 		move.w	#0,($FFFFF700).w
 		move.w	#$12C,($FFFFF702).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 TailsC_NoKeysPressed:			; CODE XREF: Tails_Control+8j
 		tst.w	($FFFFF702).w
 		beq.s	TailsC_DoControl
 		subq.w	#1,($FFFFF702).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 TailsC_DoControl:			; CODE XREF: Tails_Control+1Cj
 		move.w	($FFFFF708).w,d0
@@ -23751,30 +23728,30 @@ TailsC_DoControl:			; CODE XREF: Tails_Control+1Cj
 		jmp	TailsC_Index(pc,d0.w)
 ; End of function Tails_Control
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 TailsC_Index:	dc.w TailsC_00-TailsC_Index ; DATA XREF: ROM:TailsC_Indexo
 					; ROM:00010DD0o ...
 		dc.w TailsC_02-TailsC_Index
 		dc.w TailsC_04-TailsC_Index
 		dc.w TailsC_CopySonicMoves-TailsC_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 TailsC_00:				; DATA XREF: ROM:TailsC_Indexo
 		move.w	#6,($FFFFF708).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 TailsC_02:				; DATA XREF: ROM:00010DD0o
 		move.w	#6,($FFFFF708).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		move.w	#$40,($FFFFF706).w ; '@'
 		move.w	#4,($FFFFF708).w
 
 TailsC_04:				; DATA XREF: ROM:00010DD2o
 		move.w	#6,($FFFFF708).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		move.w	($FFFFF706).w,d1
 		subq.w	#1,d1
 		cmpi.w	#$10,d1
@@ -23791,7 +23768,7 @@ loc_10E0C:				; CODE XREF: ROM:00010E04j
 		move.w	(a1,d0.w),8(a0)
 		move.w	2(a1,d0.w),$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 TailsC_CopySonicMoves:			; DATA XREF: ROM:00010DD4o
 		move.w	($FFFFB008).w,d0
@@ -23815,7 +23792,7 @@ loc_10E40:				; CODE XREF: ROM:00010E3Cj
 		move.w	(a1,d0.w),($FFFFF606).w
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 RecordTailsMoves:			; CODE XREF: ROM:00010CDCp
@@ -23828,7 +23805,7 @@ RecordTailsMoves:			; CODE XREF: ROM:00010CDCp
 		rts
 ; End of function RecordTailsMoves
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj02_MdNormal:				; DATA XREF: ROM:Obj02_Modeso
 		bsr.w	Tails_Spindash
@@ -23841,7 +23818,7 @@ Obj02_MdNormal:				; DATA XREF: ROM:Obj02_Modeso
 		bsr.w	Sonic_AnglePos
 		bsr.w	Tails_SlopeRepel
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj02_MdJump:				; DATA XREF: ROM:00010D04o
 		bsr.w	Tails_JumpHeight
@@ -23856,7 +23833,7 @@ loc_10EC0:				; CODE XREF: ROM:00010EB8j
 		bsr.w	Tails_JumpAngle
 		bsr.w	Tails_Floor
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj02_MdRoll:				; DATA XREF: ROM:00010D06o
 		bsr.w	Tails_Jump
@@ -23867,7 +23844,7 @@ Obj02_MdRoll:				; DATA XREF: ROM:00010D06o
 		bsr.w	Sonic_AnglePos
 		bsr.w	Tails_SlopeRepel
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj02_MdJump2:				; DATA XREF: ROM:00010D08o
 		bsr.w	Tails_JumpHeight
@@ -23883,7 +23860,7 @@ loc_10F0A:				; CODE XREF: ROM:00010F02j
 		bsr.w	Tails_Floor
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_Move:				; CODE XREF: ROM:00010E84p
@@ -23933,7 +23910,7 @@ loc_10F48:				; CODE XREF: Tails_Move+2Ej
 		cmp.w	d2,d1
 		bge.s	loc_10FBE
 		bra.s	Tails_LookUp
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Tails_Balance:				; CODE XREF: Tails_Move+5Ej
 		jsr	ObjHitFloor
@@ -23945,7 +23922,7 @@ Tails_Balance:				; CODE XREF: Tails_Move+5Ej
 loc_10FBE:				; CODE XREF: Tails_Move+92j
 		bclr	#0,$22(a0)
 		bra.s	loc_10FD4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_10FC6:				; CODE XREF: Tails_Move+A8j
 		cmpi.b	#3,$37(a0)
@@ -23957,7 +23934,7 @@ loc_10FCE:				; CODE XREF: Tails_Move+8Ej
 loc_10FD4:				; CODE XREF: Tails_Move+B0j
 		move.b	#6,$1C(a0)
 		bra.s	loc_10FFA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Tails_LookUp:				; CODE XREF: Tails_Move+74j
 					; Tails_Move+94j ...
@@ -23965,7 +23942,7 @@ Tails_LookUp:				; CODE XREF: Tails_Move+74j
 		beq.s	Tails_Duck
 		move.b	#7,$1C(a0)
 		bra.s	loc_10FFA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Tails_Duck:				; CODE XREF: Tails_Move+CEj
 		btst	#1,($FFFFF606).w
@@ -23989,7 +23966,7 @@ loc_10FFE:
 loc_11014:				; CODE XREF: Tails_Move+FAj
 		move.w	d0,$14(a0)
 		bra.s	loc_11026
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1101A:				; CODE XREF: Tails_Move+F6j
 		add.w	d5,d0
@@ -24040,19 +24017,19 @@ loc_1105C:				; CODE XREF: Tails_Move+144j
 		bset	#5,$22(a0)
 		move.w	#0,$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11098:				; CODE XREF: Tails_Move+170j
 		sub.w	d1,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1109E:				; CODE XREF: Tails_Move+16Aj
 		sub.w	d1,$10(a0)
 		bset	#5,$22(a0)
 		move.w	#0,$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_110B0:				; CODE XREF: Tails_Move+164j
 		add.w	d1,$12(a0)
@@ -24063,7 +24040,7 @@ locret_110B4:				; CODE XREF: Tails_Move+138j
 ; End of function Tails_Move
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_MoveLeft:				; CODE XREF: Tails_Move+24p
@@ -24089,7 +24066,7 @@ loc_110DE:				; CODE XREF: Tails_MoveLeft+24j
 		move.w	d0,$14(a0)
 		move.b	#0,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_110EA:				; CODE XREF: Tails_MoveLeft+6j
 		sub.w	d4,d0
@@ -24115,7 +24092,7 @@ locret_11120:				; CODE XREF: Tails_MoveLeft+4Cj
 ; End of function Tails_MoveLeft
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_MoveRight:			; CODE XREF: Tails_Move+30p
@@ -24136,7 +24113,7 @@ loc_11144:				; CODE XREF: Tails_MoveRight+1Ej
 		move.w	d0,$14(a0)
 		move.b	#0,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11150:				; CODE XREF: Tails_MoveRight+4j
 		add.w	d4,d0
@@ -24162,7 +24139,7 @@ locret_11186:				; CODE XREF: Tails_MoveRight+46j
 ; End of function Tails_MoveRight
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_RollSpeed:			; CODE XREF: ROM:00010ED2p
@@ -24197,7 +24174,7 @@ loc_111C0:				; CODE XREF: Tails_RollSpeed+1Ej
 loc_111D0:				; CODE XREF: Tails_RollSpeed+42j
 		move.w	d0,$14(a0)
 		bra.s	loc_111E2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_111D6:				; CODE XREF: Tails_RollSpeed+3Ej
 		add.w	d5,d0
@@ -24241,7 +24218,7 @@ loc_11232:				; CODE XREF: Tails_RollSpeed+A4j
 ; End of function Tails_RollSpeed
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_RollLeft:				; CODE XREF: Tails_RollSpeed+28p
@@ -24253,7 +24230,7 @@ loc_11242:				; CODE XREF: Tails_RollLeft+4j
 		bset	#0,$22(a0)
 		move.b	#2,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11250:				; CODE XREF: Tails_RollLeft+6j
 		sub.w	d4,d0
@@ -24266,7 +24243,7 @@ loc_11258:				; CODE XREF: Tails_RollLeft+18j
 ; End of function Tails_RollLeft
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_RollRight:			; CODE XREF: Tails_RollSpeed+34p
@@ -24275,7 +24252,7 @@ Tails_RollRight:			; CODE XREF: Tails_RollSpeed+34p
 		bclr	#0,$22(a0)
 		move.b	#2,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11272:				; CODE XREF: Tails_RollRight+4j
 		add.w	d4,d0
@@ -24288,7 +24265,7 @@ loc_1127A:				; CODE XREF: Tails_RollRight+16j
 ; End of function Tails_RollRight
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_ChgJumpDir:			; CODE XREF: ROM:00010EA4p
@@ -24347,7 +24324,7 @@ loc_112DC:				; CODE XREF: Tails_ChgJumpDir+50j
 loc_112F8:				; CODE XREF: Tails_ChgJumpDir+72j
 		move.w	d0,$10(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_112FE:				; CODE XREF: Tails_ChgJumpDir+6Ej
 		sub.w	d1,d0
@@ -24363,7 +24340,7 @@ locret_1130A:				; CODE XREF: Tails_ChgJumpDir+62j
 ; End of function Tails_ChgJumpDir
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_LevelBoundaries:			; CODE XREF: ROM:00010E8Cp
@@ -24397,7 +24374,7 @@ loc_1133E:				; CODE XREF: Tails_LevelBoundaries+7Ej
 		cmp.w	$C(a0),d0
 		blt.s	loc_1134E
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1134E:				; CODE XREF: Tails_LevelBoundaries+3Ej
 		cmpi.w	#$501,($FFFFFE10).w
@@ -24408,7 +24385,7 @@ loc_1134E:				; CODE XREF: Tails_LevelBoundaries+3Ej
 		move.w	#1,($FFFFFE02).w
 		move.w	#$103,($FFFFFE10).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11374:				; CODE XREF: Tails_LevelBoundaries+1Aj
 					; Tails_LevelBoundaries+30j
@@ -24420,7 +24397,7 @@ loc_11374:				; CODE XREF: Tails_LevelBoundaries+1Aj
 ; End of function Tails_LevelBoundaries
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_Roll:				; CODE XREF: ROM:00010E88p
@@ -24442,13 +24419,13 @@ loc_1139A:				; CODE XREF: Tails_Roll+Aj
 locret_113B2:				; CODE XREF: Tails_Roll+4j
 					; Tails_Roll+12j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_113B4:				; CODE XREF: Tails_Roll+24j
 		btst	#2,$22(a0)
 		beq.s	loc_113BE
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_113BE:				; CODE XREF: Tails_Roll+2Ej
 		bset	#2,$22(a0)
@@ -24467,7 +24444,7 @@ locret_113F0:				; CODE XREF: Tails_Roll+5Cj
 ; End of function Tails_Roll
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_Jump:				; CODE XREF: ROM:00010E7Cp
@@ -24521,7 +24498,7 @@ loc_11424:				; CODE XREF: Tails_Jump+2Cj
 locret_11496:				; CODE XREF: Tails_Jump+8j
 					; Tails_Jump+1Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11498:				; CODE XREF: Tails_Jump+86j
 		bset	#4,$22(a0)
@@ -24529,7 +24506,7 @@ loc_11498:				; CODE XREF: Tails_Jump+86j
 ; End of function Tails_Jump
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_JumpHeight:			; CODE XREF: ROM:Obj02_MdJumpp
@@ -24552,7 +24529,7 @@ loc_114B6:				; CODE XREF: Tails_JumpHeight+10j
 locret_114CA:				; CODE XREF: Tails_JumpHeight+1Aj
 					; Tails_JumpHeight+24j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_114CC:				; CODE XREF: Tails_JumpHeight+4j
 		cmpi.w	#$F040,$12(a0)
@@ -24564,7 +24541,7 @@ locret_114DA:				; CODE XREF: Tails_JumpHeight+32j
 ; End of function Tails_JumpHeight
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_Spindash:				; CODE XREF: ROM:Obj02_MdNormalp
@@ -24584,7 +24561,7 @@ Tails_Spindash:				; CODE XREF: ROM:Obj02_MdNormalp
 locret_1150E:				; CODE XREF: Tails_Spindash+Cj
 					; Tails_Spindash+16j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11510:				; CODE XREF: Tails_Spindash+4j
 		move.b	($FFFFF606).w,d0
@@ -24604,7 +24581,7 @@ loc_11510:				; CODE XREF: Tails_Spindash+4j
 loc_1154E:				; CODE XREF: Tails_Spindash+6Cj
 		bset	#2,$22(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11556:				; CODE XREF: Tails_Spindash+3Cj
 		move.b	($FFFFF607).w,d0
@@ -24618,7 +24595,7 @@ loc_11564:				; CODE XREF: Tails_Spindash+82j
 ; End of function Tails_Spindash
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_SlopeResist:			; CODE XREF: ROM:00010E80p
@@ -24639,7 +24616,7 @@ Tails_SlopeResist:			; CODE XREF: ROM:00010E80p
 
 locret_11596:				; CODE XREF: Tails_SlopeResist+28j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11598:				; CODE XREF: Tails_SlopeResist+24j
 		add.w	d0,$14(a0)
@@ -24650,7 +24627,7 @@ locret_1159C:				; CODE XREF: Tails_SlopeResist+Cj
 ; End of function Tails_SlopeResist
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_RollRepel:			; CODE XREF: ROM:00010ECEp
@@ -24671,7 +24648,7 @@ Tails_RollRepel:			; CODE XREF: ROM:00010ECEp
 loc_115C8:				; CODE XREF: Tails_RollRepel+26j
 		add.w	d0,$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_115CE:				; CODE XREF: Tails_RollRepel+22j
 		tst.w	d0
@@ -24686,14 +24663,13 @@ locret_115D8:				; CODE XREF: Tails_RollRepel+Cj
 ; End of function Tails_RollRepel
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_SlopeRepel:			; CODE XREF: ROM:00010E9Ap
 					; ROM:00010EE4p
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 		tst.b	$38(a0)
 		bne.s	locret_11614
@@ -24717,7 +24693,7 @@ loc_115FE:				; CODE XREF: Tails_SlopeRepel+20j
 locret_11614:				; CODE XREF: Tails_SlopeRepel+6j
 					; Tails_SlopeRepel+1Aj	...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11616:				; CODE XREF: Tails_SlopeRepel+Cj
 		subq.w	#1,$2E(a0)
@@ -24725,7 +24701,7 @@ loc_11616:				; CODE XREF: Tails_SlopeRepel+Cj
 ; End of function Tails_SlopeRepel
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_JumpAngle:			; CODE XREF: ROM:loc_10EC0p
@@ -24739,7 +24715,7 @@ Tails_JumpAngle:			; CODE XREF: ROM:loc_10EC0p
 
 loc_1162A:				; CODE XREF: Tails_JumpAngle+Aj
 		bra.s	loc_11632
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1162C:				; CODE XREF: Tails_JumpAngle+6j
 		subq.b	#2,d0
@@ -24766,7 +24742,7 @@ loc_11636:				; CODE XREF: Tails_JumpAngle+4j
 loc_11658:				; CODE XREF: Tails_JumpAngle+2Cj
 					; Tails_JumpAngle+32j
 		bra.s	loc_11670
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1165A:				; CODE XREF: Tails_JumpAngle+24j
 		move.b	$2D(a0),d1
@@ -24786,7 +24762,7 @@ locret_11674:				; CODE XREF: Tails_JumpAngle+1Ej
 ; End of function Tails_JumpAngle
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_Floor:				; CODE XREF: ROM:00010EC4p
@@ -24843,13 +24819,13 @@ loc_116E4:				; CODE XREF: Tails_Floor+68j
 		beq.s	loc_11714
 		asr	$12(a0)
 		bra.s	loc_11736
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11714:				; CODE XREF: Tails_Floor+96j
 		move.w	#0,$12(a0)
 		move.w	$10(a0),$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11722:				; CODE XREF: Tails_Floor+8Aj
 		move.w	#0,$10(a0)
@@ -24867,7 +24843,7 @@ loc_11736:				; CODE XREF: Tails_Floor+9Cj
 locret_11744:				; CODE XREF: Tails_Floor+5Cj
 					; Tails_Floor+6Cj ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11746:				; CODE XREF: Tails_Floor+1Ej
 		bsr.w	Sonic_HitWall
@@ -24877,7 +24853,7 @@ loc_11746:				; CODE XREF: Tails_Floor+1Ej
 		move.w	#0,$10(a0)
 		move.w	$12(a0),$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11760:				; CODE XREF: Tails_Floor+D6j
 		bsr.w	Sonic_DontRunOnWalls
@@ -24890,7 +24866,7 @@ loc_11760:				; CODE XREF: Tails_Floor+D6j
 
 locret_11778:				; CODE XREF: Tails_Floor+FAj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1177A:				; CODE XREF: Tails_Floor+F0j
 		tst.w	$12(a0)
@@ -24908,7 +24884,7 @@ loc_1177A:				; CODE XREF: Tails_Floor+F0j
 locret_117A6:				; CODE XREF: Tails_Floor+108j
 					; Tails_Floor+110j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_117A8:				; CODE XREF: Tails_Floor+26j
 		bsr.w	Sonic_HitWall
@@ -24935,7 +24911,7 @@ loc_117CC:				; CODE XREF: Tails_Floor+14Aj
 		bne.s	loc_117EC
 		move.w	#0,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_117EC:				; CODE XREF: Tails_Floor+16Cj
 		move.b	d3,$26(a0)
@@ -24948,7 +24924,7 @@ loc_117EC:				; CODE XREF: Tails_Floor+16Cj
 locret_11802:				; CODE XREF: Tails_Floor+15Cj
 					; Tails_Floor+186j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11804:				; CODE XREF: Tails_Floor+2Ej
 		bsr.w	sub_132EE
@@ -24958,7 +24934,7 @@ loc_11804:				; CODE XREF: Tails_Floor+2Ej
 		move.w	#0,$10(a0)
 		move.w	$12(a0),$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1181E:				; CODE XREF: Tails_Floor+194j
 		bsr.w	Sonic_DontRunOnWalls
@@ -24971,7 +24947,7 @@ loc_1181E:				; CODE XREF: Tails_Floor+194j
 
 locret_11836:				; CODE XREF: Tails_Floor+1B8j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11838:				; CODE XREF: Tails_Floor+1AEj
 		tst.w	$12(a0)
@@ -24992,7 +24968,7 @@ locret_11864:				; CODE XREF: Tails_Floor+1C6j
 ; End of function Tails_Floor
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_ResetTailsOnFloor:		; CODE XREF: sub_F8F8:loc_F954p
@@ -25022,7 +24998,7 @@ loc_118AA:				; CODE XREF: Tails_ResetTailsOnFloor+26j
 		rts
 ; End of function Tails_ResetTailsOnFloor
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj02_Hurt:				; DATA XREF: ROM:Obj02_Indexo
 		jsr	SpeedToPos
@@ -25038,7 +25014,7 @@ loc_118D8:				; CODE XREF: ROM:000118D0j
 		bsr.w	LoadTailsDynPLC
 		jmp	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_HurtStop:				; CODE XREF: ROM:loc_118D8p
@@ -25061,7 +25037,7 @@ locret_1192A:				; CODE XREF: Tails_HurtStop+1Aj
 		rts
 ; End of function Tails_HurtStop
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj02_Death:				; DATA XREF: ROM:Obj02_Indexo
 		bsr.w	Tails_GameOver
@@ -25070,7 +25046,7 @@ Obj02_Death:				; DATA XREF: ROM:Obj02_Indexo
 		bsr.w	LoadTailsDynPLC
 		jmp	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_GameOver:				; CODE XREF: ROM:Obj02_Deathp
@@ -25090,14 +25066,13 @@ Tails_GameOver:				; CODE XREF: ROM:Obj02_Deathp
 		move.b	#$D,$3F(a0)
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 
 locret_11986:				; CODE XREF: Tails_GameOver+Cj
 		rts
 ; End of function Tails_GameOver
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj02_ResetLevel:			; DATA XREF: ROM:Obj02_Indexo
 		tst.w	$3A(a0)
@@ -25110,7 +25085,7 @@ locret_1199A:				; CODE XREF: ROM:0001198Cj
 					; ROM:00011992j
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Tails_Animate:				; CODE XREF: ROM:00010CECp
@@ -25144,7 +25119,7 @@ loc_119BE:				; CODE XREF: Tails_Animate+10j
 ; End of function Tails_Animate
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_119E4:				; CODE XREF: Tails_Animate+10Ep
@@ -25163,7 +25138,7 @@ loc_119F4:				; CODE XREF: sub_119E4+28j
 locret_119FC:				; CODE XREF: Tails_Animate+42j
 					; Tails_Animate+96j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_119FE:				; CODE XREF: sub_119E4+Ej
 		addq.b	#1,d0
@@ -25171,7 +25146,7 @@ loc_119FE:				; CODE XREF: sub_119E4+Ej
 		move.b	#0,$1B(a0)
 		move.b	1(a1),d0
 		bra.s	loc_119F4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11A0E:				; CODE XREF: sub_119E4+1Cj
 		addq.b	#1,d0
@@ -25181,7 +25156,7 @@ loc_11A0E:				; CODE XREF: sub_119E4+1Cj
 		sub.b	d0,d1
 		move.b	1(a1,d1.w),d0
 		bra.s	loc_119F4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11A22:				; CODE XREF: sub_119E4+2Cj
 		addq.b	#1,d0
@@ -25192,7 +25167,7 @@ locret_11A2C:				; CODE XREF: sub_119E4+40j
 		rts
 ; End of function sub_119E4
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR Tails_Animate
 
 loc_11A2E:				; CODE XREF: Tails_Animate+2Aj
@@ -25251,7 +25226,7 @@ loc_11AA4:				; CODE XREF: Tails_Animate+104j
 		bsr.w	sub_119E4
 		add.b	d3,$1A(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11AB4:				; CODE XREF: Tails_Animate+A4j
 		move.b	$27(a0),d0
@@ -25268,7 +25243,7 @@ loc_11AB4:				; CODE XREF: Tails_Animate+A4j
 		move.b	d0,$1A(a0)
 		move.b	#0,$1E(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11AE8:				; CODE XREF: Tails_Animate+126j
 		moveq	#3,d2
@@ -25281,7 +25256,7 @@ loc_11AE8:				; CODE XREF: Tails_Animate+126j
 		move.b	d0,$1A(a0)
 		move.b	#0,$1E(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11B0E:				; CODE XREF: Tails_Animate+9Aj
 		addq.b	#1,d0
@@ -25310,7 +25285,7 @@ loc_11B36:				; CODE XREF: Tails_Animate+196j
 		andi.b	#$FC,1(a0)
 		or.b	d1,1(a0)
 		bra.w	sub_119E4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11B52:				; CODE XREF: Tails_Animate+174j
 		addq.b	#1,d0
@@ -25333,7 +25308,7 @@ loc_11B66:				; CODE XREF: Tails_Animate+1C6j
 		andi.b	#$FC,1(a0)
 		or.b	d1,1(a0)
 		bra.w	sub_119E4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11B88:				; CODE XREF: Tails_Animate+1B8j
 		move.w	($FFFFB050).w,d1
@@ -25345,7 +25320,7 @@ loc_11B88:				; CODE XREF: Tails_Animate+1B8j
 		bne.s	loc_11BA6
 		not.b	d0
 		bra.s	loc_11BAA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11BA6:				; CODE XREF: Tails_Animate+204j
 		addi.b	#$80,d0
@@ -25368,7 +25343,7 @@ loc_11BB2:				; CODE XREF: Tails_Animate+212j
 		add.b	d3,$1A(a0)
 		rts
 ; END OF FUNCTION CHUNK	FOR Tails_Animate
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 TailsAniData:	dc.w TailsAni_Walk-TailsAniData,TailsAni_Run-TailsAniData; 0
 					; DATA XREF: Tails_Animateo
 					; ROM:TailsAniDatao ...
@@ -25434,7 +25409,7 @@ TailsAni_1D:	dc.b   3,  1,  2,  3,  4,  5,  6,  7,  8,$FF; 0
 TailsAni_1E:	dc.b   3,  1,  2,  3,  4,  5,  6,  7,  8,$FF; 0
 					; DATA XREF: ROM:TailsAniDatao
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ; loads	the tails patterns in a	buffer at F600
 ; as opposed to	the usual F400
@@ -25456,7 +25431,7 @@ LoadTailsDynPLC_F600:			; CODE XREF: ROM:00011DF0p
 ; End of function LoadTailsDynPLC_F600
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LoadTailsDynPLC:			; CODE XREF: ROM:loc_10CFCp
@@ -25496,7 +25471,7 @@ locret_11D7C:				; CODE XREF: LoadTailsDynPLC_F600+Aj
 		rts
 ; End of function LoadTailsDynPLC
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 05 - Tails' tails
 ;----------------------------------------------------
@@ -25506,11 +25481,11 @@ Obj05:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj05_Index(pc,d0.w),d1
 		jmp	Obj05_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj05_Index:	dc.w Obj05_Init-Obj05_Index ; DATA XREF: ROM:Obj05_Indexo
 					; ROM:00011D8Eo
 		dc.w Obj05_Main-Obj05_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj05_Init:				; DATA XREF: ROM:Obj05_Indexo
 		addq.b	#2,$24(a0)
@@ -25540,7 +25515,7 @@ loc_11DE6:				; CODE XREF: ROM:00011DDAj
 					; as opposed to	the usual F400
 		jsr	DisplaySprite
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj05_Animations:dc.b	0,  0		 ; 0
 		dc.b   3,  3		; 2
 		dc.b   0,  1		; 4
@@ -25574,10 +25549,11 @@ byte_11E42:	dc.b   3,$4D,$4E,$4F,$50,$FF; 0	; DATA XREF: ROM:00011E22o
 byte_11E48:	dc.b   3,$51,$52,$53,$54,$FF; 0	; DATA XREF: ROM:00011E24o
 byte_11E4E:	dc.b   3,$55,$56,$57,$58,$FF; 0	; DATA XREF: ROM:00011E26o
 byte_11E54:	dc.b   2,$81,$82,$83,$84,$FF; 0	; DATA XREF: ROM:00011E28o
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ; START	OF FUNCTION CHUNK FOR Tails_LevelBoundaries
 
@@ -25585,10 +25561,9 @@ KillTails:				; CODE XREF: Tails_LevelBoundaries+48j
 					; Tails_LevelBoundaries+52j ...
 		jmp	KillSonic
 ; END OF FUNCTION CHUNK	FOR Tails_LevelBoundaries
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 0A - drowning bubbles and countdown numbers
@@ -25599,7 +25574,7 @@ Obj0A:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj0A_Index(pc,d0.w),d1
 		jmp	Obj0A_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj0A_Index:	dc.w Obj0A_Init-Obj0A_Index ; DATA XREF: ROM:Obj0A_Indexo
 					; ROM:00011E74o ...
 		dc.w Obj0A_Animate-Obj0A_Index
@@ -25610,7 +25585,7 @@ Obj0A_Index:	dc.w Obj0A_Init-Obj0A_Index ; DATA XREF: ROM:Obj0A_Indexo
 		dc.w Obj0A_AirLeft-Obj0A_Index
 		dc.w Obj0A_Display-Obj0A_Index
 		dc.w Obj0A_Delete-Obj0A_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj0A_Init:				; DATA XREF: ROM:Obj0A_Indexo
 		addq.b	#2,$24(a0)
@@ -25627,7 +25602,7 @@ Obj0A_Init:				; DATA XREF: ROM:Obj0A_Indexo
 		andi.w	#$7F,d0	; ''
 		move.b	d0,$33(a0)
 		bra.w	Obj0A_Countdown
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11ECC:				; CODE XREF: ROM:00011EACj
 		move.b	d0,$1C(a0)
@@ -25648,7 +25623,7 @@ Obj0A_ChkWater:				; DATA XREF: ROM:00011E76o
 		cmpi.b	#$D,$1C(a0)
 		beq.s	Obj0A_Display
 		bra.s	Obj0A_Display
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11F0A:				; CODE XREF: ROM:00011EF4j
 		tst.b	($FFFFF7C7).w
@@ -25669,11 +25644,11 @@ loc_11F14:				; CODE XREF: ROM:00011F0Ej
 		tst.b	1(a0)
 		bpl.s	loc_11F48
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11F48:				; CODE XREF: ROM:00011F40j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj0A_Display:				; CODE XREF: ROM:00011F06j
 					; ROM:00011F08j ...
@@ -25681,12 +25656,12 @@ Obj0A_Display:				; CODE XREF: ROM:00011F06j
 		lea	(Ani_Obj0A).l,a1
 		jsr	AnimateSprite
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj0A_Delete:				; DATA XREF: ROM:00011E7Ao
 					; ROM:00011E82o
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj0A_AirLeft:				; DATA XREF: ROM:00011E7Eo
 		cmpi.w	#$C,($FFFFFE14).w
@@ -25696,7 +25671,7 @@ Obj0A_AirLeft:				; DATA XREF: ROM:00011E7Eo
 		move.b	#$E,$24(a0)
 		addq.b	#7,$1C(a0)
 		bra.s	Obj0A_Display
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11F82:				; CODE XREF: ROM:00011F74j
 		lea	(Ani_Obj0A).l,a1
@@ -25704,13 +25679,13 @@ loc_11F82:				; CODE XREF: ROM:00011F74j
 		tst.b	1(a0)
 		bpl.s	loc_11F9A
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_11F9A:				; CODE XREF: ROM:00011F6Ej
 					; ROM:00011F92j
 		jmp	DeleteObject
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Obj0A_ShowNumber:			; CODE XREF: ROM:00011F34p
@@ -25739,7 +25714,7 @@ locret_11FEA:				; CODE XREF: Obj0A_ShowNumber+4j
 		rts
 ; End of function Obj0A_ShowNumber
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj0A_WobbleData:dc.b	 0,   0,   0,	0,   0,	  0,   1,   1,	 1,   1,   1,	2,   2,	  2,   2,   2; 0
 					; DATA XREF: ROM:00005E84o
 					; ROM:00011F20o ...
@@ -25758,7 +25733,7 @@ Obj0A_WobbleData:dc.b	 0,   0,   0,	0,   0,	  0,   1,   1,	 1,   1,   1,	2,   2,
 		dc.b   -3,  -3,	 -4,  -4,  -4,	-4,  -4,  -4,  -4,  -4,	 -4,  -4,  -4,	-4,  -4,  -4; 208
 		dc.b   -4,  -4,	 -4,  -4,  -4,	-4,  -4,  -4,  -4,  -4,	 -4,  -4,  -4,	-4,  -4,  -3; 224
 		dc.b   -3,  -3,	 -3,  -3,  -3,	-3,  -2,  -2,  -2,  -2,	 -2,  -1,  -1,	-1,  -1,  -1; 240
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj0A_Countdown:			; CODE XREF: ROM:00011EC8j
 					; DATA XREF: ROM:00011E7Co
@@ -25794,7 +25769,7 @@ loc_12152:				; CODE XREF: ROM:00012146j
 		move.b	$33(a0),$32(a0)
 		bset	#7,$36(a0)
 		bra.s	loc_12170
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12166:				; CODE XREF: ROM:00012132j
 					; ROM:00012138j ...
@@ -25824,14 +25799,14 @@ loc_12170:				; CODE XREF: ROM:00012144j
 		move.b	#1,($FFFFEEDC).w
 		movea.l	(sp)+,a0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_121D6:				; CODE XREF: ROM:000120F0j
 		subq.w	#1,$2C(a0)
 		bne.s	loc_121E4
 		move.b	#6,($FFFFB024).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_121E4:				; CODE XREF: ROM:000121DAj
 		move.l	a0,-(sp)
@@ -25840,11 +25815,11 @@ loc_121E4:				; CODE XREF: ROM:000121DAj
 		addi.w	#$10,$12(a0)
 		movea.l	(sp)+,a0
 		bra.s	loc_121FC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_121FA:				; CODE XREF: ROM:00012174j
 		bra.s	loc_1220C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_121FC:				; CODE XREF: ROM:0001210Cj
 					; ROM:000121F8j
@@ -25885,7 +25860,7 @@ loc_12242:				; CODE XREF: ROM:00012238j
 		bne.s	loc_122D2
 		move.b	#$E,$28(a1)
 		bra.s	loc_122D2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1228E:				; CODE XREF: ROM:00012256j
 		btst	#7,$36(a0)
@@ -25918,7 +25893,7 @@ locret_122DC:				; CODE XREF: ROM:000120FAj
 					; ROM:00012104j ...
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ResumeMusic:				; CODE XREF: Sonic_Water+1Ap
@@ -25949,7 +25924,7 @@ loc_12310:				; CODE XREF: ResumeMusic+6j
 		rts
 ; End of function ResumeMusic
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj0A:	dc.w byte_1233A-Ani_Obj0A,byte_12343-Ani_Obj0A;	0
 					; DATA XREF: ROM:Obj0A_Animateo
 					; ROM:00011F50o ...
@@ -25979,7 +25954,7 @@ Map_Obj0A_Countdown:dc.w word_123B0-Map_Obj0A_Countdown	; DATA XREF: ROM:00011EB
 					; ROM:Map_Obj0A_Countdowno
 word_123B0:	dc.w 1			; DATA XREF: ROM:Map_Obj0A_Countdowno
 		dc.w $E80E,    0,    0,$FFF2; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 38 - shield invincibility stars
 ;----------------------------------------------------
@@ -25989,12 +25964,12 @@ Obj38:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj38_Index(pc,d0.w),d1
 		jmp	Obj38_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj38_Index:	dc.w Obj38_Init-Obj38_Index ; DATA XREF: ROM:Obj38_Indexo
 					; ROM:000123CAo ...
 		dc.w Obj38_Shield-Obj38_Index
 		dc.w Obj38_Stars-Obj38_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj38_Init:				; DATA XREF: ROM:Obj38_Indexo
 		addq.b	#2,$24(a0)
@@ -26012,7 +25987,7 @@ Obj38_Init:				; DATA XREF: ROM:Obj38_Indexo
 loc_12406:				; CODE XREF: ROM:000123FEj
 		bsr.w	ModifySpriteAttr_2P
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1240C:				; CODE XREF: ROM:000123F0j
 		addq.b	#2,$24(a0)
@@ -26021,7 +25996,7 @@ loc_1240C:				; CODE XREF: ROM:000123F0j
 		bsr.w	ModifySpriteAttr_2P
 		move.b	#2,$18(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj38_Shield:				; DATA XREF: ROM:000123CAo
 		tst.b	($FFFFFE2D).w
@@ -26034,15 +26009,15 @@ Obj38_Shield:				; DATA XREF: ROM:000123CAo
 		lea	(Ani_Obj38_Shield).l,a1
 		jsr	AnimateSprite
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_1245A:				; CODE XREF: ROM:0001242Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1245C:				; CODE XREF: ROM:00012434j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj38_Stars:				; DATA XREF: ROM:000123CCo
 		tst.b	($FFFFFE2D).w
@@ -26066,11 +26041,11 @@ Obj38_Stars:				; DATA XREF: ROM:000123CCo
 		move.b	($FFFFB01A).w,$1A(a0)
 		move.b	($FFFFB001).w,1(a0)
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_124B2:				; CODE XREF: ROM:00012466j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Sonic	1 Object 4A - special stage entry from
 ;		      Sonic 1 beta
@@ -26081,18 +26056,18 @@ S1Obj4A:
 		move.b	$24(a0),d0
 		move.w	S1Obj4A_Index(pc,d0.w),d1
 		jmp	S1Obj4A_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1Obj4A_Index:	dc.w S1Obj4A_Init-S1Obj4A_Index	; DATA XREF: ROM:S1Obj4A_Indexo
 					; ROM:000124C8o ...
 		dc.w S1Obj4A_RmvSonic-S1Obj4A_Index
 		dc.w S1Obj4A_LoadSonic-S1Obj4A_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1Obj4A_Init:				; DATA XREF: ROM:S1Obj4A_Indexo
 		tst.l	($FFFFF680).w
 		beq.s	loc_124D4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_124D4:				; CODE XREF: ROM:000124D0j
 		addq.b	#2,$24(a0)
@@ -26121,18 +26096,18 @@ S1Obj4A_RmvSonic:			; DATA XREF: ROM:000124C8o
 loc_1253E:				; CODE XREF: ROM:00012526j
 					; ROM:0001252Cj
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1Obj4A_LoadSonic:			; DATA XREF: ROM:000124CAo
 		subq.w	#1,$30(a0)
 		bne.s	locret_12556
 		move.b	#1,($FFFFB000).w
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_12556:				; CODE XREF: ROM:00012548j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 08 - water splash
 ;----------------------------------------------------
@@ -26142,12 +26117,12 @@ Obj08:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj08_Index(pc,d0.w),d1
 		jmp	Obj08_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj08_Index:	dc.w Obj08_Init-Obj08_Index ; DATA XREF: ROM:Obj08_Indexo
 					; ROM:00012568o ...
 		dc.w Obj08_Display-Obj08_Index
 		dc.w Obj08_Delete-Obj08_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj08_Init:				; DATA XREF: ROM:Obj08_Indexo
 		addq.b	#2,$24(a0)
@@ -26164,11 +26139,11 @@ Obj08_Display:				; DATA XREF: ROM:00012568o
 		lea	(Ani_Obj08).l,a1
 		jsr	AnimateSprite
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj08_Delete:				; DATA XREF: ROM:0001256Ao
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj38_Shield:dc.w byte_125C2-Ani_Obj38_Shield ; DATA XREF: ROM:00012448o
 					; ROM:Ani_Obj38_Shieldo ...
 		dc.w byte_125CE-Ani_Obj38_Shield
@@ -26350,7 +26325,7 @@ word_129E0:	dc.w 2			; DATA XREF: ROM:000129CAo
 word_129F2:	dc.w 1			; DATA XREF: ROM:000129CCo
 		dc.w $E20F,  $80,  $40,$FFF0; 0
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_AnglePos:				; CODE XREF: ROM:0000FCC0p
@@ -26372,7 +26347,7 @@ loc_12A14:				; CODE XREF: Sonic_AnglePos+Ej
 		move.b	d0,($FFFFF768).w
 		move.b	d0,($FFFFF76A).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12A2C:				; CODE XREF: Sonic_AnglePos+22j
 		moveq	#3,d0
@@ -26388,7 +26363,7 @@ loc_12A2C:				; CODE XREF: Sonic_AnglePos+22j
 loc_12A48:				; CODE XREF: Sonic_AnglePos+48j
 		addi.b	#$20,d0	; ' '
 		bra.s	loc_12A5A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12A4E:				; CODE XREF: Sonic_AnglePos+42j
 		move.b	$26(a0),d0
@@ -26445,7 +26420,7 @@ loc_12A5A:				; CODE XREF: Sonic_AnglePos+50j
 
 locret_12AE4:				; CODE XREF: Sonic_AnglePos+DAj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12AE6:				; CODE XREF: Sonic_AnglePos+DCj
 		cmpi.w	#$E,d1
@@ -26454,7 +26429,7 @@ loc_12AE6:				; CODE XREF: Sonic_AnglePos+DCj
 loc_12AEC:				; CODE XREF: Sonic_AnglePos+FAj
 		add.w	d1,$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12AF2:				; CODE XREF: Sonic_AnglePos+EEj
 		tst.b	$38(a0)
@@ -26463,14 +26438,14 @@ loc_12AF2:				; CODE XREF: Sonic_AnglePos+EEj
 		bclr	#5,$22(a0)
 		move.b	#1,$1D(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_12B0C:				; CODE XREF: Sonic_AnglePos+E2j
 					; Sonic_AnglePos+2ACj
 		rts
 ; End of function Sonic_AnglePos
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		move.l	8(a0),d2
 		move.w	$10(a0),d0
 		ext.l	d0
@@ -26483,14 +26458,14 @@ locret_12B0C:				; CODE XREF: Sonic_AnglePos+E2j
 		sub.l	d0,d3
 		move.l	d3,$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR Sonic_AnglePos
 
 locret_12B30:				; CODE XREF: Sonic_AnglePos+20Ej
 					; Sonic_AnglePos+34Aj
 		rts
 ; END OF FUNCTION CHUNK	FOR Sonic_AnglePos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		move.l	$C(a0),d3
 		move.w	$12(a0),d0
 		subi.w	#$38,d0	; '8'
@@ -26500,9 +26475,9 @@ locret_12B30:				; CODE XREF: Sonic_AnglePos+20Ej
 		sub.l	d0,d3
 		move.l	d3,$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		move.l	8(a0),d2
 		move.l	$C(a0),d3
 		move.w	$10(a0),d0
@@ -26517,7 +26492,7 @@ locret_12B30:				; CODE XREF: Sonic_AnglePos+20Ej
 		move.l	d3,$C(a0)
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_Angle:				; CODE XREF: Sonic_AnglePos+D4p
@@ -26533,7 +26508,7 @@ loc_12B84:				; CODE XREF: Sonic_Angle+6j
 		bne.s	loc_12B90
 		move.b	d2,$26(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12B90:				; CODE XREF: Sonic_Angle+12j
 		move.b	$26(a0),d2
@@ -26543,7 +26518,7 @@ loc_12B90:				; CODE XREF: Sonic_Angle+12j
 		rts
 ; End of function Sonic_Angle
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR Sonic_AnglePos
 
 Sonic_WalkVertR:			; CODE XREF: Sonic_AnglePos+76j
@@ -26586,7 +26561,7 @@ Sonic_WalkVertR:			; CODE XREF: Sonic_AnglePos+76j
 
 locret_12C12:				; CODE XREF: Sonic_AnglePos+206j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12C14:				; CODE XREF: Sonic_AnglePos+208j
 		cmpi.w	#$E,d1
@@ -26595,7 +26570,7 @@ loc_12C14:				; CODE XREF: Sonic_AnglePos+208j
 loc_12C1A:				; CODE XREF: Sonic_AnglePos+228j
 		add.w	d1,8(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12C20:				; CODE XREF: Sonic_AnglePos+21Cj
 		tst.b	$38(a0)
@@ -26604,7 +26579,7 @@ loc_12C20:				; CODE XREF: Sonic_AnglePos+21Cj
 		bclr	#5,$22(a0)
 		move.b	#1,$1D(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Sonic_WalkCeiling:			; CODE XREF: Sonic_AnglePos+6Ej
 		move.w	$C(a0),d2
@@ -26647,7 +26622,7 @@ Sonic_WalkCeiling:			; CODE XREF: Sonic_AnglePos+6Ej
 
 locret_12CB0:				; CODE XREF: Sonic_AnglePos+2A4j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12CB2:				; CODE XREF: Sonic_AnglePos+2A6j
 		cmpi.w	#$E,d1
@@ -26656,7 +26631,7 @@ loc_12CB2:				; CODE XREF: Sonic_AnglePos+2A6j
 loc_12CB8:				; CODE XREF: Sonic_AnglePos+2C6j
 		sub.w	d1,$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12CBE:				; CODE XREF: Sonic_AnglePos+2BAj
 		tst.b	$38(a0)
@@ -26665,7 +26640,7 @@ loc_12CBE:				; CODE XREF: Sonic_AnglePos+2BAj
 		bclr	#5,$22(a0)
 		move.b	#1,$1D(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Sonic_WalkVertL:			; CODE XREF: Sonic_AnglePos+66j
 		move.w	$C(a0),d2
@@ -26708,7 +26683,7 @@ Sonic_WalkVertL:			; CODE XREF: Sonic_AnglePos+66j
 
 locret_12D4E:				; CODE XREF: Sonic_AnglePos+342j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12D50:				; CODE XREF: Sonic_AnglePos+344j
 		cmpi.w	#$E,d1
@@ -26717,7 +26692,7 @@ loc_12D50:				; CODE XREF: Sonic_AnglePos+344j
 loc_12D56:				; CODE XREF: Sonic_AnglePos+364j
 		sub.w	d1,8(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12D5C:				; CODE XREF: Sonic_AnglePos+358j
 		tst.b	$38(a0)
@@ -26728,7 +26703,7 @@ loc_12D5C:				; CODE XREF: Sonic_AnglePos+358j
 		rts
 ; END OF FUNCTION CHUNK	FOR Sonic_AnglePos
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Floor_ChkTile:				; CODE XREF: FindFloorp FindFloor2p ...
@@ -26756,7 +26731,7 @@ Floor_ChkTile:				; CODE XREF: FindFloorp FindFloor2p ...
 ; End of function Floor_ChkTile
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 FindFloor:				; CODE XREF: Sonic_AnglePos+A0p
@@ -26776,7 +26751,7 @@ loc_12DBE:				; CODE XREF: FindFloor+Aj
 		sub.w	a3,d2
 		addi.w	#$10,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12DCC:				; CODE XREF: FindFloor+Ej
 		movea.l	($FFFFF796).w,a2
@@ -26822,7 +26797,7 @@ loc_12E1C:				; CODE XREF: FindFloor+6Aj
 		move.w	#$F,d1
 		sub.w	d0,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12E38:				; CODE XREF: FindFloor+72j
 		move.w	d2,d1
@@ -26839,7 +26814,7 @@ loc_12E44:				; CODE XREF: FindFloor+78j
 ; End of function FindFloor
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 FindFloor2:				; CODE XREF: FindFloor+12p
@@ -26859,7 +26834,7 @@ loc_12E64:				; CODE XREF: FindFloor2+Cj
 		andi.w	#$F,d0
 		sub.w	d0,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12E72:				; CODE XREF: FindFloor2+10j
 		movea.l	($FFFFF796).w,a2
@@ -26903,7 +26878,7 @@ loc_12EC2:				; CODE XREF: FindFloor2+6Cj
 		move.w	#$F,d1
 		sub.w	d0,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12ED8:				; CODE XREF: FindFloor2+74j
 		move.w	d2,d1
@@ -26915,7 +26890,7 @@ loc_12ED8:				; CODE XREF: FindFloor2+74j
 ; End of function FindFloor2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 FindWall:				; CODE XREF: Sonic_AnglePos+1CEp
@@ -26934,7 +26909,7 @@ loc_12EFA:				; CODE XREF: FindWall+Cj FindWall+2Aj	...
 		sub.w	a3,d3
 		addi.w	#$10,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12F08:				; CODE XREF: FindWall+10j
 		movea.l	($FFFFF796).w,a2
@@ -26980,7 +26955,7 @@ loc_12F58:				; CODE XREF: FindWall+6Cj
 		move.w	#$F,d1
 		sub.w	d0,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12F74:				; CODE XREF: FindWall+74j
 		move.w	d3,d1
@@ -26997,7 +26972,7 @@ loc_12F80:				; CODE XREF: FindWall+7Aj
 ; End of function FindWall
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 FindWall2:				; CODE XREF: FindWall+14p FindWall+9Ap
@@ -27016,7 +26991,7 @@ loc_12FA0:				; CODE XREF: FindWall2+Cj
 		andi.w	#$F,d0
 		sub.w	d0,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_12FAE:				; CODE XREF: FindWall2+10j
 		movea.l	($FFFFF796).w,a2
@@ -27060,7 +27035,7 @@ loc_12FFE:				; CODE XREF: FindWall2+6Cj
 		move.w	#$F,d1
 		sub.w	d0,d1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13014:				; CODE XREF: FindWall2+74j
 		move.w	d3,d1
@@ -27076,14 +27051,14 @@ loc_13014:				; CODE XREF: FindWall2+74j
 ; leftover function from early Sonic 1/2 alpha
 ;----------------------------------------------------
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 FloorLog_Unk:				; CODE XREF: ROM:00003D4Cp
 		rts
 ; End of function FloorLog_Unk
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		lea	(ColArray1_GHZ).l,a1
 		tst.b	($FFFFFE10).w
 		beq.s	loc_13038
@@ -27115,10 +27090,9 @@ loc_13074:				; CODE XREF: ROM:00013076j
 		move.w	(a1)+,(a2)+
 		dbf	d1,loc_13074
 		rts
-	else
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_WalkSpeed:			; CODE XREF: Sonic_Move+158p
@@ -27160,7 +27134,7 @@ loc_13094:				; CODE XREF: Sonic_WalkSpeed+Ej
 loc_130CE:				; CODE XREF: Sonic_WalkSpeed+4Ej
 		addi.b	#$20,d0	; ' '
 		bra.s	loc_130DE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_130D4:				; CODE XREF: Sonic_WalkSpeed+4Aj
 		move.b	d1,d0
@@ -27186,7 +27160,7 @@ loc_130F6:				; CODE XREF: Sonic_WalkSpeed+76j
 ; End of function Sonic_WalkSpeed
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_13102:				; CODE XREF: Sonic_Jump+16p
@@ -27269,7 +27243,7 @@ locret_131D4:				; CODE XREF: sub_13102+CEj
 		rts
 ; End of function sub_13102
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		move.w	$C(a0),d2
 		move.w	8(a0),d3
 ; START	OF FUNCTION CHUNK FOR Sonic_WalkSpeed
@@ -27293,7 +27267,7 @@ locret_13202:				; CODE XREF: Sonic_WalkSpeed+182j
 		rts
 ; END OF FUNCTION CHUNK	FOR Sonic_WalkSpeed
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_HitFloor:				; CODE XREF: Sonic_Move:Sonic_Balancep
@@ -27325,7 +27299,7 @@ locret_13254:				; CODE XREF: Sonic_HitFloor+4Aj
 ; End of function Sonic_HitFloor
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ObjHitFloor:				; CODE XREF: ROM:000096A8p
@@ -27353,7 +27327,7 @@ locret_1328C:				; CODE XREF: ObjHitFloor+30j
 		rts
 ; End of function ObjHitFloor
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR sub_13102
 
 loc_1328E:				; CODE XREF: sub_13102+40j
@@ -27389,7 +27363,7 @@ loc_1328E:				; CODE XREF: sub_13102+40j
 		bra.w	loc_131BE
 ; END OF FUNCTION CHUNK	FOR sub_13102
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_132EE:				; CODE XREF: Sonic_Floor:loc_10558p
@@ -27410,7 +27384,7 @@ loc_132F6:				; CODE XREF: Sonic_WalkSpeed+82j
 		bra.w	loc_131F6
 ; END OF FUNCTION CHUNK	FOR Sonic_WalkSpeed
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ObjHitWallRight:			; CODE XREF: ROM:000153B2p
@@ -27433,7 +27407,7 @@ locret_1333E:				; CODE XREF: ObjHitWallRight+26j
 ; End of function ObjHitWallRight
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_DontRunOnWalls:			; CODE XREF: Sonic_Floor:loc_105FEp
@@ -27472,7 +27446,7 @@ Sonic_DontRunOnWalls:			; CODE XREF: Sonic_Floor:loc_105FEp
 		bra.w	loc_131BE
 ; End of function Sonic_DontRunOnWalls
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		move.w	$C(a0),d2
 		move.w	8(a0),d3
 ; START	OF FUNCTION CHUNK FOR Sonic_WalkSpeed
@@ -27487,7 +27461,7 @@ loc_133B0:				; CODE XREF: Sonic_WalkSpeed+6Ej
 		move.b	#$80,d2
 		bra.w	loc_131F6
 ; END OF FUNCTION CHUNK	FOR Sonic_WalkSpeed
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 ObjHitCeiling:
 		move.w	$C(a0),d2
@@ -27509,7 +27483,7 @@ ObjHitCeiling:
 
 locret_13406:				; CODE XREF: ROM:00013400j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR sub_13102
 
 loc_13408:				; CODE XREF: sub_13102+30j
@@ -27547,7 +27521,7 @@ loc_13408:				; CODE XREF: sub_13102+30j
 		bra.w	loc_131BE
 ; END OF FUNCTION CHUNK	FOR sub_13102
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Sonic_HitWall:				; CODE XREF: Sonic_Floor+4Ap
@@ -27568,7 +27542,7 @@ loc_13478:				; CODE XREF: Sonic_WalkSpeed+7Ej
 		move.b	#$40,d2	; '@'
 		bra.w	loc_131F6
 ; END OF FUNCTION CHUNK	FOR Sonic_WalkSpeed
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 ObjHitWallLeft:
 		add.w	8(a0),d3
@@ -27586,10 +27560,9 @@ ObjHitWallLeft:
 
 locret_134C4:				; CODE XREF: ROM:000134BEj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 ;----------------------------------------------------
 ; Object 79 - lamppost
@@ -27601,12 +27574,12 @@ Obj79:					; DATA XREF: ROM:Obj_Indexo
 		move.w	Obj79_Index(pc,d0.w),d1
 		jsr	Obj79_Index(pc,d1.w)
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj79_Index:	dc.w Obj79_Init-Obj79_Index ; DATA XREF: ROM:Obj79_Indexo
 					; ROM:000134DEo ...
 		dc.w Obj79_Main-Obj79_Index
 		dc.w Obj79_AfterHit-Obj79_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj79_Init:				; DATA XREF: ROM:Obj79_Indexo
 		addq.b	#2,$24(a0)
@@ -27633,7 +27606,7 @@ loc_13536:				; CODE XREF: ROM:00013520j
 		bset	#0,2(a2,d0.w)
 		move.b	#4,$24(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj79_Main:				; CODE XREF: ROM:00013534j
 					; DATA XREF: ROM:000134DEo
@@ -27653,7 +27626,7 @@ Obj79_Main:				; CODE XREF: ROM:00013534j
 		bset	#0,2(a2,d0.w)
 		move.b	#4,$24(a0)
 		bra.w	locret_135CA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj79_HitLamp:				; CODE XREF: ROM:00013566j
 		move.w	($FFFFB008).w,d0
@@ -27678,7 +27651,7 @@ Obj79_HitLamp:				; CODE XREF: ROM:00013566j
 locret_135CA:				; CODE XREF: ROM:00013548j
 					; ROM:00013550j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj79_AfterHit:				; DATA XREF: ROM:000134E0o
 		move.b	($FFFFFE0F).w,d0
@@ -27688,7 +27661,7 @@ Obj79_AfterHit:				; DATA XREF: ROM:000134E0o
 		move.b	d0,$1A(a0)
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Lamppost_StoreInfo:			; CODE XREF: ROM:000135B6p
@@ -27716,7 +27689,7 @@ Lamppost_StoreInfo:			; CODE XREF: ROM:000135B6p
 ; End of function Lamppost_StoreInfo
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Lamppost_LoadInfo:			; CODE XREF: LevelSizeLoad+180p
@@ -27759,7 +27732,7 @@ locret_13702:				; CODE XREF: Lamppost_LoadInfo+9Cj
 		rts
 ; End of function Lamppost_LoadInfo
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj79:	dc.w word_1370A-Map_Obj79 ; DATA XREF: ROM:000134E6o
 					; ROM:Map_Obj79o ...
 		dc.w word_1372C-Map_Obj79
@@ -27779,7 +27752,7 @@ word_1374E:	dc.w 4			; DATA XREF: ROM:00013708o
 		dc.w $E801,$2804,$2802,	   0; 4
 		dc.w $F803,    6,    3,$FFF8; 8
 		dc.w $F803, $806, $803,	   0; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 7D - hidden points at the end of a level
 ;----------------------------------------------------
@@ -27789,11 +27762,11 @@ Obj7D:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj7D_Index(pc,d0.w),d1
 		jmp	Obj7D_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj7D_Index:	dc.w Obj7D_Main-Obj7D_Index ; DATA XREF: ROM:Obj7D_Indexo
 					; ROM:00013780o
 		dc.w Obj7D_DelayDelete-Obj7D_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj7D_Main:				; DATA XREF: ROM:Obj7D_Indexo
 		moveq	#$10,d2
@@ -27839,13 +27812,13 @@ loc_13804:				; CODE XREF: ROM:00013798j
 		cmpi.w	#$280,d0
 		bhi.s	loc_13818
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13818:				; CODE XREF: ROM:00013814j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj7D_Points:	dc.w	 0, 1000,  100,	   1; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj7D_DelayDelete:			; DATA XREF: ROM:00013780o
 		subq.w	#1,$30(a0)
@@ -27856,12 +27829,12 @@ Obj7D_DelayDelete:			; DATA XREF: ROM:00013780o
 		cmpi.w	#$280,d0
 		bhi.s	loc_13844
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13844:				; CODE XREF: ROM:0001382Aj
 					; ROM:0001383Cj
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj7D:	dc.w word_13852-Map_Obj7D ; DATA XREF: ROM:000137B8o
 					; ROM:Map_Obj7Do ...
 		dc.w word_13854-Map_Obj7D
@@ -27874,10 +27847,11 @@ word_1385E:	dc.w 1			; DATA XREF: ROM:0001384Eo
 		dc.w $F40E,   $C,    6,$FFF0; 0
 word_13868:	dc.w 1			; DATA XREF: ROM:00013850o
 		dc.w $F40E,  $18,   $C,$FFF0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 S1Obj47:
@@ -27885,11 +27859,11 @@ S1Obj47:
 		move.b	$24(a0),d0
 		move.w	S1Obj47_Index(pc,d0.w),d1
 		jmp	S1Obj47_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1Obj47_Index:	dc.w S1Obj47_Init-S1Obj47_Index	; DATA XREF: ROM:S1Obj47_Indexo
 					; ROM:00013884o
 		dc.w S1Obj47_Main-S1Obj47_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1Obj47_Init:				; DATA XREF: ROM:S1Obj47_Indexo
 		addq.b	#2,$24(a0)
@@ -27919,7 +27893,7 @@ loc_138D8:				; CODE XREF: ROM:000138D4j
 		clr.b	$21(a0)
 		bra.w	loc_13976
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 S1Obj47_Bump:				; CODE XREF: ROM:000138C8p
@@ -27966,14 +27940,14 @@ locret_13974:				; CODE XREF: S1Obj47_Bump+68j
 		rts
 ; End of function S1Obj47_Bump
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13976:				; CODE XREF: ROM:000138B8j
 					; ROM:000138DCj
 		lea	(Ani_S1Obj47).l,a1
 		bsr.w	AnimateSprite
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_S1Obj47:	dc.w byte_13988-Ani_S1Obj47 ; DATA XREF: ROM:loc_13976o
 					; ROM:Ani_S1Obj47o ...
 		dc.w byte_1398B-Ani_S1Obj47
@@ -27992,10 +27966,11 @@ word_139AA:	dc.w 2			; DATA XREF: ROM:00013994o
 word_139BC:	dc.w 2			; DATA XREF: ROM:00013996o
 		dc.w $F007,   $E,    7,$FFF0; 0
 		dc.w $F007, $80E, $807,	   0; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 S1Obj64:
@@ -28003,7 +27978,7 @@ S1Obj64:
 		move.b	$24(a0),d0
 		move.w	S1Obj64_Index(pc,d0.w),d1
 		jmp	S1Obj64_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1Obj64_Index:	dc.w S1Obj64_Init-S1Obj64_Index	; DATA XREF: ROM:S1Obj64_Indexo
 					; ROM:000139E0o ...
 		dc.w S1Obj64_Animate-S1Obj64_Index
@@ -28011,7 +27986,7 @@ S1Obj64_Index:	dc.w S1Obj64_Init-S1Obj64_Index	; DATA XREF: ROM:S1Obj64_Indexo
 		dc.w S1Obj64_Display-S1Obj64_Index
 		dc.w S1Obj64_Delete-S1Obj64_Index
 		dc.w S1Obj64_BblMaker-S1Obj64_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1Obj64_Init:				; DATA XREF: ROM:S1Obj64_Indexo
 		addq.b	#2,$24(a0)
@@ -28029,7 +28004,7 @@ S1Obj64_Init:				; DATA XREF: ROM:S1Obj64_Indexo
 		move.b	d0,$33(a0)
 		move.b	#6,$1C(a0)
 		bra.w	S1Obj64_BblMaker
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13A32:				; CODE XREF: ROM:00013A16j
 		move.b	d0,$1C(a0)
@@ -28056,7 +28031,7 @@ loc_13A70:				; CODE XREF: ROM:00013AECj
 		move.b	#6,$24(a0)
 		addq.b	#3,$1C(a0)
 		bra.w	S1Obj64_Display
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13A7E:				; CODE XREF: ROM:00013A6Ej
 		move.b	$26(a0),d0
@@ -28090,7 +28065,7 @@ loc_13A7E:				; CODE XREF: ROM:00013A6Ej
 		move.b	#9,$17(a1)
 		subq.w	#5,$C(a1)
 		bra.w	loc_13A70
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13B0A:				; CODE XREF: ROM:00013AA2j
 					; ROM:00013AA8j
@@ -28098,11 +28073,11 @@ loc_13B0A:				; CODE XREF: ROM:00013AA2j
 		tst.b	1(a0)
 		bpl.s	loc_13B1A
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13B1A:				; CODE XREF: ROM:00013B12j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1Obj64_Display:			; CODE XREF: ROM:00013A7Aj
 					; DATA XREF: ROM:000139E4o
@@ -28111,15 +28086,15 @@ S1Obj64_Display:			; CODE XREF: ROM:00013A7Aj
 		tst.b	1(a0)
 		bpl.s	loc_13B38
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13B38:				; CODE XREF: ROM:00013B30j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1Obj64_Delete:				; DATA XREF: ROM:000139E6o
 		bra.w	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1Obj64_BblMaker:			; CODE XREF: ROM:00013A2Ej
 					; DATA XREF: ROM:000139E8o
@@ -28152,7 +28127,7 @@ loc_13B6A:				; CODE XREF: ROM:00013B7Aj
 
 loc_13BA2:				; CODE XREF: ROM:00013B94j
 		bra.s	loc_13BAC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13BA4:				; CODE XREF: ROM:00013B46j
 		subq.w	#1,$38(a0)
@@ -28217,11 +28192,11 @@ loc_13C50:				; CODE XREF: ROM:00013B50j
 		cmp.w	$C(a0),d0
 		bcs.w	DisplaySprite
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1Obj64_BblTypes:dc.b	0,  1,	0,  0,	0,  0,	1,  0,	0; 0 ; DATA XREF: ROM:00013B84o
 		dc.b   0,  0,  1,  0,  1,  0,  0,  1,  0; 9
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 S1Obj64_ChkSonic:			; CODE XREF: ROM:00013AA4p
@@ -28245,7 +28220,7 @@ S1Obj64_ChkSonic:			; CODE XREF: ROM:00013AA4p
 		bcs.s	loc_13CBE
 		moveq	#1,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13CBE:				; CODE XREF: S1Obj64_ChkSonic+4j
 					; S1Obj64_ChkSonic+18j	...
@@ -28253,7 +28228,7 @@ loc_13CBE:				; CODE XREF: S1Obj64_ChkSonic+4j
 		rts
 ; End of function S1Obj64_ChkSonic
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_S1Obj64:	dc.w byte_13CD0-Ani_S1Obj64 ; DATA XREF: ROM:S1Obj64_Animateo
 					; ROM:S1Obj64_Displayo	...
 		dc.w byte_13CD5-Ani_S1Obj64
@@ -28344,10 +28319,11 @@ word_13E14:	dc.w 1			; DATA XREF: ROM:00013D16o
 word_13E1E:	dc.w 1			; DATA XREF: ROM:00013D18o
 		dc.w $F805,  $70,  $38,$FFF8; 0
 word_13E28:	dc.w 0			; DATA XREF: ROM:00013D1Ao
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 03 - collision	index switcher (in loops)
@@ -28361,12 +28337,12 @@ Obj03:					; DATA XREF: ROM:Obj_Indexo
 		tst.w	($FFFFFFFA).w
 		beq.w	loc_CE92
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj03_Index:	dc.w Obj03_Init-Obj03_Index ; DATA XREF: ROM:Obj03_Indexo
 					; ROM:00013E4Ao ...
 		dc.w loc_13EB4-Obj03_Index
 		dc.w loc_13FB6-Obj03_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj03_Init:				; DATA XREF: ROM:Obj03_Indexo
 		addq.b	#2,$24(a0)
@@ -28386,9 +28362,9 @@ Obj03_Init:				; DATA XREF: ROM:Obj03_Indexo
 		add.w	d0,d0
 		move.w	Obj03_Data(pc,d0.w),$32(a0)
 		bra.w	loc_13FB6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj03_Data:	dc.w   $20,  $40,  $80,	$100; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13EA4:				; CODE XREF: ROM:00013E7Ej
 		andi.w	#3,d0
@@ -28428,7 +28404,7 @@ loc_13EE0:				; CODE XREF: ROM:00013FAAj
 		bcc.w	loc_13F10
 		ori.w	#$8000,d5
 		bra.w	loc_13FA8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13F10:				; CODE XREF: ROM:00013EEEj
 					; ROM:00013EF4j ...
@@ -28457,7 +28433,7 @@ loc_13F4E:				; CODE XREF: ROM:00013F40j
 		beq.s	loc_13F92
 		bset	#7,2(a1)
 		bra.s	loc_13F92
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13F62:				; CODE XREF: ROM:00013F2Ej
 		move.b	#$C,$3E(a1)
@@ -28494,7 +28470,7 @@ loc_13FA8:				; CODE XREF: ROM:00013EE2j
 
 locret_13FB4:				; CODE XREF: ROM:00013EB8j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_13FB6:				; CODE XREF: ROM:00013E98j
 					; DATA XREF: ROM:00013E4Co
@@ -28529,7 +28505,7 @@ loc_13FE2:				; CODE XREF: ROM:000140ACj
 		bcc.w	loc_14012
 		ori.w	#$8000,d5
 		bra.w	loc_140AA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14012:				; CODE XREF: ROM:00013FF0j
 					; ROM:00013FF6j ...
@@ -28558,7 +28534,7 @@ loc_14050:				; CODE XREF: ROM:00014042j
 		beq.s	loc_14094
 		bset	#7,2(a1)
 		bra.s	loc_14094
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14064:				; CODE XREF: ROM:00014030j
 		move.b	#$C,$3E(a1)
@@ -28595,7 +28571,7 @@ loc_140AA:				; CODE XREF: ROM:00013FE4j
 
 locret_140B6:				; CODE XREF: ROM:00013FBAj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 dword_140B8:	dc.l $FFFFB000		; DATA XREF: ROM:00013ED8o
 					; ROM:00013FDAo
 		dc.l $FFFFB040
@@ -28646,19 +28622,19 @@ word_14192:	dc.w 4			; DATA XREF: ROM:000140E4o
 		dc.w $F805,    0,    0,$FFE0; 4
 		dc.w $F805,    0,    0,	   0; 8
 		dc.w $F805,    0,    0,	 $70; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj0B:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
 		move.b	$24(a0),d0
 		move.w	Obj0B_Index(pc,d0.w),d1
 		jmp	Obj0B_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj0B_Index:	dc.w loc_141C8-Obj0B_Index ; DATA XREF:	ROM:Obj0B_Indexo
 					; ROM:000141C4o ...
 		dc.w loc_1421C-Obj0B_Index
 		dc.w loc_1422A-Obj0B_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_141C8:				; DATA XREF: ROM:Obj0B_Indexo
 		addq.b	#2,$24(a0)
@@ -28713,7 +28689,7 @@ loc_14254:				; CODE XREF: ROM:00014224j
 		move.w	8(a0),d4
 		bsr.w	sub_F78A
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1426E:				; CODE XREF: ROM:00014258j
 		btst	#3,$22(a0)
@@ -28724,7 +28700,7 @@ loc_1426E:				; CODE XREF: ROM:00014258j
 
 loc_14286:				; CODE XREF: ROM:00014274j
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_1428A:	dc.w byte_1428E-off_1428A ; DATA XREF: ROM:loc_14248o
 					; ROM:off_1428Ao ...
 		dc.w byte_14296-off_1428A
@@ -28746,10 +28722,11 @@ word_142C6:	dc.w 1			; DATA XREF: ROM:000142A4o
 		dc.w	$F,$1015,$100A,$FFF0; 0
 word_142D0:	dc.w 1			; DATA XREF: ROM:000142A6o
 		dc.w $100C,$1011,$1008,$FFF0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 Obj0C:					; DATA XREF: ROM:Obj_Indexo
@@ -28757,11 +28734,11 @@ Obj0C:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj0C_Index(pc,d0.w),d1
 		jmp	Obj0C_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj0C_Index:	dc.w Obj0C_Init-Obj0C_Index ; DATA XREF: ROM:Obj0C_Indexo
 					; ROM:000142ECo
 		dc.w Obj0C_Main-Obj0C_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj0C_Init:				; DATA XREF: ROM:Obj0C_Indexo
 		addq.b	#2,$24(a0)
@@ -28799,7 +28776,7 @@ Obj0C_Main:				; DATA XREF: ROM:000142ECo
 		bpl.s	loc_1436E
 		move.b	$3F(a0),$3E(a0)
 		bra.s	loc_1439C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1436E:				; CODE XREF: ROM:0001435Ej
 					; ROM:00014364j
@@ -28812,7 +28789,7 @@ loc_1436E:				; CODE XREF: ROM:0001435Ej
 		add.w	$3A(a0),d0
 		move.w	d0,$C(a0)
 		bra.s	loc_143B2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1438C:				; CODE XREF: ROM:00014352j
 		move.w	($FFFFFE0E).w,d1
@@ -28838,24 +28815,24 @@ loc_143B2:				; CODE XREF: ROM:0001438Aj
 		move.w	8(a0),d4
 		bsr.w	sub_F78A
 		bra.w	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj0C:	dc.w word_143C8-Map_Obj0C ; DATA XREF: ROM:000142F2o
 					; ROM:Map_Obj0Co ...
 word_143C8:	dc.w 1			; DATA XREF: ROM:Map_Obj0Co
 		dc.w $F80D,    0,    0,$FFF0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 j_CalcSine:				; CODE XREF: ROM:00014374p
 					; ROM:loc_143A0p
 		jmp	(CalcSine).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 12 - Master Emerald from HPZ
@@ -28866,11 +28843,11 @@ Obj12:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj12_Index(pc,d0.w),d1
 		jmp	Obj12_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj12_Index:	dc.w Obj12_Init-Obj12_Index ; DATA XREF: ROM:Obj12_Indexo
 					; ROM:000143ECo
 		dc.w Obj12_Display-Obj12_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj12_Init:				; DATA XREF: ROM:Obj12_Indexo
 		addq.b	#2,$24(a0)
@@ -28893,16 +28870,17 @@ Obj12_Display:				; DATA XREF: ROM:000143ECo
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj12:	dc.w word_14444-Map_Obj12 ; DATA XREF: ROM:000143F2o
 					; ROM:Map_Obj12o
 word_14444:	dc.w 2			; DATA XREF: ROM:Map_Obj12o
 		dc.w $F00F,    0,    0,$FFE0; 0
 		dc.w $F00F,  $10,    8,	   0; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 13 - HPZ waterfall
@@ -28913,12 +28891,12 @@ Obj13:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj13_Index(pc,d0.w),d1
 		jmp	Obj13_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj13_Index:	dc.w loc_1446C-Obj13_Index ; DATA XREF:	ROM:Obj13_Indexo
 					; ROM:00014468o ...
 		dc.w loc_14532-Obj13_Index
 		dc.w loc_145BC-Obj13_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1446C:				; DATA XREF: ROM:Obj13_Indexo
 		addq.b	#2,$24(a0)
@@ -28943,7 +28921,7 @@ loc_1446C:				; DATA XREF: ROM:Obj13_Indexo
 		addi.w	#$98,$C(a1) ; ''
 		bra.s	loc_14518
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_144D4:				; CODE XREF: ROM:0001449Ap
@@ -28965,7 +28943,7 @@ locret_14516:				; CODE XREF: sub_144D4+6j
 		rts
 ; End of function sub_144D4
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14518:				; CODE XREF: ROM:000144BEj
 					; ROM:000144D2j
@@ -29018,7 +28996,7 @@ loc_14584:				; CODE XREF: ROM:0001456Ej
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1459C:				; CODE XREF: ROM:00014556j
 		moveq	#$13,d0
@@ -29030,7 +29008,7 @@ loc_1459C:				; CODE XREF: ROM:00014556j
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_145BC:				; DATA XREF: ROM:0001446Ao
 		move.w	8(a0),d0
@@ -29039,7 +29017,7 @@ loc_145BC:				; DATA XREF: ROM:0001446Ao
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj13:	dc.w word_1460E-Map_Obj13 ; DATA XREF: ROM:00014470o
 					; sub_144D4+1Eo ...
 		dc.w word_14618-Map_Obj13
@@ -29198,7 +29176,7 @@ word_1494E:	dc.w 4			; DATA XREF: ROM:0001460Ao
 		dc.w	$F,    0,    0,$FFF0; 4
 		dc.w $200F,    0,    0,$FFF0; 8
 		dc.w $400F,    0,    0,$FFF0; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 06 - spiral loop in EHZ
 ;----------------------------------------------------
@@ -29211,7 +29189,7 @@ Obj06:					; DATA XREF: ROM:Obj_Indexo
 		tst.w	($FFFFFFE8).w
 		beq.s	loc_14986
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14986:				; CODE XREF: ROM:00014982j
 		move.w	8(a0),d0
@@ -29220,15 +29198,15 @@ loc_14986:				; CODE XREF: ROM:00014982j
 		cmpi.w	#$280,d0
 		bhi.s	loc_1499A
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1499A:				; CODE XREF: ROM:00014996j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj06_Index:	dc.w Obj06_Init-Obj06_Index ; DATA XREF: ROM:Obj06_Indexo
 					; ROM:000149A2o
 		dc.w Obj06_Main-Obj06_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj06_Init:				; DATA XREF: ROM:Obj06_Indexo
 		addq.b	#2,$24(a0)
@@ -29241,7 +29219,7 @@ Obj06_Main:				; DATA XREF: ROM:000149A2o
 		lea	($FFFFB040).w,a1
 		addq.b	#1,d6
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_149BC:				; CODE XREF: ROM:000149B4p
@@ -29260,7 +29238,7 @@ sub_149BC:				; CODE XREF: ROM:000149B4p
 		cmpi.w	#$FF30,d0
 		blt.s	locret_14A54
 		bra.s	loc_149FE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_149F2:				; CODE XREF: sub_149BC+26j
 		cmpi.w	#$C0,d0	; 'А'
@@ -29276,7 +29254,7 @@ loc_149FE:				; CODE XREF: sub_149BC+34j
 		bcc.s	locret_14A54
 		bsr.w	sub_F8F8
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14A16:				; CODE XREF: sub_149BC+18j
 		move.w	8(a1),d0
@@ -29288,7 +29266,7 @@ loc_14A16:				; CODE XREF: sub_149BC+18j
 		cmpi.w	#$FF40,d0
 		blt.s	locret_14A54
 		bra.s	loc_14A3E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14A32:				; CODE XREF: sub_149BC+66j
 		cmpi.w	#$B0,d0	; '°'
@@ -29307,7 +29285,7 @@ loc_14A3E:				; CODE XREF: sub_149BC+74j
 locret_14A54:				; CODE XREF: sub_149BC+Ej
 					; sub_149BC+2Cj ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14A56:				; CODE XREF: sub_149BC+4j
 		move.w	$14(a1),d0
@@ -29333,7 +29311,7 @@ loc_14A80:				; CODE XREF: sub_149BC+A6j
 		move.b	#0,$2C(a1)
 		move.b	#4,$2D(a1)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14A98:				; CODE XREF: sub_149BC+C2j
 		btst	#3,$22(a1)
@@ -29353,7 +29331,7 @@ loc_14A98:				; CODE XREF: sub_149BC+C2j
 		rts
 ; End of function sub_149BC
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj06_PlayerAngleArray:dc.b   0,  0,  1,  1    ; 0
 		dc.b $16,$16,$16,$16	; 4
 		dc.b $2C,$2C,$2C,$2C	; 8
@@ -29393,10 +29371,11 @@ Obj06_PlayerDeltaYArray:dc.b  $20, $20,	$20, $20, $20, $20, $20, $20, $20, $20,	
 		dc.b  $1D, $1E,	$1E, $1E, $1E, $1E, $1E, $1E, $1F, $1F,	$1F, $1F, $1F, $1F, $1F, $1F; 368
 		dc.b  $1F, $1F,	$20, $20, $20, $20, $20, $20, $20, $20,	$20, $20, $20, $20, $20, $20; 384
 		dc.b  $20, $20,	$20, $20, $20, $20, $20, $20, $20, $20,	$20, $20, $20, $20, $20, $20; 400
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 14 - HTZ see-saw
@@ -29413,7 +29392,7 @@ Obj14:					; DATA XREF: ROM:Obj_Indexo
 		cmpi.w	#$280,d0
 		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj14_Index:	dc.w loc_14CD2-Obj14_Index ; DATA XREF:	ROM:Obj14_Indexo
 					; ROM:00014CC8o ...
 		dc.w loc_14D40-Obj14_Index
@@ -29421,7 +29400,7 @@ Obj14_Index:	dc.w loc_14CD2-Obj14_Index ; DATA XREF:	ROM:Obj14_Indexo
 		dc.w loc_14E3C-Obj14_Index
 		dc.w loc_14E9C-Obj14_Index
 		dc.w loc_14F30-Obj14_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14CD2:				; DATA XREF: ROM:Obj14_Indexo
 		addq.b	#2,$24(a0)
@@ -29494,7 +29473,7 @@ loc_14D8C:				; CODE XREF: ROM:00014D88j
 loc_14D96:				; CODE XREF: ROM:00014D92j
 		lsr.w	#1,d1
 		bra.s	loc_14DBE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14D9A:				; CODE XREF: ROM:00014D4Aj
 		btst	#4,$22(a0)
@@ -29529,11 +29508,11 @@ loc_14DD6:				; CODE XREF: ROM:00014DCEj
 		moveq	#8,d3
 		move.w	(sp)+,d4
 		bra.w	sub_F7DC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_14DF2:				; DATA XREF: ROM:00014CCAo
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		moveq	#2,d1
 		lea	($FFFFB000).w,a1
 		move.w	8(a0),d0
@@ -29547,7 +29526,7 @@ loc_14E08:				; CODE XREF: ROM:00014E02j
 		bcc.s	sub_14E10
 		moveq	#1,d1
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_14E10:				; CODE XREF: ROM:loc_14DBEp
@@ -29572,7 +29551,7 @@ locret_14E3A:				; CODE XREF: sub_14E10+6j
 		rts
 ; End of function sub_14E10
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14E3C:				; DATA XREF: ROM:00014CCCo
 		addq.b	#2,$24(a0)
@@ -29627,7 +29606,7 @@ loc_14ED6:				; CODE XREF: ROM:00014EBCj
 loc_14EEC:				; CODE XREF: ROM:00014EE6j
 		addq.b	#2,$24(a0)
 		bra.s	loc_14F30
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14EF2:				; CODE XREF: ROM:00014EAAj
 		lea	(word_14FF4).l,a2
@@ -29650,7 +29629,7 @@ loc_14F10:				; CODE XREF: ROM:00014F0Aj
 		clr.w	$E(a0)
 		clr.w	$A(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14F30:				; CODE XREF: ROM:00014EF0j
 					; DATA XREF: ROM:00014CD0o
@@ -29665,7 +29644,7 @@ loc_14F30:				; CODE XREF: ROM:00014EF0j
 
 locret_14F4C:				; CODE XREF: ROM:00014F46j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_14F4E:				; CODE XREF: ROM:00014F34j
 		bsr.w	j_ObjectFall
@@ -29715,7 +29694,7 @@ loc_14FB6:				; CODE XREF: ROM:00014F98j
 locret_14FC2:				; CODE XREF: ROM:00014F7Cj
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_14FC4:				; CODE XREF: ROM:00014FA6p
@@ -29731,7 +29710,7 @@ sub_14FC4:				; CODE XREF: ROM:00014FA6p
 		jmp	(PlaySound_Special).l
 ; End of function sub_14FC4
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 word_14FF4:	dc.w	 -8,  -$1C,  -$2F,  -$1C,    -8; 0 ; DATA XREF:	ROM:loc_14EF2o
 					; ROM:00014F56o
 byte_14FFE:	dc.b  $14, $14,	$16, $18, $1A, $1C, $1A; 0 ; DATA XREF:	ROM:00014DC2o
@@ -29779,19 +29758,19 @@ Map_Obj14b:	dc.w word_150F0-Map_Obj14b ; DATA XREF:	ROM:00014E40o
 word_150F0:	dc.w 1			; DATA XREF: ROM:Map_Obj14bo
 					; ROM:000150EEo
 		dc.w $F805,$4014,$400A,$FFF8; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 j_ObjectFall:				; CODE XREF: ROM:00014F36p
 					; ROM:00014F48p ...
 		jmp	ObjectFall
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 16 - the HTZ platform that goes down diagonally
@@ -29805,11 +29784,11 @@ loc_15106:
 		move.b	$24(a0),d0
 		move.w	Obj16_Index(pc,d0.w),d1
 		jmp	Obj16_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj16_Index:	dc.w Obj16_Init-Obj16_Index ; DATA XREF: ROM:Obj16_Indexo
 					; ROM:00015114o
 		dc.w Obj16_Main-Obj16_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj16_Init:				; DATA XREF: ROM:Obj16_Indexo
 		addq.b	#2,$24(a0)
@@ -29839,7 +29818,7 @@ Obj16_Main:				; DATA XREF: ROM:00015114o
 		bhi.w	loc_152AA
 		bra.w	loc_152A4
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_15184:				; CODE XREF: ROM:00015154p
@@ -29851,12 +29830,12 @@ sub_15184:				; CODE XREF: ROM:00015154p
 		jmp	Obj16_SubIndex(pc,d1.w)
 ; End of function sub_15184
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj16_SubIndex:	dc.w Obj16_InitMove-Obj16_SubIndex ; DATA XREF:	ROM:Obj16_SubIndexo
 					; ROM:0001519Ao ...
 		dc.w Obj16_Move-Obj16_SubIndex
 		dc.w Obj16_NoMove-Obj16_SubIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj16_InitMove:				; DATA XREF: ROM:Obj16_SubIndexo
 		move.b	$22(a0),d0
@@ -29869,7 +29848,7 @@ Obj16_InitMove:				; DATA XREF: ROM:Obj16_SubIndexo
 
 locret_151BE:				; CODE XREF: ROM:000151A6j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj16_Move:				; DATA XREF: ROM:0001519Ao
 		bsr.w	j_SpeedToPos_0
@@ -29879,11 +29858,11 @@ Obj16_Move:				; DATA XREF: ROM:0001519Ao
 
 locret_151CE:				; CODE XREF: ROM:000151C8j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj16_NoMove:				; DATA XREF: ROM:0001519Co
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj16:	dc.w word_151DA-Map_Obj16 ; DATA XREF: ROM:000093E0o
 					; ROM:000093EAo ...
 		dc.w word_1522C-Map_Obj16
@@ -29917,26 +29896,26 @@ word_15260:	dc.w 8			; DATA XREF: ROM:000151D8o
 		dc.w $E803,   $E,    7,	 $11; 20
 		dc.w $2001,  $2E,  $17,	 $11; 24
 		dc.w  $803,   $E,    7,	 $11; 28
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 loc_152A4:				; CODE XREF: ROM:00015180j
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_152AA:				; CODE XREF: ROM:0001517Cj
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos_0:				; CODE XREF: ROM:Obj16_Movep
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 19 - CPZ platforms moving side	to side
@@ -29947,7 +29926,7 @@ Obj19:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj19_Index(pc,d0.w),d1
 		jmp	Obj19_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj19_Index:	dc.w Obj19_Init-Obj19_Index ; DATA XREF: ROM:Obj19_Indexo
 					; ROM:000152C8o
 		dc.w Obj19_Main-Obj19_Index
@@ -29956,7 +29935,7 @@ Obj19_WidthArray:dc.w $2000		 ; 0
 		dc.w $2002		; 2
 		dc.w $4003		; 3
 		dc.w $3004		; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj19_Init:				; DATA XREF: ROM:Obj19_Indexo
 		addq.b	#2,$24(a0)
@@ -29991,7 +29970,7 @@ Obj19_Main:				; DATA XREF: ROM:000152C8o
 		bhi.w	loc_154C6
 		bra.w	loc_154C0
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Obj19_Modes:				; CODE XREF: ROM:00015324p
@@ -30003,7 +29982,7 @@ Obj19_Modes:				; CODE XREF: ROM:00015324p
 		jmp	Obj19_SubIndex(pc,d1.w)
 ; End of function Obj19_Modes
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj19_SubIndex:	dc.w locret_1537A-Obj19_SubIndex ; DATA	XREF: ROM:Obj19_SubIndexo
 					; ROM:00015366o ...
 		dc.w loc_1537C-Obj19_SubIndex
@@ -30016,11 +29995,11 @@ Obj19_SubIndex:	dc.w locret_1537A-Obj19_SubIndex ; DATA	XREF: ROM:Obj19_SubIndex
 		dc.w loc_15430-Obj19_SubIndex
 		dc.w loc_1539C-Obj19_SubIndex
 		dc.w loc_15450-Obj19_SubIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_1537A:				; DATA XREF: ROM:Obj19_SubIndexo
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1537C:				; DATA XREF: ROM:00015366o
 		move.b	($FFFFFE6C).w,d0
@@ -30035,7 +30014,7 @@ loc_15390:				; CODE XREF: ROM:0001538Aj
 		sub.w	d0,d1
 		move.w	d1,8(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1539C:				; DATA XREF: ROM:00015368o
 					; ROM:0001536Co ...
@@ -30046,7 +30025,7 @@ loc_1539C:				; DATA XREF: ROM:00015368o
 
 locret_153AA:				; CODE XREF: ROM:000153A4j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_153AC:				; DATA XREF: ROM:0001536Ao
 		moveq	#0,d3
@@ -30057,12 +30036,12 @@ loc_153AC:				; DATA XREF: ROM:0001536Ao
 		addq.w	#1,8(a0)
 		move.w	8(a0),$30(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_153C6:				; CODE XREF: ROM:000153B8j
 		clr.b	$28(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_153CC:				; DATA XREF: ROM:0001536Eo
 		moveq	#0,d3
@@ -30073,12 +30052,12 @@ loc_153CC:				; DATA XREF: ROM:0001536Eo
 		addq.w	#1,8(a0)
 		move.w	8(a0),$30(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_153E6:				; CODE XREF: ROM:000153D8j
 		addq.b	#1,$28(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_153EC:				; DATA XREF: ROM:00015370o
 		bsr.w	j_SpeedToPos_1
@@ -30092,7 +30071,7 @@ loc_153EC:				; DATA XREF: ROM:00015370o
 
 locret_1540C:				; CODE XREF: ROM:000153FCj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1540E:				; DATA XREF: ROM:00015372o
 		tst.b	($FFFFF7E2).w
@@ -30107,7 +30086,7 @@ loc_15418:				; CODE XREF: ROM:00015412j
 		cmpi.w	#$280,d0
 		bhi.w	loc_154C6
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15430:				; DATA XREF: ROM:00015374o
 		move.b	($FFFFFE7C).w,d0
@@ -30122,7 +30101,7 @@ loc_15444:				; CODE XREF: ROM:0001543Ej
 		sub.w	d0,d1
 		move.w	d1,$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15450:				; DATA XREF: ROM:00015378o
 		moveq	#0,d3
@@ -30144,7 +30123,7 @@ loc_15466:				; CODE XREF: ROM:00015460j
 		add.w	d1,8(a0)
 		move.w	#$12C,$34(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15484:				; CODE XREF: ROM:00015476j
 		subq.w	#1,$34(a0)
@@ -30153,7 +30132,7 @@ loc_15484:				; CODE XREF: ROM:00015476j
 
 locret_15490:				; CODE XREF: ROM:00015488j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15492:				; CODE XREF: ROM:0001546Aj
 		move.w	8(a0),d0
@@ -30161,35 +30140,34 @@ loc_15492:				; CODE XREF: ROM:0001546Aj
 		beq.s	loc_154A2
 		sub.w	d1,8(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_154A2:				; CODE XREF: ROM:0001549Aj
 		clr.w	$36(a0)
 		subq.b	#1,$28(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj19:	dc.w word_154AE-Map_Obj19 ; DATA XREF: ROM:000152D8o
 					; ROM:Map_Obj19o ...
 word_154AE:	dc.w 2			; DATA XREF: ROM:Map_Obj19o
 		dc.w $F00F,    0,    0,$FFE0; 0
 		dc.w $F00F, $800, $800,	   0; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_154C0:				; CODE XREF: ROM:0001534Cj
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_154C6:				; CODE XREF: ROM:00015348j
 					; ROM:0001542Aj
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos_1:				; CODE XREF: ROM:loc_153ECp
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 04 - water surface
@@ -30200,11 +30178,11 @@ Obj04:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj04_Index(pc,d0.w),d1
 		jmp	Obj04_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj04_Index:	dc.w Obj04_Init-Obj04_Index ; DATA XREF: ROM:Obj04_Indexo
 					; ROM:000154E4o
 		dc.w Obj04_Main-Obj04_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj04_Init:				; DATA XREF: ROM:Obj04_Indexo
 		addq.b	#2,$24(a0)
@@ -30225,7 +30203,7 @@ Obj04_Main:				; DATA XREF: ROM:000154E4o
 		addq.b	#3,$1A(a0)
 		move.b	#1,$32(a0)
 		bra.s	loc_15540
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15530:				; CODE XREF: ROM:0001551Aj
 		tst.w	($FFFFF63A).w
@@ -30242,7 +30220,7 @@ loc_15540:				; CODE XREF: ROM:00015522j
 		addq.b	#1,$1B(a0)
 		andi.b	#$3F,$1B(a0) ; '?'
 		bra.w	loc_15868
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj04_FrameData:dc.b   0,  1,  0,  1,  0,  1,  0,  1,  0,  1,  0,  1,  0,  1,  0,  1; 0
 					; DATA XREF: ROM:loc_15540o
 		dc.b   1,  2,  1,  2,  1,  2,  1,  2,  1,  2,  1,  2,  1,  2,  1,  2; 16
@@ -30288,7 +30266,7 @@ word_1565E:	dc.w 6			; DATA XREF: ROM:000155AAo
 		dc.w $F80D,    8,    4,	   0; 12
 		dc.w $F80D,  $10,    8,	 $20; 16
 		dc.w $F80D,    8,    4,	 $40; 20
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 49 - EHZ waterfalls
 ;----------------------------------------------------
@@ -30298,11 +30276,11 @@ Obj49:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj49_Index(pc,d0.w),d1
 		jmp	Obj49_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj49_Index:	dc.w Obj49_Init-Obj49_Index ; DATA XREF: ROM:Obj49_Indexo
 					; ROM:000156A0o
 		dc.w Obj49_Main-Obj49_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj49_Init:				; DATA XREF: ROM:Obj49_Indexo
 		addq.b	#2,$24(a0)
@@ -30340,7 +30318,7 @@ loc_156F6:				; CODE XREF: ROM:000156E0j
 		move.b	#1,$1A(a0)
 		add.b	d3,$1A(a0)
 		bra.w	loc_15868
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15728:				; CODE XREF: ROM:00015714j
 					; ROM:00015718j
@@ -30355,7 +30333,7 @@ loc_1573A:				; CODE XREF: ROM:0001572Ej
 					; ROM:00015732j
 		add.b	d3,$1A(a0)
 		bra.w	loc_15868
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj49:	dc.w word_1574E-Map_Obj49 ; DATA XREF: ROM:000156A6o
 					; ROM:Map_Obj49o ...
 		dc.w word_15760-Map_Obj49
@@ -30403,24 +30381,23 @@ word_15816:	dc.w $A			; DATA XREF: ROM:0001574Co
 		dc.w $200F,    8,    4,	   0; 28
 		dc.w $400F,    8,    4,$FFE0; 32
 		dc.w $400F,    8,    4,	   0; 36
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15868:				; CODE XREF: ROM:0001555Cj
 					; ROM:00015724j ...
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1586E:				; CODE XREF: ROM:000156F2j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifySpriteAttr_2P_0:		; CODE XREF: ROM:000154F8p
 					; ROM:000156B4p
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 4D - Rhinobot badnik
@@ -30431,11 +30408,11 @@ Obj4D:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj4D_Index(pc,d0.w),d1
 		jmp	Obj4D_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4D_Index:	dc.w Obj4D_Init-Obj4D_Index ; DATA XREF: ROM:Obj4D_Indexo
 					; ROM:0001588Co
 		dc.w Obj4D_Main-Obj4D_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4D_Init:				; DATA XREF: ROM:Obj4D_Indexo
 		move.l	#Map_Obj4D,4(a0)
@@ -30456,7 +30433,7 @@ Obj4D_Init:				; DATA XREF: ROM:Obj4D_Indexo
 
 locret_158DC:				; CODE XREF: ROM:000158CCj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4D_Main:				; DATA XREF: ROM:0001588Co
 		moveq	#0,d0
@@ -30466,11 +30443,11 @@ Obj4D_Main:				; DATA XREF: ROM:0001588Co
 		lea	(Ani_Obj4D).l,a1
 		bsr.w	j_AnimateSprite_0
 		bra.w	loc_15B38
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4D_SubIndex:	dc.w loc_158FE-Obj4D_SubIndex ;	DATA XREF: ROM:Obj4D_SubIndexo
 					; ROM:000158FCo
 		dc.w loc_15922-Obj4D_SubIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_158FE:				; DATA XREF: ROM:Obj4D_SubIndexo
 		subq.w	#1,$30(a0)
@@ -30485,7 +30462,7 @@ loc_158FE:				; DATA XREF: ROM:Obj4D_SubIndexo
 locret_15920:				; CODE XREF: ROM:00015902j
 					; ROM:0001591Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15922:				; DATA XREF: ROM:000158FCo
 		bsr.w	sub_1596C
@@ -30500,7 +30477,7 @@ loc_15922:				; DATA XREF: ROM:000158FCo
 
 locret_15946:				; CODE XREF: ROM:0001593Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15948:				; CODE XREF: ROM:00015934j
 		subq.b	#2,$25(a0)
@@ -30513,7 +30490,7 @@ loc_15948:				; CODE XREF: ROM:00015934j
 		move.b	#1,$1C(a0)
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_1596C:				; CODE XREF: ROM:loc_15922p
@@ -30530,13 +30507,13 @@ sub_1596C:				; CODE XREF: ROM:loc_15922p
 locret_15990:				; CODE XREF: sub_1596C+Ej
 					; sub_1596C+38j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15992:				; CODE XREF: sub_1596C+16j
 		move.b	#0,$1C(a0)
 		move.w	#$80,$10(a0) ; 'Ђ'
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_159A0:				; CODE XREF: sub_1596C+8j
 		cmpi.w	#$FFA0,d0
@@ -30546,7 +30523,7 @@ loc_159A0:				; CODE XREF: sub_1596C+8j
 		move.b	#2,$1C(a0)
 		move.w	#$200,$10(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_159BC:				; CODE XREF: sub_1596C+40j
 		move.b	#0,$1C(a0)
@@ -30554,7 +30531,7 @@ loc_159BC:				; CODE XREF: sub_1596C+40j
 		rts
 ; End of function sub_1596C
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj4D:	dc.w byte_159D0-Ani_Obj4D ; DATA XREF: ROM:000158ECo
 					; ROM:Ani_Obj4Do ...
 		dc.w byte_159DE-Ani_Obj4D
@@ -30626,19 +30603,18 @@ word_15B14:	dc.w 4			; DATA XREF: ROM:000159F4o
 
 loc_15B38:				; CODE XREF: ROM:000158F6j
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_0:			; CODE XREF: ROM:000158F2p
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ObjectFall_0:				; CODE XREF: ROM:000158C0p
 					; ROM:00015926p
 		jmp	ObjectFall
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 52 - Piranha badnik
@@ -30649,12 +30625,12 @@ Obj52:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj52_Index(pc,d0.w),d1
 		jmp	Obj52_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj52_Index:	dc.w Obj52_Init-Obj52_Index ; DATA XREF: ROM:Obj52_Indexo
 					; ROM:00015B5Co ...
 		dc.w Obj52_Main-Obj52_Index
 		dc.w loc_15C48-Obj52_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj52_Init:				; DATA XREF: ROM:Obj52_Indexo
 		addq.b	#2,$24(a0)
@@ -30714,7 +30690,7 @@ loc_15C06:				; CODE XREF: ROM:00015BE8j
 		move.b	#2,$1C(a0)
 		move.w	#1,$3E(a0)
 		bra.w	loc_15D90
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15C48:				; DATA XREF: ROM:00015B5Eo
 		move.w	#$390,($FFFFF646).w
@@ -30738,7 +30714,7 @@ loc_15C48:				; DATA XREF: ROM:00015B5Eo
 		addq.w	#1,$3E(a0)
 		st	$2A(a0)
 		bra.w	loc_15D90
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15CA0:				; CODE XREF: ROM:00015C68j
 		move.w	$C(a0),d0
@@ -30746,7 +30722,7 @@ loc_15CA0:				; CODE XREF: ROM:00015C68j
 		bgt.s	loc_15CB4
 		move.b	#1,$1C(a0)
 		bra.w	loc_15D90
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15CB4:				; CODE XREF: ROM:00015CA8j
 		move.b	#0,$1C(a0)
@@ -30757,7 +30733,6 @@ loc_15CB4:				; CODE XREF: ROM:00015CA8j
 		move.l	d0,$36(a0)
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 
 loc_15CCE:				; CODE XREF: ROM:00015CC0j
@@ -30773,7 +30748,7 @@ loc_15CCE:				; CODE XREF: ROM:00015CC0j
 		sf	$2A(a0)
 		bra.w	loc_15D90
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_15CF8:				; CODE XREF: ROM:00015C60p
@@ -30801,7 +30776,7 @@ loc_15D34:				; CODE XREF: sub_15CF8+1Cj
 		rts
 ; End of function sub_15CF8
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj52:	dc.w byte_15D4E-Ani_Obj52 ; DATA XREF: ROM:loc_15C06o
 					; ROM:00015C4Eo ...
 		dc.w byte_15D52-Ani_Obj52
@@ -30833,19 +30808,18 @@ word_15D84:	dc.w 1			; DATA XREF: ROM:00015D64o
 loc_15D90:				; CODE XREF: ROM:00015C18j
 					; ROM:00015C22j ...
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_1:			; CODE XREF: ROM:00015C0Cp
 					; ROM:00015C54p
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos_2:				; CODE XREF: ROM:00015C10p
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 4F - Dinobot badnik
@@ -30856,12 +30830,12 @@ Obj4F:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj4F_Index(pc,d0.w),d1
 		jmp	Obj4F_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4F_Index:	dc.w Obj4F_Init-Obj4F_Index ; DATA XREF: ROM:Obj4F_Indexo
 					; ROM:00015DB4o ...
 		dc.w Obj4F_Main-Obj4F_Index
 		dc.w Obj4F_Delete-Obj4F_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4F_Init:				; DATA XREF: ROM:Obj4F_Indexo
 		move.l	#Map_Obj4F,4(a0)
@@ -30885,7 +30859,7 @@ loc_15DFC:
 
 locret_15E0C:				; CODE XREF: ROM:00015DF6j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4F_Main:				; DATA XREF: ROM:00015DB4o
 		moveq	#0,d0
@@ -30900,7 +30874,7 @@ Obj4F_Main:				; DATA XREF: ROM:00015DB4o
 		cmpi.w	#$280,d0
 		bhi.w	loc_15E3E
 		bra.w	loc_15EE8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15E3E:				; CODE XREF: ROM:00015E36j
 		lea	($FFFFFC00).w,a2
@@ -30911,11 +30885,11 @@ loc_15E3E:				; CODE XREF: ROM:00015E36j
 
 loc_15E50:				; CODE XREF: ROM:00015E48j
 		bra.w	j_DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4F_SubIndex:	dc.w loc_15E58-Obj4F_SubIndex ;	DATA XREF: ROM:Obj4F_SubIndexo
 					; ROM:00015E56o
 		dc.w loc_15E7C-Obj4F_SubIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15E58:				; DATA XREF: ROM:Obj4F_SubIndexo
 		subq.w	#1,$30(a0)
@@ -30930,7 +30904,7 @@ loc_15E58:				; DATA XREF: ROM:Obj4F_SubIndexo
 locret_15E7A:				; CODE XREF: ROM:00015E5Cj
 					; ROM:00015E74j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15E7C:				; DATA XREF: ROM:00015E56o
 		bsr.w	j_SpeedToPos_3
@@ -30941,7 +30915,7 @@ loc_15E7C:				; DATA XREF: ROM:00015E56o
 		bge.s	loc_15E98
 		add.w	d1,$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_15E98:				; CODE XREF: ROM:00015E8Aj
 					; ROM:00015E90j
@@ -30950,11 +30924,11 @@ loc_15E98:				; CODE XREF: ROM:00015E8Aj
 		move.w	#0,$10(a0)
 		move.b	#0,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4F_Delete:				; DATA XREF: ROM:00015DB6o
 		bra.w	j_DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj4F:	dc.w byte_15EB8-Ani_Obj4F ; DATA XREF: ROM:00015E1Co
 					; ROM:Ani_Obj4Fo ...
 		dc.w byte_15EBB-Ani_Obj4F
@@ -30978,27 +30952,26 @@ word_15EDC:	dc.w 1			; DATA XREF: ROM:00015EC6o
 
 loc_15EE8:				; CODE XREF: ROM:00015E3Aj
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_DeleteObject:				; CODE XREF: ROM:loc_15E50j
 					; ROM:Obj4F_Deletej
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_2:			; CODE XREF: ROM:00015E22p
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ObjectFall_1:				; CODE XREF: ROM:00015DEAp
 		jmp	ObjectFall
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos_3:				; CODE XREF: ROM:loc_15E7Cp
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 50 - unused Seahorse badnik from HPZ
@@ -31009,7 +30982,7 @@ Obj50:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj50_Index(pc,d0.w),d1
 		jmp	Obj50_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj50_Index:	dc.w Obj50_Init-Obj50_Index ; DATA XREF: ROM:Obj50_Indexo
 					; ROM:00015F18o ...
 		dc.w loc_15FDA-Obj50_Index
@@ -31017,7 +30990,7 @@ Obj50_Index:	dc.w Obj50_Init-Obj50_Index ; DATA XREF: ROM:Obj50_Indexo
 		dc.w loc_16030-Obj50_Index
 		dc.w Obj50_Routine08-Obj50_Index
 		dc.w Obj50_Routine0A-Obj50_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj50_Init:				; DATA XREF: ROM:Obj50_Indexo
 		addq.b	#2,$24(a0)
@@ -31069,12 +31042,12 @@ loc_15FDA:				; CODE XREF: ROM:00015F80j
 		jsr	Obj50_SubIndex(pc,d1.w)
 		bsr.w	sub_161D8
 		bra.w	loc_1677A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj50_SubIndex:	dc.w loc_16046-Obj50_SubIndex ;	DATA XREF: ROM:Obj50_SubIndexo
 					; ROM:00016002o ...
 		dc.w loc_16058-Obj50_SubIndex
 		dc.w loc_16066-Obj50_SubIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16006:				; DATA XREF: ROM:00015F1Ao
 		movea.l	$36(a0),a1
@@ -31087,7 +31060,7 @@ loc_16006:				; DATA XREF: ROM:00015F1Ao
 		lea	(Ani_Obj50).l,a1
 		bsr.w	j_AnimateSprite_3
 		bra.w	loc_16768
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16030:				; DATA XREF: ROM:00015F1Co
 		bsr.w	loc_162FC
@@ -31095,7 +31068,7 @@ loc_16030:				; DATA XREF: ROM:00015F1Co
 		lea	(Ani_Obj50).l,a1
 		bsr.w	j_AnimateSprite_3
 		bra.w	loc_1677A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16046:				; DATA XREF: ROM:Obj50_SubIndexo
 		bsr.w	j_SpeedToPos_4
@@ -31103,14 +31076,14 @@ loc_16046:				; DATA XREF: ROM:Obj50_SubIndexo
 		bsr.w	sub_16184
 		bsr.w	sub_1611C
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16058:				; DATA XREF: ROM:00016002o
 		bsr.w	j_SpeedToPos_4
 		bsr.w	sub_162DE
 		bsr.w	sub_161A6
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16066:				; DATA XREF: ROM:00016004o
 		bsr.w	j_ObjectFall_2
@@ -31119,7 +31092,7 @@ loc_16066:				; DATA XREF: ROM:00016004o
 		bsr.w	sub_160F4
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16078:				; CODE XREF: ROM:0001606Ep
@@ -31130,7 +31103,7 @@ sub_16078:				; CODE XREF: ROM:0001606Ep
 
 locret_16084:				; CODE XREF: sub_16078+4j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16086:				; CODE XREF: sub_16078+Aj
 		st	$2D(a0)
@@ -31164,7 +31137,7 @@ locret_160F2:				; CODE XREF: sub_16078+16j
 ; End of function sub_16078
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_160F4:				; CODE XREF: ROM:00016072p
@@ -31182,7 +31155,7 @@ locret_1611A:				; CODE XREF: sub_160F4+8j
 ; End of function sub_160F4
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_1611C:				; CODE XREF: ROM:00016052p
@@ -31206,7 +31179,7 @@ sub_1611C:				; CODE XREF: ROM:00016052p
 		btst	#0,$22(a0)
 		bne.s	locret_16182
 		bra.s	loc_16168
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1615A:				; CODE XREF: sub_1611C+2Cj
 		cmpi.w	#$28,d0	; '('
@@ -31228,7 +31201,7 @@ locret_16182:				; CODE XREF: sub_1611C+4j
 ; End of function sub_1611C
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16184:				; CODE XREF: ROM:0001604Ep
@@ -31249,7 +31222,7 @@ locret_161A4:				; CODE XREF: sub_16184+4j
 ; End of function sub_16184
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_161A6:				; CODE XREF: ROM:00016060p
@@ -31265,7 +31238,7 @@ sub_161A6:				; CODE XREF: ROM:00016060p
 locret_161C2:				; CODE XREF: sub_161A6+Ej
 					; sub_161A6+22j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_161C4:				; CODE XREF: sub_161A6+8j
 		cmp.w	$2A(a0),d0
@@ -31277,7 +31250,7 @@ loc_161C4:				; CODE XREF: sub_161A6+8j
 ; End of function sub_161A6
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_161D8:				; CODE XREF: ROM:00015FF8p
@@ -31299,7 +31272,7 @@ loc_16208:				; CODE XREF: sub_161D8+2Cj
 		rts
 ; End of function sub_161D8
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj50_Routine08:			; DATA XREF: ROM:00015F1Eo
 					; ROM:0001653At
@@ -31309,7 +31282,7 @@ Obj50_Routine08:			; DATA XREF: ROM:00015F1Eo
 		bsr.w	j_AnimateSprite_3
 		bra.w	loc_1677A
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16228:				; CODE XREF: ROM:00016216p
@@ -31328,7 +31301,7 @@ loc_16242:				; CODE XREF: sub_16228+8j
 		rts
 ; End of function sub_16228
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj50_Routine0A:			; DATA XREF: ROM:00015F20o
 					; ROM:0001653Ct
@@ -31348,14 +31321,14 @@ Obj50_Routine0A:			; DATA XREF: ROM:00015F20o
 
 locret_1628E:				; CODE XREF: ROM:00016256j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16290:				; CODE XREF: ROM:0001627Aj
 		lea	(Ani_Obj50).l,a1
 		bsr.w	j_AnimateSprite_3
 		bra.w	loc_16768
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_1629E:				; CODE XREF: ROM:Obj50_Routine0Ap
@@ -31378,7 +31351,7 @@ locret_162DC:				; CODE XREF: sub_1629E+4j sub_1629E+Ej
 ; End of function sub_1629E
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_162DE:				; CODE XREF: ROM:0001604Ap
@@ -31394,7 +31367,7 @@ locret_162FA:				; CODE XREF: sub_162DE+4j
 		rts
 ; End of function sub_162DE
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_162FC:				; CODE XREF: ROM:loc_16030p
 					; ROM:loc_165C0p
@@ -31422,13 +31395,13 @@ loc_16306:				; CODE XREF: ROM:loc_16378j
 		move.w	#$C0,$10(a1) ; 'А'
 		addi.w	#$FF40,$12(a1)
 		bra.s	loc_16378
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16364:				; CODE XREF: ROM:00016354j
 		move.w	#$FF00,$10(a1)
 		addi.w	#$FFC0,$12(a1)
 		bra.s	loc_16378
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16372:				; CODE XREF: ROM:00016352j
 		move.w	#$40,$10(a1) ; '@'
@@ -31445,11 +31418,11 @@ loc_16378:				; CODE XREF: ROM:0001630Aj
 
 loc_1639A:				; CODE XREF: ROM:00016380j
 		bra.w	loc_1676E
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_1639E:				; CODE XREF: ROM:00016300j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj50:	dc.w byte_163B0-Ani_Obj50 ; DATA XREF: ROM:loc_15FDAo
 					; ROM:00016022o ...
 		dc.w byte_163B3-Ani_Obj50
@@ -31529,7 +31502,7 @@ word_164FA:	dc.w 5			; DATA XREF: ROM:000163F0o
 		dc.w $F805,  $1C,   $E,$FFF8; 8
 		dc.w $F801,  $22,  $11,	   8; 12
 		dc.w  $805,  $24,  $12,$FFF8; 16
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 51 - unused Skyhorse badnik from HPZ
 ;----------------------------------------------------
@@ -31539,7 +31512,7 @@ Obj51:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	off_16532(pc,d0.w),d1
 		jmp	off_16532(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_16532:	dc.w loc_1653E-off_16532 ; DATA	XREF: ROM:off_16532o
 					; ROM:00016534o ...
 		dc.w loc_1659C-off_16532
@@ -31547,7 +31520,7 @@ off_16532:	dc.w loc_1653E-off_16532 ; DATA	XREF: ROM:off_16532o
  	   	dc.w 0
 		dc.w Obj50_Routine08-off_16532
 		dc.w Obj50_Routine0A-off_16532
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1653E:				; DATA XREF: ROM:off_16532o
 		addq.b	#2,$24(a0)
@@ -31579,11 +31552,11 @@ loc_1659C:				; DATA XREF: ROM:00016534o
 		move.w	off_165BC(pc,d0.w),d1
 		jsr	off_165BC(pc,d1.w)
 		bra.w	loc_1677A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_165BC:	dc.w loc_165D4-off_165BC ; DATA	XREF: ROM:off_165BCo
 					; ROM:000165BEo
 		dc.w loc_165EA-off_165BC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_165C0:				; DATA XREF: ROM:00016536o
 		bsr.w	loc_162FC
@@ -31591,7 +31564,7 @@ loc_165C0:				; DATA XREF: ROM:00016536o
 		lea	Ani_Obj50(pc),a1
 		bsr.w	j_AnimateSprite_3
 		bra.w	loc_1677A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_165D4:				; DATA XREF: ROM:off_165BCo
 		bsr.w	j_SpeedToPos_4
@@ -31600,7 +31573,7 @@ loc_165D4:				; DATA XREF: ROM:off_165BCo
 		bsr.w	loc_16708
 		bsr.w	loc_16678
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_165EA:				; DATA XREF: ROM:000165BEo
 		bsr.w	j_SpeedToPos_4
@@ -31609,7 +31582,7 @@ loc_165EA:				; DATA XREF: ROM:000165BEo
 		bsr.w	loc_16708
 		bsr.w	loc_16600
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16600:				; CODE XREF: ROM:000165FAp
 		subq.w	#1,$30(a0)
@@ -31618,14 +31591,14 @@ loc_16600:				; CODE XREF: ROM:000165FAp
 		cmpi.w	#$12,d0
 		beq.w	loc_1669E
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16614:				; CODE XREF: ROM:00016604j
 		subq.b	#2,$25(a0)
 		move.b	#6,$1C(a0)
 		move.w	#$B4,$30(a0) ; 'ґ'
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16626:				; CODE XREF: ROM:000165DCp
 					; ROM:000165F2p
@@ -31638,7 +31611,7 @@ loc_16626:				; CODE XREF: ROM:000165DCp
 		btst	#0,$22(a0)
 		bne.s	loc_1664E
 		bra.s	loc_16652
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16646:				; CODE XREF: ROM:0001663Aj
 		btst	#0,$22(a0)
@@ -31658,14 +31631,14 @@ loc_16652:				; CODE XREF: ROM:00016644j
 		st	$2D(a0)
 		move.w	#0,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16672:				; CODE XREF: ROM:00016664j
 		st	$36(a0)
 
 locret_16676:				; CODE XREF: ROM:0001665Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16678:				; CODE XREF: ROM:000165E4p
 		tst.b	$2C(a0)
@@ -31681,7 +31654,7 @@ loc_16678:				; CODE XREF: ROM:000165E4p
 locret_1669C:				; CODE XREF: ROM:0001667Cj
 					; ROM:00016682j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1669E:				; CODE XREF: ROM:0001660Ej
 		bsr.w	j_SingleObjectLoad
@@ -31711,7 +31684,7 @@ loc_166FA:				; CODE XREF: ROM:000166F4j
 
 locret_16706:				; CODE XREF: ROM:000166A2j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16708:				; CODE XREF: ROM:000165E0p
 					; ROM:000165F6p
@@ -31728,12 +31701,12 @@ loc_16708:				; CODE XREF: ROM:000165E0p
 		cmp.w	$C(a0),d0
 		bge.s	loc_1675C
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16730:				; CODE XREF: ROM:00016722j
 		move.w	#$180,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16738:				; CODE XREF: ROM:00016712j
 		move.w	$2A(a0),d0
@@ -31745,12 +31718,12 @@ loc_16738:				; CODE XREF: ROM:00016712j
 		cmp.w	$C(a0),d0
 		ble.s	loc_1675C
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16754:				; CODE XREF: ROM:00016746j
 		move.w	#$FE80,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1675C:				; CODE XREF: ROM:0001671Cj
 					; ROM:0001672Cj ...
@@ -31759,45 +31732,44 @@ loc_1675C:				; CODE XREF: ROM:0001671Cj
 
 locret_16766:				; CODE XREF: ROM:0001670Cj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16768:				; CODE XREF: ROM:0001602Cj
 					; ROM:0001629Aj
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1676E:				; CODE XREF: ROM:0001600Cj
 					; ROM:00016014j ...
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SingleObjectLoad:			; CODE XREF: ROM:00015F7Cp
 					; sub_16078+12p ...
 		jmp	SingleObjectLoad
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1677A:				; CODE XREF: ROM:00015FFCj
 					; ROM:00016042j ...
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_3:			; CODE XREF: ROM:00015FE0p
 					; ROM:00016028p ...
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ObjectFall_2:				; CODE XREF: ROM:loc_16066p
 					; ROM:Obj50_Routine08p
 		jmp	ObjectFall
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos_4:				; CODE XREF: ROM:00016034p
 					; ROM:loc_16046p ...
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 4B - Buzz Bomber badnik
@@ -31808,20 +31780,20 @@ Obj4B:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj4B_Index(pc,d0.w),d1
 		jmp	Obj4B_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4B_Index:	dc.w Obj4B_Init-Obj4B_Index ; DATA XREF: ROM:Obj4B_Indexo
 					; ROM:000167A4o ...
 		dc.w Obj4B_Main-Obj4B_Index
 		dc.w loc_167BC-Obj4B_Index
 		dc.w loc_167AA-Obj4B_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_167AA:				; DATA XREF: ROM:000167A8o
 		bsr.w	j_SpeedToPos_5
 		lea	(Ani_Obj4B).l,a1
 		bsr.w	j_AnimateSprite_4
 		bra.w	loc_16A8C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_167BC:				; DATA XREF: ROM:000167A6o
 		movea.l	$2A(a0),a1
@@ -31830,7 +31802,7 @@ loc_167BC:				; DATA XREF: ROM:000167A6o
 		tst.w	$30(a1)
 		bmi.s	loc_167CE
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_167CE:				; CODE XREF: ROM:000167CAj
 		move.w	8(a1),8(a0)
@@ -31840,7 +31812,7 @@ loc_167CE:				; CODE XREF: ROM:000167CAj
 		lea	(Ani_Obj4B).l,a1
 		bsr.w	j_AnimateSprite_4
 		bra.w	loc_16A8C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4B_Init:				; DATA XREF: ROM:Obj4B_Indexo
 		move.l	#Map_Obj4B,4(a0)
@@ -31878,7 +31850,7 @@ Obj4B_Init:				; DATA XREF: ROM:Obj4B_Indexo
 locret_1689E:				; CODE XREF: ROM:00016838j
 					; ROM:00016898j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4B_Main:				; DATA XREF: ROM:000167A4o
 		moveq	#0,d0
@@ -31888,11 +31860,11 @@ Obj4B_Main:				; DATA XREF: ROM:000167A4o
 		lea	(Ani_Obj4B).l,a1
 		bsr.w	j_AnimateSprite_4
 		bra.w	loc_16A8C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4B_SubIndex:	dc.w loc_168C0-Obj4B_SubIndex ;	DATA XREF: ROM:Obj4B_SubIndexo
 					; ROM:000168BEo
 		dc.w loc_16950-Obj4B_SubIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_168C0:				; DATA XREF: ROM:Obj4B_SubIndexo
 		bsr.w	sub_16902
@@ -31908,7 +31880,7 @@ loc_168C0:				; DATA XREF: ROM:Obj4B_SubIndexo
 
 locret_168E4:				; CODE XREF: ROM:000168D4j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_168E6:				; CODE XREF: ROM:000168D0j
 		sf	$32(a0)
@@ -31918,7 +31890,7 @@ loc_168E6:				; CODE XREF: ROM:000168D0j
 		move.w	#$100,$2E(a0)
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16902:				; CODE XREF: ROM:loc_168C0p
@@ -31940,7 +31912,7 @@ loc_16918:				; CODE XREF: sub_16902+12j
 		btst	#0,1(a0)
 		beq.s	locret_1694E
 		bra.s	loc_1693A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16932:				; CODE XREF: sub_16902+24j
 		btst	#0,1(a0)
@@ -31957,7 +31929,7 @@ locret_1694E:				; CODE XREF: sub_16902+4j
 		rts
 ; End of function sub_16902
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16950:				; DATA XREF: ROM:000168BEo
 		move.w	$34(a0),d0
@@ -31967,12 +31939,12 @@ loc_16950:				; DATA XREF: ROM:000168BEo
 		cmpi.w	#$14,d0
 		beq.s	loc_1696A
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16964:				; CODE XREF: ROM:00016956j
 		subq.b	#2,$25(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1696A:				; CODE XREF: ROM:00016960j
 		jsr	S1SingleObjectLoad2
@@ -31999,7 +31971,7 @@ loc_1696A:				; CODE XREF: ROM:00016960j
 locret_169D8:				; CODE XREF: ROM:00016970j
 					; ROM:000169D2j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj4B:	dc.w byte_169E2-Ani_Obj4B ; DATA XREF: ROM:000167AEo
 					; ROM:000167E6o ...
 		dc.w byte_169E5-Ani_Obj4B
@@ -32044,38 +32016,37 @@ word_16A68:	dc.w 1			; DATA XREF: ROM:00016A02o
 
 loc_16A74:				; CODE XREF: ROM:000167C2j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_S1SingleObjectLoad2_0:		; CODE XREF: ROM:00016834p
 		jmp	S1SingleObjectLoad2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_4:			; CODE XREF: ROM:000167B4p
 					; ROM:000167ECp ...
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifyA1SpriteAttr_2P:		; CODE XREF: ROM:00016854p
 					; ROM:0001698Cp
 		jmp	ModifyA1SpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16A8C:				; CODE XREF: ROM:000167B8j
 					; ROM:000167F0j ...
 		jmp	loc_CEC6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifySpriteAttr_2P_2:		; CODE XREF: ROM:00016802p
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos_5:				; CODE XREF: ROM:loc_167AAp
 					; ROM:000168DAj
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 4A - Octopus badnik
@@ -32086,32 +32057,32 @@ Obj4A:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj4A_Index(pc,d0.w),d1
 		jmp	Obj4A_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4A_Index:	dc.w loc_16ADE-Obj4A_Index ; DATA XREF:	ROM:Obj4A_Indexo
 					; ROM:00016AB0o ...
 		dc.w loc_16B44-Obj4A_Index
 		dc.w loc_16AD2-Obj4A_Index
 		dc.w loc_16AB6-Obj4A_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16AB6:				; DATA XREF: ROM:00016AB4o
 		subi.w	#1,$2C(a0)
 		bmi.s	loc_16AC0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16AC0:				; CODE XREF: ROM:00016ABCj
 		bsr.w	j_ObjectFall_3
 		lea	(Ani_Obj4A).l,a1
 		bsr.w	j_AnimateSprite_5
 		bra.w	loc_16D3C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16AD2:				; DATA XREF: ROM:00016AB2o
 		subq.w	#1,$2C(a0)
 		beq.w	loc_16D36
 		bra.w	loc_16D30
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16ADE:				; DATA XREF: ROM:Obj4A_Indexo
 		move.l	#Map_Obj4A,4(a0)
@@ -32138,7 +32109,7 @@ loc_16B3C:				; CODE XREF: ROM:00016B1Cj
 					; ROM:00016B34j
 		move.w	$C(a0),$2A(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16B44:				; DATA XREF: ROM:00016AB0o
 		moveq	#0,d0
@@ -32148,13 +32119,13 @@ loc_16B44:				; DATA XREF: ROM:00016AB0o
 		lea	(Ani_Obj4A).l,a1
 		bsr.w	j_AnimateSprite_5
 		bra.w	loc_16D3C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4A_SubIndex:	dc.w Obj4A_Init-Obj4A_SubIndex ; DATA XREF: ROM:Obj4A_SubIndexo
 					; ROM:00016B62o ...
 		dc.w Obj4A_Main-Obj4A_SubIndex
 		dc.w loc_16BAA-Obj4A_SubIndex
 		dc.w loc_16C7C-Obj4A_SubIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4A_Init:				; DATA XREF: ROM:Obj4A_SubIndexo
 		move.w	8(a0),d0
@@ -32169,7 +32140,7 @@ Obj4A_Init:				; DATA XREF: ROM:Obj4A_SubIndexo
 locret_16B86:				; CODE XREF: ROM:00016B74j
 					; ROM:00016B7Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4A_Main:				; DATA XREF: ROM:00016B62o
 		subi.l	#$18000,$C(a0)
@@ -32182,7 +32153,7 @@ Obj4A_Main:				; DATA XREF: ROM:00016B62o
 
 locret_16BA8:				; CODE XREF: ROM:00016B9Cj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16BAA:				; DATA XREF: ROM:00016B64o
 		subi.w	#1,$2C(a0)
@@ -32227,12 +32198,12 @@ loc_16C10:				; CODE XREF: ROM:00016BC4j
 locret_16C74:				; CODE XREF: ROM:00016BB4j
 					; ROM:00016C16j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16C76:				; CODE XREF: ROM:00016BB0j
 		addq.b	#2,$25(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16C7C:				; DATA XREF: ROM:00016B66o
 		move.w	#$FFFA,d0
@@ -32243,7 +32214,7 @@ loc_16C7C:				; DATA XREF: ROM:00016B66o
 loc_16C8A:				; CODE XREF: ROM:00016C86j
 		add.w	d0,8(a0)
 		bra.w	loc_16D3C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj4A:	dc.w byte_16C98-Ani_Obj4A ; DATA XREF: ROM:00016AC4o
 					; ROM:00016B52o ...
 		dc.w byte_16C9B-Ani_Obj4A
@@ -32280,33 +32251,32 @@ word_16D1C:	dc.w 1			; DATA XREF: ROM:00016CAEo
 		dc.w $F201,  $36,  $1B,$FFF0; 0
 word_16D26:	dc.w 1			; DATA XREF: ROM:00016CB0o
 		dc.w $F201,  $38,  $1C,$FFF0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16D30:				; CODE XREF: ROM:00016ADAj
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16D36:				; CODE XREF: ROM:00016AD6j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16D3C:				; CODE XREF: ROM:00016ACEj
 					; ROM:00016B5Cj ...
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_5:			; CODE XREF: ROM:00016ACAp
 					; ROM:00016B58p
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ObjectFall_3:				; CODE XREF: ROM:loc_16AC0p
 					; ROM:00016B10p
 		jmp	ObjectFall
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 4C - Bat badnik from HPZ
@@ -32317,12 +32287,12 @@ Obj4C:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj4C_Index(pc,d0.w),d1
 		jmp	Obj4C_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4C_Index:	dc.w Obj4C_Init-Obj4C_Index ; DATA XREF: ROM:Obj4C_Indexo
 					; ROM:00016D60o ...
 		dc.w loc_16DA2-Obj4C_Index
 		dc.w loc_16E10-Obj4C_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4C_Init:				; DATA XREF: ROM:Obj4C_Indexo
 		move.l	#Map_Obj4C,4(a0)
@@ -32336,7 +32306,7 @@ Obj4C_Init:				; DATA XREF: ROM:Obj4C_Indexo
 		addq.b	#2,$24(a0)
 		move.w	$C(a0),$2E(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16DA2:				; DATA XREF: ROM:00016D60o
 		moveq	#0,d0
@@ -32347,13 +32317,13 @@ loc_16DA2:				; DATA XREF: ROM:00016D60o
 		lea	(Ani_Obj4C).l,a1
 		bsr.w	j_AnimateSprite_6
 		bra.w	loc_171C4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4C_SubIndex:	dc.w loc_16F2E-Obj4C_SubIndex ;	DATA XREF: ROM:Obj4C_SubIndexo
 					; ROM:00016DC4o ...
 		dc.w loc_16F66-Obj4C_SubIndex
 		dc.w loc_16F72-Obj4C_SubIndex
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16DC8:				; CODE XREF: ROM:00016DB0p
@@ -32367,7 +32337,7 @@ sub_16DC8:				; CODE XREF: ROM:00016DB0p
 ; End of function sub_16DC8
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16DE2:				; CODE XREF: ROM:00016F36p
@@ -32387,7 +32357,7 @@ locret_16E0E:				; CODE XREF: sub_16DE2+Cj
 		rts
 ; End of function sub_16DE2
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16E10:				; DATA XREF: ROM:00016D62o
 		bsr.w	sub_16F0E
@@ -32397,10 +32367,10 @@ loc_16E10:				; DATA XREF: ROM:00016D62o
 		lea	(Ani_Obj4C).l,a1
 		bsr.w	j_AnimateSprite_6
 		bra.w	loc_171C4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16E30:				; CODE XREF: ROM:00016E18p
@@ -32414,7 +32384,7 @@ locret_16E42:				; CODE XREF: sub_16E30+4j
 ; End of function sub_16E30
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16E44:				; CODE XREF: ROM:loc_16F72p
@@ -32442,7 +32412,7 @@ loc_16E68:				; CODE XREF: sub_16E44+1Ej
 locret_16E8E:				; CODE XREF: sub_16E44+6j
 					; sub_16E44+56j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16E90:				; CODE XREF: sub_16E44+14j
 					; sub_16E44+1Aj
@@ -32459,7 +32429,7 @@ loc_16E9C:				; CODE XREF: sub_16E44+50j
 ; End of function sub_16E44
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16EB0:				; CODE XREF: ROM:00016E14p
@@ -32472,7 +32442,7 @@ sub_16EB0:				; CODE XREF: ROM:00016E14p
 		addq.b	#2,d0
 		move.b	d0,$3F(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16ECA:				; CODE XREF: sub_16EB0+4j
 		moveq	#0,d0
@@ -32482,7 +32452,7 @@ loc_16ECA:				; CODE XREF: sub_16EB0+4j
 		subq.b	#2,d0
 		move.b	d0,$3F(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16EDE:				; CODE XREF: sub_16EB0+10j
 					; sub_16EB0+24j
@@ -32498,7 +32468,7 @@ loc_16EDE:				; CODE XREF: sub_16EB0+10j
 ; End of function sub_16EB0
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_16F0E:				; CODE XREF: ROM:loc_16E10p
@@ -32513,7 +32483,7 @@ sub_16F0E:				; CODE XREF: ROM:loc_16E10p
 		rts
 ; End of function sub_16F0E
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16F2E:				; DATA XREF: ROM:Obj4C_SubIndexo
 		subi.w	#1,$2A(a0)
@@ -32532,7 +32502,7 @@ loc_16F2E:				; DATA XREF: ROM:Obj4C_SubIndexo
 locret_16F64:				; CODE XREF: ROM:00016F34j
 					; ROM:00016F3Aj ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16F66:				; DATA XREF: ROM:00016DC4o
 		subq.b	#1,$2A(a0)
@@ -32541,7 +32511,7 @@ loc_16F66:				; DATA XREF: ROM:00016DC4o
 
 locret_16F70:				; CODE XREF: ROM:00016F6Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16F72:				; DATA XREF: ROM:00016DC6o
 		bsr.w	sub_16E44
@@ -32555,7 +32525,7 @@ loc_16F72:				; DATA XREF: ROM:00016DC6o
 		bset	#0,1(a0)
 		bset	#0,$22(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_16FA0:				; CODE XREF: ROM:00016F84j
 		move.b	#1,$3E(a0)
@@ -32566,7 +32536,7 @@ loc_16FA0:				; CODE XREF: ROM:00016F84j
 locret_16FB8:				; CODE XREF: ROM:00016F76j
 					; ROM:00016F7Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj4C:	dc.w byte_16FC2-Ani_Obj4C ; DATA XREF: ROM:00016DB4o
 					; ROM:00016E20o ...
 		dc.w byte_16FC6-Ani_Obj4C
@@ -32670,16 +32640,16 @@ word_171A8:	dc.w 3			; DATA XREF: ROM:0001700Ao
 loc_171C4:				; CODE XREF: ROM:00016DBEj
 					; ROM:00016E2Aj
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_6:			; CODE XREF: ROM:00016DBAp
 					; ROM:00016E26p
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos_8:				; CODE XREF: ROM:00016E1Cp
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
 	else
@@ -32694,11 +32664,11 @@ Obj4E:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj4E_Index(pc,d0.w),d1
 		jmp	Obj4E_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4E_Index:	dc.w Obj4E_Init-Obj4E_Index ; DATA XREF: ROM:Obj4E_Indexo
 					; ROM:000171E8o
 		dc.w Obj4E_Main-Obj4E_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4E_Init:				; DATA XREF: ROM:Obj4E_Indexo
 		move.l	#Map_Obj4E,4(a0)
@@ -32719,7 +32689,7 @@ Obj4E_Init:				; DATA XREF: ROM:Obj4E_Indexo
 
 locret_17238:				; CODE XREF: ROM:00017228j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj4E_Main:				; DATA XREF: ROM:000171E8o
 		moveq	#0,d0
@@ -32729,11 +32699,11 @@ Obj4E_Main:				; DATA XREF: ROM:000171E8o
 		lea	(Ani_Obj4E).l,a1
 		bsr.w	j_AnimateSprite_7
 		bra.w	loc_174B8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj4E_SubIndex:	dc.w loc_1725A-Obj4E_SubIndex ;	DATA XREF: ROM:Obj4E_SubIndexo
 					; ROM:00017258o
 		dc.w loc_1727E-Obj4E_SubIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1725A:				; DATA XREF: ROM:Obj4E_SubIndexo
 		subq.w	#1,$30(a0)
@@ -32748,7 +32718,7 @@ loc_1725A:				; DATA XREF: ROM:Obj4E_SubIndexo
 locret_1727C:				; CODE XREF: ROM:0001725Ej
 					; ROM:00017276j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1727E:				; DATA XREF: ROM:00017258o
 		bsr.w	sub_172B6
@@ -32760,7 +32730,7 @@ loc_1727E:				; DATA XREF: ROM:00017258o
 		bge.s	loc_1729E
 		add.w	d1,$C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1729E:				; CODE XREF: ROM:00017290j
 					; ROM:00017296j
@@ -32770,7 +32740,7 @@ loc_1729E:				; CODE XREF: ROM:00017290j
 		move.b	#1,$1C(a0)
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_172B6:				; CODE XREF: ROM:loc_1727Ep
@@ -32782,7 +32752,7 @@ sub_172B6:				; CODE XREF: ROM:loc_1727Ep
 		btst	#0,$22(a0)
 		beq.s	loc_172DE
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_172D0:				; CODE XREF: sub_172B6+8j
 		cmpi.w	#$FFC0,d0
@@ -32793,7 +32763,7 @@ loc_172D0:				; CODE XREF: sub_172B6+8j
 loc_172DE:				; CODE XREF: sub_172B6+16j
 		move.b	#2,$1C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_172E6:				; CODE XREF: sub_172B6+Ej
 					; sub_172B6+1Ej ...
@@ -32801,7 +32771,7 @@ loc_172E6:				; CODE XREF: sub_172B6+Ej
 		rts
 ; End of function sub_172B6
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj4E:	dc.w byte_172F4-Ani_Obj4E ; DATA XREF: ROM:00017248o
 					; ROM:Ani_Obj4Eo ...
 		dc.w byte_172FC-Ani_Obj4E
@@ -32882,23 +32852,23 @@ word_17496:	dc.w 4			; DATA XREF: ROM:0001731Eo
 		dc.w $F805,  $18,   $C,	   4; 4
 		dc.w	 1,  $1E,   $F,	   4; 8
 		dc.w	 5,  $28,  $14,	  $C; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_174B8:				; CODE XREF: ROM:00017252j
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_7:			; CODE XREF: ROM:0001724Ep
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ObjectFall_4:				; CODE XREF: ROM:0001721Cp
 		jmp	ObjectFall
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos_6:				; CODE XREF: ROM:00017282p
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj53:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
@@ -32908,11 +32878,11 @@ loc_174D2:
 		move.w	Obj53_Index(pc,d0.w),d1
 		jsr	Obj53_Index(pc,d1.w)
 		bra.w	loc_175B8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj53_Index:	dc.w Obj53_Init-Obj53_Index ; DATA XREF: ROM:Obj53_Indexo
 					; ROM:000174E4o
 		dc.w Obj53_Main-Obj53_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj53_Init:				; DATA XREF: ROM:Obj53_Indexo
 		addq.b	#2,$24(a0)
@@ -32950,7 +32920,7 @@ loc_17548:				; CODE XREF: ROM:0001753Cj
 locret_1756A:				; CODE XREF: ROM:00017556j
 					; ROM:00017562j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj53:	dc.w byte_17572-Ani_Obj53 ; DATA XREF: ROM:Obj53_Maino
 					; ROM:Ani_Obj53o ...
 		dc.w byte_17576-Ani_Obj53
@@ -32970,23 +32940,23 @@ word_1759C:	dc.w 3			; DATA XREF: ROM:00017580o
 		dc.w $F005,    6,    3,	   2; 4
 		dc.w	 9,  $10,    8,$FFF4; 8
 		dc.w	 0		; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_175B8:				; CODE XREF: ROM:000174DEj
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite:			; CODE XREF: ROM:00017526p
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifySpriteAttr_2P:			; CODE XREF: ROM:000174F8p
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos:				; CODE XREF: ROM:0001752Ap
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 54 - Snail badnik from	EHZ
 ;----------------------------------------------------
@@ -32996,14 +32966,14 @@ Obj54:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj54_Index(pc,d0.w),d1
 		jmp	Obj54_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj54_Index:	dc.w Obj54_Init-Obj54_Index ; DATA XREF: ROM:Obj54_Indexo
 					; ROM:000175E0o ...
 		dc.w loc_17688-Obj54_Index
 		dc.w loc_177B4-Obj54_Index
 		dc.w loc_177EC-Obj54_Index
 		dc.w loc_17772-Obj54_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj54_Init:				; DATA XREF: ROM:Obj54_Indexo
 		move.l	#Map_Obj54,4(a0)
@@ -33041,7 +33011,7 @@ loc_17670:				; CODE XREF: ROM:00017622j
 loc_17682:				; CODE XREF: ROM:0001767Ej
 		move.w	d0,$10(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17688:				; DATA XREF: ROM:000175E0o
 		bsr.w	sub_176D0
@@ -33055,7 +33025,7 @@ loc_17688:				; DATA XREF: ROM:000175E0o
 		lea	(Ani_Obj54).l,a1
 		bsr.w	j_AnimateSprite_8
 		bra.w	loc_1786C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_176B4:				; CODE XREF: ROM:0001769Aj
 					; ROM:000176A0j
@@ -33066,7 +33036,7 @@ loc_176B4:				; CODE XREF: ROM:0001769Aj
 		bsr.w	j_AnimateSprite_8
 		bra.w	loc_1786C
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_176D0:				; CODE XREF: ROM:loc_17688p
@@ -33083,7 +33053,7 @@ sub_176D0:				; CODE XREF: ROM:loc_17688p
 		btst	#0,$22(a0)
 		beq.s	locret_17712
 		bra.s	loc_17700
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_176F8:				; CODE XREF: sub_176D0+1Cj
 		btst	#0,$22(a0)
@@ -33102,7 +33072,7 @@ locret_17712:				; CODE XREF: sub_176D0+4j
 ; End of function sub_176D0
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_17714:				; CODE XREF: sub_176D0+3Ep
@@ -33128,7 +33098,7 @@ locret_17770:				; CODE XREF: sub_17714+4j
 		rts
 ; End of function sub_17714
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17772:				; DATA XREF: ROM:000175E6o
 		movea.l	$2A(a0),a1
@@ -33149,7 +33119,7 @@ loc_177A2:				; CODE XREF: ROM:0001779Ej
 		lea	(Ani_Obj4B).l,a1
 		bsr.w	j_AnimateSprite_8
 		bra.w	loc_1786C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_177B4:				; DATA XREF: ROM:000175E2o
 		subi.w	#1,$30(a0)
@@ -33165,7 +33135,7 @@ loc_177B4:				; DATA XREF: ROM:000175E2o
 		sf	$34(a0)
 		sf	$35(a0)
 		bra.w	loc_1786C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_177EC:				; DATA XREF: ROM:000175E4o
 		movea.l	$2A(a0),a1
@@ -33176,7 +33146,7 @@ loc_177EC:				; DATA XREF: ROM:000175E4o
 		move.b	$22(a1),$22(a0)
 		move.b	1(a1),1(a0)
 		bra.w	loc_1786C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj54:	dc.w byte_17818-Ani_Obj54 ; DATA XREF: ROM:000176A6o
 					; ROM:000176C2o ...
 		dc.w byte_1781C-Ani_Obj54
@@ -33194,43 +33164,43 @@ word_17838:	dc.w 2			; DATA XREF: ROM:00017822o
 		dc.w  $109,$1014,$100A,$FFF4; 4
 word_1784A:	dc.w 1			; DATA XREF: ROM:00017824o
 		dc.w $FA05,  $10,    8,$FFE9; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17854:				; CODE XREF: ROM:0001777Aj
 					; ROM:00017782j ...
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_S1SingleObjectLoad2_1:		; CODE XREF: ROM:0001761Ep sub_17714p
 		jmp	S1SingleObjectLoad2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_8:			; CODE XREF: ROM:000176ACp
 					; ROM:000176C8p ...
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifyA1SpriteAttr_2P_0:		; CODE XREF: ROM:0001763Ep
 					; sub_17714+20p
 		jmp	ModifyA1SpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1786C:				; CODE XREF: ROM:000176B0j
 					; ROM:000176CCj ...
 		jmp	loc_CEC6
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifySpriteAttr_2P_3:		; CODE XREF: ROM:000175F6p
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ObjectFall_5:				; CODE XREF: ROM:000177C2p
 		jmp	ObjectFall
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_SpeedToPos_7:				; CODE XREF: ROM:0001768Cp
 		jmp	SpeedToPos
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 57 - sub object of the	EHZ boss
 ;----------------------------------------------------
@@ -33241,7 +33211,7 @@ Obj57:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$25(a0),d0
 		move.w	off_17892(pc,d0.w),d1
 		jmp	off_17892(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_17892:	dc.w loc_1789E-off_17892; 0 ; DATA XREF: ROM:off_17892o
 					; ROM:off_17892+2o ...
 		dc.w loc_178C4-off_17892; 1
@@ -33249,7 +33219,7 @@ off_17892:	dc.w loc_1789E-off_17892; 0 ; DATA XREF: ROM:off_17892o
 		dc.w loc_17952-off_17892; 3
 		dc.w loc_1797C-off_17892; 4
 		dc.w loc_17996-off_17892; 5
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1789E:				; DATA XREF: ROM:off_17892o
 		move.b	#0,$20(a0)
@@ -33257,38 +33227,38 @@ loc_1789E:				; DATA XREF: ROM:off_17892o
 		ble.s	loc_178B6
 		subi.w	#1,8(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_178B6:				; CODE XREF: ROM:000178AAj
 		move.w	#$29D0,8(a0)
 		addq.b	#2,$25(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_178C4:				; DATA XREF: ROM:off_17892o
 		moveq	#0,d0
 		move.b	$2C(a0),d0
 		move.w	off_178D2(pc,d0.w),d1
 		jmp	off_178D2(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_178D2:	dc.w loc_178D6-off_178D2 ; DATA	XREF: ROM:off_178D2o
 					; ROM:000178D4o
 		dc.w loc_178FC-off_178D2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_178D6:				; DATA XREF: ROM:off_178D2o
 		cmpi.w	#$41E,$C(a0)
 		bge.s	loc_178E8
 		addi.w	#1,$C(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_178E8:				; CODE XREF: ROM:000178DCj
 		addq.b	#2,$2C(a0)
 		bset	#0,$2D(a0)
 		move.w	#$3C,$2A(a0) ; '<'
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_178FC:				; DATA XREF: ROM:000178D4o
 		subi.w	#1,$2A(a0)
@@ -33298,7 +33268,7 @@ loc_178FC:				; DATA XREF: ROM:000178D4o
 		move.b	#$F,$20(a0)
 		bset	#1,$2D(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17920:				; DATA XREF: ROM:off_17892o
 		bsr.w	sub_17A8C
@@ -33315,7 +33285,7 @@ loc_17920:				; DATA XREF: ROM:off_17892o
 		add.l	d0,d2
 		move.l	d2,8(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17952:				; DATA XREF: ROM:off_17892o
 		subq.w	#1,$3C(a0)
@@ -33327,7 +33297,7 @@ loc_17952:				; DATA XREF: ROM:off_17892o
 		move.w	#$FFDA,$3C(a0)
 		move.w	#$C,$2A(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1797C:				; DATA XREF: ROM:off_17892o
 		addq.w	#1,$C(a0)
@@ -33336,7 +33306,7 @@ loc_1797C:				; DATA XREF: ROM:off_17892o
 		addq.b	#2,$25(a0)
 		move.b	#0,$2C(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17996:				; DATA XREF: ROM:off_17892o
 		moveq	#0,d0
@@ -33344,12 +33314,12 @@ loc_17996:				; DATA XREF: ROM:off_17892o
 		move.w	off_179A8(pc,d0.w),d1
 		jsr	off_179A8(pc,d1.w)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_179A8:	dc.w loc_179AE-off_179A8 ; DATA	XREF: ROM:off_179A8o
 					; ROM:000179AAo ...
 		dc.w loc_17A22-off_179A8
 		dc.w loc_17A3C-off_179A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_179AE:				; DATA XREF: ROM:off_179A8o
 		bclr	#0,$2D(a0)
@@ -33373,7 +33343,7 @@ loc_179AE:				; DATA XREF: ROM:off_179A8o
 		move.w	#$32,$2A(a0) ; '2'
 		addq.b	#2,$2C(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17A22:				; DATA XREF: ROM:000179AAo
 		subi.w	#1,$2A(a0)
@@ -33384,7 +33354,7 @@ loc_17A22:				; DATA XREF: ROM:000179AAo
 
 locret_17A3A:				; CODE XREF: ROM:00017A28j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17A3C:				; DATA XREF: ROM:000179ACo
 		subq.w	#1,$C(a0)
@@ -33398,13 +33368,13 @@ loc_17A3C:				; DATA XREF: ROM:000179ACo
 		bne.s	locret_17A68
 		move.b	#1,($FFFFF7A7).w
 		bra.w	loc_181AE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_17A68:				; CODE XREF: ROM:00017A46j
 					; ROM:00017A56j ...
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_17A6A:				; CODE XREF: ROM:00017924p
@@ -33425,7 +33395,7 @@ locret_17A8A:				; CODE XREF: sub_17A6A+Ej
 ; End of function sub_17A6A
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_17A8C:				; CODE XREF: ROM:loc_17920p
@@ -33457,7 +33427,7 @@ loc_17AC4:				; CODE XREF: sub_17A8C+32j
 locret_17AD2:				; CODE XREF: sub_17A8C+6j
 					; sub_17A8C+12j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17AD4:				; CODE XREF: sub_17A8C+Cj
 		moveq	#$64,d0	; 'd'
@@ -33468,7 +33438,7 @@ loc_17AD4:				; CODE XREF: sub_17A8C+Cj
 		rts
 ; End of function sub_17A8C
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 58 - sub object of the	EHZ boss
 ;----------------------------------------------------
@@ -33478,14 +33448,14 @@ Obj58:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	off_17AFC(pc,d0.w),d1
 		jmp	off_17AFC(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_17AFC:	dc.w loc_17B2A-off_17AFC ; DATA	XREF: ROM:off_17AFCo
 					; ROM:00017AFEo ...
 		dc.w loc_17BB0-off_17AFC
 		dc.w loc_17C02-off_17AFC
 		dc.w loc_17CE4-off_17AFC
 		dc.w loc_17B06-off_17AFC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17B06:				; DATA XREF: ROM:00017B04o
 		subi.w	#1,$C(a0)
@@ -33495,18 +33465,18 @@ loc_17B06:				; DATA XREF: ROM:00017B04o
 		lea	(Ani_Obj58).l,a1
 		bsr.w	j_AnimateSprite_9
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17B2A:				; DATA XREF: ROM:off_17AFCo
 		moveq	#0,d0
 		move.b	$25(a0),d0
 		move.w	off_17B38(pc,d0.w),d1
 		jmp	off_17B38(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_17B38:	dc.w loc_17B3C-off_17B38 ; DATA	XREF: ROM:off_17B38o
 					; ROM:00017B3Ao
 		dc.w loc_17B86-off_17B38
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17B3C:				; DATA XREF: ROM:off_17B38o
 		movea.l	$34(a0),a1
@@ -33526,7 +33496,7 @@ loc_17B60:				; CODE XREF: ROM:00017B4Ej
 		lea	(Ani_Obj58).l,a1
 		bsr.w	j_AnimateSprite_9
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17B86:				; DATA XREF: ROM:00017B3Ao
 		subi.w	#1,$2A(a0)
@@ -33535,13 +33505,13 @@ loc_17B86:				; DATA XREF: ROM:00017B3Ao
 		ble.w	loc_181AE
 		addi.w	#1,$C(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17BA2:				; CODE XREF: ROM:00017B8Cj
 		lea	(Ani_Obj58).l,a1
 		bsr.w	j_AnimateSprite_9
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17BB0:				; DATA XREF: ROM:00017AFEo
 		movea.l	$34(a0),a1
@@ -33557,26 +33527,26 @@ loc_17BB0:				; DATA XREF: ROM:00017AFEo
 		move.b	$22(a1),$22(a0)
 		move.b	1(a1),1(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17BF2:				; CODE XREF: ROM:00017BCCj
 		move.b	#8,$1A(a0)
 		move.b	#0,$18(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17C02:				; DATA XREF: ROM:00017B00o
 		moveq	#0,d0
 		move.b	$25(a0),d0
 		move.w	off_17C10(pc,d0.w),d1
 		jmp	off_17C10(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_17C10:	dc.w loc_17C18-off_17C10 ; DATA	XREF: ROM:off_17C10o
 					; ROM:00017C12o ...
 		dc.w loc_17C36-off_17C10
 		dc.w loc_17C96-off_17C10
 		dc.w loc_17CC2-off_17C10
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17C18:				; DATA XREF: ROM:off_17C10o
 		movea.l	$34(a0),a1
@@ -33586,7 +33556,7 @@ loc_17C18:				; DATA XREF: ROM:off_17C10o
 		beq.w	loc_181A8
 		addq.b	#2,$25(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17C36:				; DATA XREF: ROM:00017C12o
 		movea.l	$34(a0),a1
@@ -33618,7 +33588,7 @@ loc_17C88:				; CODE XREF: ROM:00017C7Aj
 		lea	(Ani_Obj58a).l,a1
 		bsr.w	j_AnimateSprite_9
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17C96:				; DATA XREF: ROM:00017C14o
 		subi.w	#1,$2A(a0)
@@ -33630,7 +33600,7 @@ loc_17C96:				; DATA XREF: ROM:00017C14o
 		beq.w	loc_181A8
 		neg.w	$10(a0)
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17CC2:				; DATA XREF: ROM:00017C16o
 		subq.w	#1,$2A(a0)
@@ -33644,7 +33614,7 @@ loc_17CC2:				; DATA XREF: ROM:00017C16o
 
 loc_17CE0:				; CODE XREF: ROM:00017CD4j
 		bra.w	loc_181B4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17CE4:				; DATA XREF: ROM:00017B02o
 		movea.l	$34(a0),a1
@@ -33671,7 +33641,7 @@ loc_17D38:				; CODE XREF: ROM:00017D34j
 		lea	(Ani_Obj58a).l,a1
 		bsr.w	j_AnimateSprite_9
 		bra.w	loc_181A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17D4A:				; CODE XREF: ROM:00017CF6j
 		move.w	#$FFFD,d0
@@ -33685,14 +33655,14 @@ loc_17D58:				; CODE XREF: ROM:00017D54j
 		bsr.w	j_AnimateSprite_9
 		bra.w	loc_181A8
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_17D6A:				; CODE XREF: ROM:00017CF8p
 		cmpi.b	#1,$21(a1)
 		beq.s	loc_17D74
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17D74:				; CODE XREF: sub_17D6A+6j
 		move.w	8(a0),d0
@@ -33701,13 +33671,13 @@ loc_17D74:				; CODE XREF: sub_17D6A+6j
 		btst	#0,$22(a1)
 		bne.s	loc_17D92
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17D88:				; CODE XREF: sub_17D6A+12j
 		btst	#0,$22(a1)
 		beq.s	loc_17D92
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17D92:				; CODE XREF: sub_17D6A+1Aj
 					; sub_17D6A+24j
@@ -33716,7 +33686,7 @@ loc_17D92:				; CODE XREF: sub_17D6A+1Aj
 ; End of function sub_17D6A
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_17D9A:				; CODE XREF: ROM:loc_17F98p
@@ -33807,7 +33777,7 @@ locret_17F52:				; CODE XREF: sub_17D9A+162j
 		rts
 ; End of function sub_17D9A
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_17F54:				; DATA XREF: ROM:000182FEo
 		jsr	S1SingleObjectLoad2
@@ -33844,7 +33814,7 @@ loc_17F98:				; CODE XREF: ROM:00017F5Aj
 
 locret_17FF8:				; CODE XREF: ROM:00017FB4j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj58:	dc.w byte_18000-Ani_Obj58 ; DATA XREF: ROM:00017B1Co
 					; ROM:00017B78o ...
 		dc.w byte_18004-Ani_Obj58
@@ -33933,49 +33903,49 @@ word_1818E:	dc.w 3			; DATA XREF: ROM:0001812Co
 		dc.w $F00F,$8000,$8000,$FFD0; 0
 		dc.w $F00F,$8010,$8008,$FFF0; 4
 		dc.w $F00F,$8020,$8010,	 $10; 8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_181A8:				; CODE XREF: ROM:000178B2j
 					; ROM:000178C0j ...
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_181AE:				; CODE XREF: ROM:00017A64j
 					; ROM:00017B44j ...
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_181B4:				; CODE XREF: ROM:loc_17CE0j
 		jmp	MarkObjGone
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_S1SingleObjectLoad2:			; CODE XREF: ROM:000179B4p
 		jmp	S1SingleObjectLoad2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_AnimateSprite_9:			; CODE XREF: ROM:00017B22p
 					; ROM:00017B7Ep ...
 		jmp	AnimateSprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ObjectFall_6:				; CODE XREF: ROM:00017C5Cp
 					; ROM:00017CCAp
 		jmp	ObjectFall
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj55:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
 		move.b	$24(a0),d0
 		move.w	Obj55_Index(pc,d0.w),d1
 		jmp	Obj55_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj55_Index:	dc.w loc_181E4-Obj55_Index; 0 ;	DATA XREF: ROM:Obj55_Indexo
 					; ROM:Obj55_Index+2o ...
 		dc.w loc_18302-Obj55_Index; 1
 		dc.w loc_18340-Obj55_Index; 2
 		dc.w loc_18372-Obj55_Index; 3
 		dc.w loc_18410-Obj55_Index; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_181E4:				; DATA XREF: ROM:Obj55_Indexo
 		move.l	#Map_Obj55,4(a0)
@@ -34044,10 +34014,10 @@ loc_182E8:				; CODE XREF: ROM:00018236j
 		add.w	d0,d0
 		movea.l	dword_182FA(pc,d0.w),a1
 		jmp	(a1)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 dword_182FA:	dc.l 0
 		dc.l loc_17F54
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18302:				; DATA XREF: ROM:Obj55_Indexo
 		move.b	$28(a0),d0
@@ -34063,10 +34033,10 @@ loc_18302:				; DATA XREF: ROM:Obj55_Indexo
 		andi.b	#$FC,1(a0)
 		or.b	d0,1(a0)
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 dword_18338:	dc.l 0
 		dc.l Obj57
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18340:				; DATA XREF: ROM:Obj55_Indexo
 		movea.l	$34(a0),a1
@@ -34077,9 +34047,9 @@ loc_18340:				; DATA XREF: ROM:Obj55_Indexo
 		movea.l	#Ani_Obj55a,a1
 		jsr	AnimateSprite
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_1836E:	dc.b   0,$FF,  1,  0	; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18372:				; DATA XREF: ROM:Obj55_Indexo
 		btst	#7,$22(a0)
@@ -34106,14 +34076,14 @@ loc_183BA:				; CODE XREF: ROM:0001839Aj
 		cmpi.b	#$FF,$1A(a0)
 		bne.w	loc_185D4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_183C6:				; CODE XREF: ROM:00018378j
 		movea.l	$34(a0),a1
 		btst	#6,$2E(a1)
 		bne.s	loc_183D4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_183D4:				; CODE XREF: ROM:000183D0j
 		addq.b	#2,$24(a0)
@@ -34127,7 +34097,7 @@ loc_183D4:				; CODE XREF: ROM:000183D0j
 		addi.w	#4,$C(a0)
 		subi.w	#$28,8(a0) ; '('
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18410:				; DATA XREF: ROM:Obj55_Indexo
 		subq.b	#1,$1E(a0)
@@ -34148,18 +34118,18 @@ loc_18410:				; DATA XREF: ROM:Obj55_Indexo
 loc_18452:				; CODE XREF: ROM:00018414j
 					; ROM:00018426j
 		bra.w	loc_185D4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj56:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
 		move.b	$24(a0),d0
 		move.w	Obj56_Index(pc,d0.w),d1
 		jmp	Obj56_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj56_Index:	dc.w Obj56_Init-Obj56_Index ; DATA XREF: ROM:Obj56_Indexo
 					; ROM:00018466o
 		dc.w Obj56_Animate-Obj56_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj56_Init:				; DATA XREF: ROM:Obj56_Indexo
 		addq.b	#2,$24(a0)
@@ -34172,7 +34142,7 @@ Obj56_Init:				; DATA XREF: ROM:Obj56_Indexo
 		move.b	#7,$1E(a0)
 		move.b	#0,$1A(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj56_Animate:				; DATA XREF: ROM:00018466o
 		subq.b	#1,$1E(a0)
@@ -34184,7 +34154,7 @@ Obj56_Animate:				; DATA XREF: ROM:00018466o
 
 loc_184BA:				; CODE XREF: ROM:000184A4j
 		bra.w	loc_185D4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj55a:	dc.w word_184C2-Map_Obj55a ; DATA XREF:	ROM:loc_182ACo
 					; ROM:Map_Obj55ao ...
 		dc.w word_184CC-Map_Obj55a
@@ -34251,21 +34221,26 @@ word_185B0:	dc.w 4			; DATA XREF: ROM:0001856Ao
 		dc.w $E80D,  $38,  $1C,$FFF0; 4
 		dc.w $E805,  $24,  $12,	 $10; 8
 		dc.w $D805,  $20,  $10,	   2; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 loc_185D4:				; CODE XREF: ROM:000183C0j
 					; ROM:loc_18452j ...
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_185DA:				; CODE XREF: ROM:00018436j
 					; ROM:000184B6j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
+
+;----------------------------------------------------
+; Object 8A - "SONIC TEAM PRESENTS"/credits text from Sonic 1, unused in the final game too
+;----------------------------------------------------
 
 Obj8A:					; DATA XREF: ROM:Obj_Indexo
 		moveq	#0,d0
@@ -34274,11 +34249,11 @@ loc_185E2:
 		move.b	$24(a0),d0
 		move.w	off_185EE(pc,d0.w),d1
 		jmp	off_185EE(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 off_185EE:	dc.w loc_185F2-off_185EE ; DATA	XREF: ROM:off_185EEo
 					; ROM:000185F0o
 		dc.w loc_18660-off_185EE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_185F2:				; DATA XREF: ROM:off_185EEo
 		addq.b	#2,$24(a0)
@@ -34305,12 +34280,12 @@ loc_1864E:
 		move.w	#$EEE,($FFFFFBC0).w
 		move.w	#$880,($FFFFFBC2).w
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18660:				; CODE XREF: ROM:0001862Ej
 					; ROM:00018644j ...
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj8A:	dc.w word_1867C-Map_Obj8A ; DATA XREF: ROM:00018602o
 					; ROM:Map_Obj8Ao ...
 		dc.w word_186EE-Map_Obj8A
@@ -34538,19 +34513,19 @@ word_18C68:	dc.w $11		; DATA XREF: ROM:0001867Ao
 		dc.w	 5,  $1A,   $D,	 $10; 56
 		dc.w	 5,  $3E,  $1F,	 $20; 60
 		dc.w	 5,  $2E,  $17,	 $30; 64
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 j_ModifySpriteAttr_2P_4:		; CODE XREF: ROM:00018610p
 					; ROM:00018636p
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 ;----------------------------------------------------
 ; Object 3D - GHZ Boss
@@ -34561,7 +34536,7 @@ Obj3D:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj3D_Index(pc,d0.w),d1
 		jmp	Obj3D_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj3D_Index:	dc.w Obj3D_Main-Obj3D_Index ; DATA XREF: ROM:Obj3D_Indexo
 					; ROM:00018D0Co ...
 		dc.w Obj3D_ShipMain-Obj3D_Index
@@ -34570,14 +34545,14 @@ Obj3D_Index:	dc.w Obj3D_Main-Obj3D_Index ; DATA XREF: ROM:Obj3D_Indexo
 Obj3D_ObjData:	dc.b   2,  0		; 0 ; DATA XREF: ROM:Obj3D_Maint
 		dc.b   4,  1		; 2
 		dc.b   6,  7		; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3D_Main:				; DATA XREF: ROM:Obj3D_Indexo
 		lea	Obj3D_ObjData(pc),a2
 		movea.l	a0,a1
 		moveq	#2,d1
 		bra.s	loc_18D2A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18D22:				; CODE XREF: ROM:00018D6Cj
 		jsr	S1SingleObjectLoad2
@@ -34616,7 +34591,7 @@ Obj3D_ShipMain:				; DATA XREF: ROM:00018D0Co
 		andi.b	#$FC,1(a0)
 		or.b	d0,1(a0)
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj3D_ShipIndex:dc.w loc_18DC8-Obj3D_ShipIndex ; DATA XREF: ROM:Obj3D_ShipIndexo
 					; ROM:00018DBCo ...
 		dc.w loc_18EC8-Obj3D_ShipIndex
@@ -34625,7 +34600,7 @@ Obj3D_ShipIndex:dc.w loc_18DC8-Obj3D_ShipIndex ; DATA XREF: ROM:Obj3D_ShipIndex
 		dc.w loc_18F78-Obj3D_ShipIndex
 		dc.w loc_18FAA-Obj3D_ShipIndex
 		dc.w loc_18FF6-Obj3D_ShipIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18DC8:				; DATA XREF: ROM:Obj3D_ShipIndexo
 		move.w	#$100,$12(a0)
@@ -34672,7 +34647,7 @@ loc_18E3A:				; CODE XREF: ROM:00018E34j
 locret_18E48:				; CODE XREF: ROM:00018E08j
 					; ROM:00018E14j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18E4A:				; CODE XREF: ROM:00018E0Ej
 		moveq	#$64,d0	; 'd'
@@ -34681,7 +34656,7 @@ loc_18E4A:				; CODE XREF: ROM:00018E0Ej
 		move.w	#$B3,$3C(a0) ; 'і'
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 BossDefeated:				; CODE XREF: ROM:00017956j
@@ -34711,7 +34686,7 @@ locret_18EA0:				; CODE XREF: BossDefeated+8j
 ; End of function BossDefeated
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 BossMove:				; CODE XREF: ROM:00018DCEp
@@ -34731,7 +34706,7 @@ BossMove:				; CODE XREF: ROM:00018DCEp
 		rts
 ; End of function BossMove
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18EC8:				; DATA XREF: ROM:00018DBCo
 		move.w	#$FF00,$10(a0)
@@ -34754,7 +34729,7 @@ loc_18F0E:				; CODE XREF: ROM:00018EF6j
 
 loc_18F14:				; CODE XREF: ROM:00018EDEj
 		bra.w	loc_18DE4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18F18:				; DATA XREF: ROM:00018DBEo
 		subq.w	#1,$3C(a0)
@@ -34775,14 +34750,14 @@ loc_18F42:				; CODE XREF: ROM:00018F1Cj
 
 loc_18F4E:				; CODE XREF: ROM:00018F48j
 		bra.w	loc_18DE4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18F52:				; DATA XREF: ROM:00018DC0o
 		subq.w	#1,$3C(a0)
 		bmi.s	loc_18F5E
 		bsr.w	BossMove
 		bra.s	loc_18F74
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18F5E:				; CODE XREF: ROM:00018F56j
 		bchg	#0,$22(a0)
@@ -34792,13 +34767,13 @@ loc_18F5E:				; CODE XREF: ROM:00018F56j
 
 loc_18F74:				; CODE XREF: ROM:00018F5Cj
 		bra.w	loc_18DE4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18F78:				; DATA XREF: ROM:00018DC2o
 		subq.w	#1,$3C(a0)
 		bmi.s	loc_18F82
 		bra.w	BossDefeated
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18F82:				; CODE XREF: ROM:00018F7Cj
 		bset	#0,$22(a0)
@@ -34812,7 +34787,7 @@ loc_18F82:				; CODE XREF: ROM:00018F7Cj
 
 locret_18FA8:				; CODE XREF: ROM:00018FA0j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18FAA:				; DATA XREF: ROM:00018DC4o
 		addq.w	#1,$3C(a0)
@@ -34820,12 +34795,12 @@ loc_18FAA:				; DATA XREF: ROM:00018DC4o
 		bpl.s	loc_18FC0
 		addi.w	#$18,$12(a0)
 		bra.s	loc_18FEE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18FBA:				; CODE XREF: ROM:00018FAEj
 		clr.w	$12(a0)
 		bra.s	loc_18FEE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18FC0:				; CODE XREF: ROM:00018FB0j
 		cmpi.w	#$30,$3C(a0) ; '0'
@@ -34835,12 +34810,12 @@ loc_18FC0:				; CODE XREF: ROM:00018FB0j
 		bcs.s	loc_18FEE
 		addq.b	#2,$25(a0)
 		bra.s	loc_18FEE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18FD8:				; CODE XREF: ROM:00018FC6j
 		subi.w	#8,$12(a0)
 		bra.s	loc_18FEE
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18FE0:				; CODE XREF: ROM:00018FC8j
 		clr.w	$12(a0)
@@ -34851,7 +34826,7 @@ loc_18FEE:				; CODE XREF: ROM:00018FB8j
 					; ROM:00018FBEj ...
 		bsr.w	BossMove
 		bra.w	loc_18DE4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_18FF6:				; DATA XREF: ROM:00018DC6o
 		move.w	#$400,$10(a0)
@@ -34860,7 +34835,7 @@ loc_18FF6:				; DATA XREF: ROM:00018DC6o
 		beq.s	loc_19010
 		addq.w	#2,($FFFFEECA).w
 		bra.s	loc_19016
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19010:				; CODE XREF: ROM:00019008j
 		tst.b	1(a0)
@@ -34869,12 +34844,12 @@ loc_19010:				; CODE XREF: ROM:00019008j
 loc_19016:				; CODE XREF: ROM:0001900Ej
 		bsr.w	BossMove
 		bra.w	loc_18DE4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1901E:				; CODE XREF: ROM:00019014j
 		addq.l	#4,sp
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3D_FaceMain:				; DATA XREF: ROM:00018D0Eo
 		moveq	#0,d0
@@ -34892,7 +34867,7 @@ loc_19040:				; CODE XREF: ROM:00019034j
 		bmi.s	loc_19048
 		moveq	#$A,d1
 		bra.s	loc_1905C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19048:				; CODE XREF: ROM:0001903Cj
 					; ROM:00019042j
@@ -34900,7 +34875,7 @@ loc_19048:				; CODE XREF: ROM:0001903Cj
 		bne.s	loc_19052
 		moveq	#5,d1
 		bra.s	loc_1905C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19052:				; CODE XREF: ROM:0001904Cj
 		cmpi.b	#4,($FFFFB024).w
@@ -34918,11 +34893,11 @@ loc_1905C:				; CODE XREF: ROM:00019046j
 
 loc_19070:				; CODE XREF: ROM:00019062j
 		bra.s	Obj3D_Display
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19072:				; CODE XREF: ROM:0001906Ej
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3D_FlameMain:			; DATA XREF: ROM:00018D10o
 		move.b	#7,$1C(a0)
@@ -34933,7 +34908,7 @@ Obj3D_FlameMain:			; DATA XREF: ROM:00018D10o
 		tst.b	1(a0)
 		bpl.s	loc_190A6
 		bra.s	loc_190A4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19098:				; CODE XREF: ROM:00019088j
 		move.w	$10(a1),d0
@@ -34943,11 +34918,11 @@ loc_19098:				; CODE XREF: ROM:00019088j
 loc_190A4:				; CODE XREF: ROM:00019096j
 					; ROM:0001909Cj
 		bra.s	Obj3D_Display
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_190A6:				; CODE XREF: ROM:00019094j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3D_Display:				; CODE XREF: ROM:loc_19070j
 					; ROM:loc_190A4j
@@ -34962,7 +34937,7 @@ Obj3D_Display:				; CODE XREF: ROM:loc_19070j
 		andi.b	#$FC,1(a0)
 		or.b	d0,1(a0)
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 48 - the ball that swings on the GHZ boss
 ;----------------------------------------------------
@@ -34972,14 +34947,14 @@ Obj48:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj48_Index(pc,d0.w),d1
 		jmp	Obj48_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj48_Index:	dc.w Obj48_Init-Obj48_Index ; DATA XREF: ROM:Obj48_Indexo
 					; ROM:000190F6o ...
 		dc.w Obj48_Main-Obj48_Index
 		dc.w loc_19226-Obj48_Index
 		dc.w loc_19274-Obj48_Index
 		dc.w loc_19290-Obj48_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj48_Init:				; DATA XREF: ROM:Obj48_Indexo
 		addq.b	#2,$24(a0)
@@ -34993,7 +34968,7 @@ Obj48_Init:				; DATA XREF: ROM:Obj48_Indexo
 		moveq	#5,d1
 		movea.l	a0,a1
 		bra.s	loc_1916A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1912E:				; CODE XREF: ROM:00019190j
 		jsr	S1SingleObjectLoad2
@@ -35029,9 +35004,9 @@ loc_19194:				; CODE XREF: ROM:00019134j
 		move.b	#5,$18(a1)
 		move.b	#$81,$20(a1)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj48_PosData:	dc.b   0,$10,$20,$30,$40,$60; 0	; DATA XREF: ROM:Obj48_Maint
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj48_Main:				; DATA XREF: ROM:000190F6o
 		lea	Obj48_PosData(pc),a3
@@ -35070,14 +35045,14 @@ loc_19212:				; CODE XREF: ROM:0001920Cj
 		move.b	$26(a0),d0
 		jsr	loc_842E
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19226:				; DATA XREF: ROM:000190F8o
 		bsr.w	sub_19236
 		jsr	loc_83EA
 		jmp	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_19236:				; CODE XREF: ROM:loc_19212p
@@ -35102,7 +35077,7 @@ locret_19272:				; CODE XREF: sub_19236+2Ej
 		rts
 ; End of function sub_19236
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19274:				; DATA XREF: ROM:000190FAo
 		movea.l	$34(a0),a1
@@ -35113,7 +35088,7 @@ loc_19274:				; DATA XREF: ROM:000190FAo
 
 loc_1928A:				; CODE XREF: ROM:0001927Cj
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19290:				; DATA XREF: ROM:000190FCo
 		moveq	#0,d0
@@ -35136,7 +35111,7 @@ loc_1929A:				; CODE XREF: ROM:00019296j
 loc_192C2:				; CODE XREF: ROM:000192A6j
 					; ROM:000192B6j
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Eggman:	dc.w byte_192E0-Ani_Eggman ; DATA XREF:	ROM:00018D96o
 					; ROM:000190C2o ...
 		dc.w byte_192E3-Ani_Eggman
@@ -35253,16 +35228,16 @@ word_194B4:	dc.w 2			; DATA XREF: ROM:00019454o
 word_194C6:	dc.w 2			; DATA XREF: ROM:00019456o
 		dc.w $1804,  $1C,   $E,	   0; 0
 		dc.w	$B,  $1E,   $F,	 $10; 4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifyA1SpriteAttr_2P_1:		; CODE XREF: ROM:00018D4Ep
 					; ROM:0001915Cp ...
 		jmp	ModifyA1SpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifySpriteAttr_2P_5:		; CODE XREF: ROM:0001911Cp
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
 ; Object 3E - prison capsule
 ;----------------------------------------------------
@@ -35278,11 +35253,11 @@ Obj3E:					; DATA XREF: ROM:Obj_Indexo
 		cmpi.w	#$280,d0
 		bhi.s	loc_1950A
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1950A:				; CODE XREF: ROM:00019502j
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj3E_Index:	dc.w Obj3E_Init-Obj3E_Index ; DATA XREF: ROM:Obj3E_Indexo
 					; ROM:00019512o ...
 		dc.w Obj3E_BodyMain-Obj3E_Index
@@ -35296,7 +35271,7 @@ Obj3E_Var:	dc.b   2,$20,  4,  0	; 0
 		dc.b   4, $C,  5,  1	; 4
 		dc.b   6,$10,  4,  3	; 8
 		dc.b   8,$10,  3,  5	; 12
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3E_Init:				; DATA XREF: ROM:Obj3E_Indexo
 		move.l	#Map_Obj3E,4(a0)
@@ -35319,7 +35294,7 @@ Obj3E_Init:				; DATA XREF: ROM:Obj3E_Indexo
 
 locret_1957C:				; CODE XREF: ROM:0001956Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3E_BodyMain:				; DATA XREF: ROM:00019512o
 		cmpi.b	#2,($FFFFF7A7).w
@@ -35329,7 +35304,7 @@ Obj3E_BodyMain:				; DATA XREF: ROM:00019512o
 		move.w	#$18,d3
 		move.w	8(a0),d4
 		jmp	SolidObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1959C:				; CODE XREF: ROM:00019584j
 		tst.b	$25(a0)
@@ -35341,7 +35316,7 @@ loc_1959C:				; CODE XREF: ROM:00019584j
 loc_195B2:				; CODE XREF: ROM:000195A0j
 		move.b	#2,$1A(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3E_Switched:				; DATA XREF: ROM:00019514o
 		move.w	#$17,d1
@@ -35368,7 +35343,7 @@ Obj3E_Switched:				; DATA XREF: ROM:00019514o
 
 locret_19620:				; CODE XREF: ROM:000195EAj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3E_Explosion:			; DATA XREF: ROM:00019516o
 					; ROM:00019518o ...
@@ -35395,7 +35370,7 @@ loc_19660:				; CODE XREF: ROM:00019628j
 		subq.w	#1,$1E(a0)
 		beq.s	loc_19668
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19668:				; CODE XREF: ROM:00019664j
 		move.b	#2,($FFFFF7A7).w
@@ -35421,7 +35396,7 @@ loc_1968E:				; CODE XREF: ROM:000196B4j
 
 locret_196B8:				; CODE XREF: ROM:00019694j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3E_Animals:				; DATA XREF: ROM:0001951Co
 		moveq	#7,d0
@@ -35452,7 +35427,7 @@ loc_196F8:				; CODE XREF: ROM:000196C0j
 
 locret_19708:				; CODE XREF: ROM:000196FCj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj3E_EndAct:				; DATA XREF: ROM:0001951Eo
 		moveq	#$3E,d0	; '>'
@@ -35467,11 +35442,11 @@ loc_19714:				; CODE XREF: ROM:0001971Aj
 		dbf	d0,loc_19714
 		jsr	GotThroughAct
 		jmp	DeleteObject
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_1972A:				; CODE XREF: ROM:00019716j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Ani_Obj3E:	dc.w byte_19730-Ani_Obj3E ; DATA XREF: ROM:000195D0o
 					; ROM:Ani_Obj3Eo ...
 		dc.w byte_19730-Ani_Obj3E
@@ -35511,17 +35486,16 @@ word_197D4:	dc.w 1			; DATA XREF: ROM:0001973Eo
 		dc.w $F007,$206D,$2036,$FFF8; 0
 unk_197DE:	dc.b   0		; DATA XREF: ROM:00019740o
 		even
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifySpriteAttr_2P_6:		; CODE XREF: ROM:0001953Ep
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 TouchResponse:				; CODE XREF: ROM:0000FB08p
@@ -35531,7 +35505,6 @@ TouchResponse:				; CODE XREF: ROM:0000FB08p
 
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 		bsr.w	loc_19B7A
 		move.w	8(a0),d2
@@ -35564,7 +35537,7 @@ loc_19826:				; CODE XREF: TouchResponse+B0j
 
 locret_19830:
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Touch_Sizes:	dc.b $14,$14		; 0 ; DATA XREF: TouchResponse+98t
 		dc.b  $C,$14		; 2
 		dc.b $14, $C		; 4
@@ -35601,7 +35574,7 @@ Touch_Sizes:	dc.b $14,$14		; 0 ; DATA XREF: TouchResponse+98t
 		dc.b $18,$18		; 66
 		dc.b  $C,$18		; 68
 		dc.b $48,  8		; 70
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Touch_Height:				; CODE XREF: TouchResponse+3Cj
 		andi.w	#$3F,d0	; '?'
@@ -35617,7 +35590,7 @@ Touch_Height:				; CODE XREF: TouchResponse+3Cj
 		add.w	d1,d0
 		bcs.s	loc_198A2
 		bra.w	loc_19826
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1989C:				; CODE XREF: TouchResponse+A8j
 		cmp.w	d4,d0
@@ -35634,7 +35607,7 @@ loc_198A2:				; CODE XREF: TouchResponse+AEj
 		add.w	d1,d0
 		bcs.s	loc_198C0
 		bra.w	loc_19826
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_198BA:				; CODE XREF: TouchResponse+C6j
 		cmp.w	d5,d0
@@ -35658,7 +35631,7 @@ loc_198C0:				; CODE XREF: TouchResponse+CCj
 
 locret_198F8:				; CODE XREF: TouchResponse+106j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_198FA:				; CODE XREF: TouchResponse+FEj
 		tst.w	$12(a0)
@@ -35677,7 +35650,7 @@ loc_19912:
 		bne.s	locret_19938
 		move.b	#4,$25(a1)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19926:				; CODE XREF: TouchResponse+116j
 		cmpi.b	#2,$1C(a0)
@@ -35688,7 +35661,7 @@ loc_19926:				; CODE XREF: TouchResponse+116j
 locret_19938:				; CODE XREF: TouchResponse+124j
 					; TouchResponse+134j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1993A:				; CODE XREF: TouchResponse+E0j
 					; TouchResponse:loc_19B56j
@@ -35714,7 +35687,7 @@ loc_19952:				; CODE XREF: TouchResponse+156j
 
 locret_1997A:				; CODE XREF: TouchResponse+18Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Touch_KillEnemy:			; CODE XREF: TouchResponse+16Ej
 		bset	#7,$22(a1)
@@ -35744,19 +35717,19 @@ loc_199AE:				; CODE XREF: TouchResponse+1BAj
 		bcc.s	loc_199DC
 		neg.w	$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_199D4:				; CODE XREF: TouchResponse+1DAj
 		addi.w	#$100,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_199DC:				; CODE XREF: TouchResponse+1E4j
 		subi.w	#$100,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Enemy_Points:	dc.w	10,   20,   50,	 100; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_199EC:				; CODE XREF: TouchResponse:Touch_Caterkillerj
 		bset	#7,$22(a1)
@@ -35769,12 +35742,11 @@ loc_199F2:				; CODE XREF: TouchResponse+EEj
 loc_199F8:				; CODE XREF: TouchResponse+21Aj
 		moveq	#-1,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Touch_Hurt:				; CODE XREF: TouchResponse+20Ej
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 		tst.w	$30(a0)
 		bne.s	loc_199F8
@@ -35782,7 +35754,7 @@ Touch_Hurt:				; CODE XREF: TouchResponse+20Ej
 ; End of function TouchResponse
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HurtSonic:				; CODE XREF: ROM:0000C75Ep
@@ -35833,7 +35805,7 @@ loc_19A98:				; CODE XREF: HurtSonic+86j
 		jsr	(PlaySound_Special).l
 		moveq	#-1,d0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Hurt_NoRings:				; CODE XREF: HurtSonic:loc_19A10j
 		tst.w	($FFFFFFFA).w
@@ -35841,7 +35813,7 @@ Hurt_NoRings:				; CODE XREF: HurtSonic:loc_19A10j
 ; End of function HurtSonic
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 KillSonic:				; CODE XREF: sub_F456+268p
@@ -35871,7 +35843,7 @@ Kill_NoDeath:				; CODE XREF: KillSonic+4j
 		rts
 ; End of function KillSonic
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR TouchResponse
 
 Touch_Special:				; CODE XREF: TouchResponse+E8j
@@ -35886,11 +35858,11 @@ Touch_Special:				; CODE XREF: TouchResponse+E8j
 		cmpi.b	#$21,d1	; '!'
 		beq.s	Touch_E1
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Touch_Caterkiller:			; CODE XREF: TouchResponse+326j
 		bra.w	loc_199EC
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Touch_Yadrin:				; CODE XREF: TouchResponse+32Cj
 		sub.w	d0,d5
@@ -35908,7 +35880,7 @@ loc_19B42:				; CODE XREF: TouchResponse+354j
 		addi.w	#$18,d0
 		bcs.s	loc_19B52
 		bra.s	loc_19B56
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19B4E:				; CODE XREF: TouchResponse+35Cj
 		cmp.w	d4,d0
@@ -35916,12 +35888,12 @@ loc_19B4E:				; CODE XREF: TouchResponse+35Cj
 
 loc_19B52:				; CODE XREF: TouchResponse+362j
 		bra.w	loc_199F2
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19B56:				; CODE XREF: TouchResponse+346j
 					; TouchResponse+364j ...
 		bra.w	loc_1993A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Touch_D7:				; CODE XREF: TouchResponse+332j
 		move.w	a0,d1
@@ -35932,27 +35904,26 @@ Touch_D7:				; CODE XREF: TouchResponse+332j
 loc_19B66:				; CODE XREF: TouchResponse+378j
 		addq.b	#1,$21(a1)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Touch_E1:				; CODE XREF: TouchResponse+338j
 		addq.b	#1,$21(a1)
 		rts
 ; END OF FUNCTION CHUNK	FOR TouchResponse
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 
 j_Sonic_ResetOnFloor:			; CODE XREF: HurtSonic+34p
 					; KillSonic+12p
 		jmp	Sonic_ResetOnFloor
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19B7A:				; CODE XREF: TouchResponse+2p
 		jmp	sub_D998
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ; leftover from	Sonic 1
 
@@ -36071,7 +36042,7 @@ loc_19C9A:				; CODE XREF: S1SS_ShowLayout+C6j
 		beq.s	loc_19CBA
 		move.l	#0,(a2)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19CBA:				; CODE XREF: S1SS_ShowLayout+130j
 		move.b	#0,-5(a2)
@@ -36079,7 +36050,7 @@ loc_19CBA:				; CODE XREF: S1SS_ShowLayout+130j
 ; End of function S1SS_ShowLayout
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_19CC2:				; CODE XREF: S1SS_ShowLayoutp
@@ -36191,7 +36162,7 @@ loc_19D82:				; CODE XREF: sub_19CC2+AEj
 		rts
 ; End of function sub_19CC2
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1SS_WaRiVramSet:dc.w  $142,$6142, $142, $142, $142, $142, $142,$6142; 0
 					; DATA XREF: sub_19CC2+C6o
 		dc.w  $142,$6142, $142,	$142, $142, $142, $142,$6142; 8
@@ -36202,7 +36173,7 @@ S1SS_WaRiVramSet:dc.w  $142,$6142, $142, $142, $142, $142, $142,$6142; 0
 		dc.w $6142,$4142,$6142,$6142,$6142,$6142,$6142,$4142; 48
 		dc.w $6142,$4142,$6142,$6142,$6142,$6142,$6142,$4142; 56
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_19EEC:				; CODE XREF: Obj09_ChkItems+40p
@@ -36221,7 +36192,7 @@ locret_19F00:				; CODE XREF: sub_19EEC+Cj
 ; End of function sub_19EEC
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_19F02:				; CODE XREF: S1SS_ShowLayout+4p
@@ -36244,14 +36215,14 @@ loc_19F1C:
 		rts
 ; End of function sub_19F02
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1SS_AniIndex:	dc.l loc_19F3A		; DATA XREF: sub_19F02+12t
 		dc.l loc_19F6A
 		dc.l loc_19FA0
 		dc.l loc_19FD0
 		dc.l loc_1A006
 		dc.l loc_1A046
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19F3A:				; DATA XREF: ROM:S1SS_AniIndexo
 		subq.b	#1,2(a0)
@@ -36270,9 +36241,9 @@ loc_19F3A:				; DATA XREF: ROM:S1SS_AniIndexo
 locret_19F62:				; CODE XREF: ROM:00019F3Ej
 					; ROM:00019F5Aj
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_19F64:	dc.b $42,$43,$44,$45,  0,  0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19F6A:				; DATA XREF: ROM:00019F26o
 		subq.b	#1,2(a0)
@@ -36288,16 +36259,16 @@ loc_19F6A:				; DATA XREF: ROM:00019F26o
 		clr.l	4(a0)
 		move.b	#$25,(a1) ; '%'
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19F96:				; CODE XREF: ROM:00019F88j
 		move.b	d0,(a1)
 
 locret_19F98:				; CODE XREF: ROM:00019F6Ej
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_19F9A:	dc.b $32,$33,$32,$33,  0,  0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19FA0:				; DATA XREF: ROM:00019F2Ao
 		subq.b	#1,2(a0)
@@ -36316,9 +36287,9 @@ loc_19FA0:				; DATA XREF: ROM:00019F2Ao
 locret_19FC8:				; CODE XREF: ROM:00019FA4j
 					; ROM:00019FC0j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_19FCA:	dc.b $46,$47,$48,$49,  0,  0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19FD0:				; DATA XREF: ROM:00019F2Eo
 		subq.b	#1,2(a0)
@@ -36334,16 +36305,16 @@ loc_19FD0:				; DATA XREF: ROM:00019F2Eo
 		clr.l	4(a0)
 		move.b	#$2B,(a1) ; '+'
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_19FFC:				; CODE XREF: ROM:00019FEEj
 		move.b	d0,(a1)
 
 locret_19FFE:				; CODE XREF: ROM:00019FD4j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_1A000:	dc.b $2B,$31,$2B,$31,  0,  0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A006:				; DATA XREF: ROM:00019F32o
 		subq.b	#1,2(a0)
@@ -36365,9 +36336,9 @@ loc_1A006:				; DATA XREF: ROM:00019F32o
 locret_1A03E:				; CODE XREF: ROM:0001A00Aj
 					; ROM:0001A026j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_1A040:	dc.b $46,$47,$48,$49,  0,  0; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A046:				; DATA XREF: ROM:00019F36o
 		subq.b	#1,2(a0)
@@ -36387,7 +36358,7 @@ loc_1A046:				; DATA XREF: ROM:00019F36o
 locret_1A072:				; CODE XREF: ROM:0001A04Aj
 					; ROM:0001A066j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 byte_1A074:	dc.b $4B,$4C,$4D,$4E,$4B,$4C,$4D,$4E; 0
 		dc.b   0,  0		; 8
 S1SS_LayoutIndex:dc.l S1SS_1,S1SS_2	 ; 0
@@ -36400,7 +36371,7 @@ S1SS_StartLoc:	dc.w  $3D0, $2E0	; 0
 		dc.w  $340, $6B8	; 8
 		dc.w  $49B, $358	; 10
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 S1SS_Load:				; CODE XREF: ROM:000050E0p
@@ -36425,7 +36396,7 @@ loc_1A0DC:				; CODE XREF: S1SS_Load:loc_1A0E4j
 		cmp.b	(a3,d1.w),d0
 		bne.s	loc_1A0E4
 		bra.s	S1SS_Load
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A0E4:				; CODE XREF: S1SS_Load+32j
 		dbf	d1,loc_1A0DC
@@ -36477,7 +36448,7 @@ loc_1A162:				; CODE XREF: S1SS_Load+B6j
 		rts
 ; End of function S1SS_Load
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 S1SS_MapIndex:	dc.l S1Map_SS_R		; DATA XREF: S1SS_Load+90o
 		dc.w $142
 		dc.l S1Map_SS_R
@@ -36693,10 +36664,11 @@ byte_1A3AA:	dc.b 1			; DATA XREF: ROM:S1Map_SS_Chaos3o
 byte_1A3B0:	dc.b 1			; DATA XREF: ROM:0001A394o
 					; ROM:0001A398o ...
 		dc.b $F8,  5,  0, $C,$F8; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 09 - Sonic in Sonic 1 special stage
@@ -36707,20 +36679,20 @@ Obj09:					; DATA XREF: ROM:Obj_Indexo
 		beq.s	Obj09_Normal
 		bsr.w	S1SS_FixCamera
 		bra.w	DebugMode
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj09_Normal:				; CODE XREF: ROM:0001A3BCj
 		moveq	#0,d0
 		move.b	$24(a0),d0
 		move.w	Obj09_Index(pc,d0.w),d1
 		jmp	Obj09_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj09_Index:	dc.w loc_1A3DC-Obj09_Index ; DATA XREF:	ROM:Obj09_Indexo
 					; ROM:0001A3D6o ...
 		dc.w loc_1A41C-Obj09_Index
 		dc.w loc_1A618-Obj09_Index
 		dc.w loc_1A66C-Obj09_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A3DC:				; DATA XREF: ROM:Obj09_Indexo
 		addq.b	#2,$24(a0)
@@ -36752,18 +36724,18 @@ loc_1A430:				; CODE XREF: ROM:0001A420j
 		jsr	Obj09_Modes(pc,d1.w)
 		jsr	LoadSonicDynPLC
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj09_Modes:	dc.w Obj09_OnWall-Obj09_Modes ;	DATA XREF: ROM:Obj09_Modeso
 					; ROM:0001A456o
 		dc.w Obj09_InAir-Obj09_Modes
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj09_OnWall:				; DATA XREF: ROM:Obj09_Modeso
 		bsr.w	Obj09_Jump
 		bsr.w	Obj09_Move
 		bsr.w	Obj09_Fall
 		bra.s	Obj09_Display
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj09_InAir:				; DATA XREF: ROM:0001A456o
 		bsr.w	nullsub_2
@@ -36781,7 +36753,7 @@ Obj09_Display:				; CODE XREF: ROM:0001A464j
 		jsr	Sonic_Animate
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Obj09_Move:				; CODE XREF: ROM:0001A45Cp
@@ -36809,7 +36781,7 @@ loc_1A4B0:				; CODE XREF: Obj09_Move+12j
 loc_1A4CC:				; CODE XREF: Obj09_Move+2Ej
 		move.w	d0,$14(a0)
 		bra.s	loc_1A4E0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A4D2:				; CODE XREF: Obj09_Move+28j
 		addi.w	#$C,d0
@@ -36840,7 +36812,7 @@ loc_1A4E0:				; CODE XREF: Obj09_Move+20j
 		sub.l	d0,$C(a0)
 		move.w	#0,$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A52A:				; CODE XREF: Obj09_Move+7Cj
 		movem.l	(sp)+,d0-d1
@@ -36848,7 +36820,7 @@ loc_1A52A:				; CODE XREF: Obj09_Move+7Cj
 ; End of function Obj09_Move
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Obj09_MoveLeft:				; CODE XREF: Obj09_Move+8p
@@ -36866,7 +36838,7 @@ loc_1A53E:				; CODE XREF: Obj09_MoveLeft+Aj
 loc_1A54C:				; CODE XREF: Obj09_MoveLeft+16j
 		move.w	d0,$14(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A552:				; CODE XREF: Obj09_MoveLeft+Cj
 		subi.w	#$40,d0	; '@'
@@ -36879,7 +36851,7 @@ loc_1A55A:				; CODE XREF: Obj09_MoveLeft+26j
 ; End of function Obj09_MoveLeft
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Obj09_MoveRight:			; CODE XREF: Obj09_Move+14p
@@ -36894,7 +36866,7 @@ Obj09_MoveRight:			; CODE XREF: Obj09_Move+14p
 loc_1A57A:				; CODE XREF: Obj09_MoveRight+14j
 		move.w	d0,$14(a0)
 		bra.s	locret_1A58C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A580:				; CODE XREF: Obj09_MoveRight+Aj
 		addi.w	#$40,d0	; '@'
@@ -36909,7 +36881,7 @@ locret_1A58C:				; CODE XREF: Obj09_MoveRight+1Ej
 ; End of function Obj09_MoveRight
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Obj09_Jump:				; CODE XREF: ROM:Obj09_OnWallp
@@ -36936,14 +36908,14 @@ locret_1A5D0:				; CODE XREF: Obj09_Jump+8j
 ; End of function Obj09_Jump
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 nullsub_2:				; CODE XREF: ROM:Obj09_InAirp
 		rts
 ; End of function nullsub_2
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 		move.w	#$FC00,d1
 		cmp.w	$12(a0),d1
 		ble.s	locret_1A5EC
@@ -36956,7 +36928,7 @@ locret_1A5EC:				; CODE XREF: ROM:0001A5DCj
 					; ROM:0001A5E6j
 		rts
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 S1SS_FixCamera:				; CODE XREF: ROM:0001A3BEp
@@ -36980,7 +36952,7 @@ locret_1A616:				; CODE XREF: S1SS_FixCamera+20j
 		rts
 ; End of function S1SS_FixCamera
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A618:				; DATA XREF: ROM:0001A3D8o
 		addi.w	#$40,($FFFFF782).w ; '@'
@@ -37004,7 +36976,7 @@ loc_1A64A:				; CODE XREF: ROM:0001A632j
 		jsr	LoadSonicDynPLC
 		bsr.w	S1SS_FixCamera
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A66C:				; DATA XREF: ROM:0001A3DAo
 		subq.w	#1,$38(a0)
@@ -37017,7 +36989,7 @@ loc_1A678:				; CODE XREF: ROM:0001A670j
 		bsr.w	S1SS_FixCamera
 		jmp	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Obj09_Fall:				; CODE XREF: ROM:0001A460p
@@ -37051,7 +37023,7 @@ Obj09_Fall:				; CODE XREF: ROM:0001A460p
 		moveq	#0,d1
 		move.w	d1,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A6E8:				; CODE XREF: Obj09_Fall+38j
 		add.l	d1,d2
@@ -37068,7 +37040,7 @@ loc_1A6FE:				; CODE XREF: Obj09_Fall+4Ej
 		move.w	d0,$10(a0)
 		move.w	d1,$12(a0)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A70C:				; CODE XREF: Obj09_Fall+60j
 		asr.l	#8,d0
@@ -37080,7 +37052,7 @@ loc_1A70C:				; CODE XREF: Obj09_Fall+60j
 ; End of function Obj09_Fall
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_1A720:				; CODE XREF: Obj09_Move+78p
@@ -37116,7 +37088,7 @@ sub_1A720:				; CODE XREF: Obj09_Move+78p
 ; End of function sub_1A720
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_1A768:				; CODE XREF: sub_1A720+32p
@@ -37131,7 +37103,7 @@ sub_1A768:				; CODE XREF: sub_1A720+32p
 
 locret_1A77C:				; CODE XREF: sub_1A768j sub_1A768+6j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A77E:				; CODE XREF: sub_1A768+Cj
 					; sub_1A768+12j
@@ -37142,7 +37114,7 @@ loc_1A77E:				; CODE XREF: sub_1A768+Cj
 ; End of function sub_1A768
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Obj09_ChkItems:				; CODE XREF: ROM:Obj09_Displayp
@@ -37164,7 +37136,7 @@ Obj09_ChkItems:				; CODE XREF: ROM:Obj09_Displayp
 		bne.w	loc_1A894
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A7C4:				; CODE XREF: Obj09_ChkItems+2Cj
 		cmpi.b	#$3A,d4	; ':'
@@ -37188,7 +37160,7 @@ loc_1A7FC:				; CODE XREF: Obj09_ChkItems+5Aj
 					; Obj09_ChkItems+62j
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A800:				; CODE XREF: Obj09_ChkItems+3Ej
 		cmpi.b	#$28,d4	; '('
@@ -37205,7 +37177,7 @@ loc_1A814:				; CODE XREF: Obj09_ChkItems+80j
 		jsr	(PlaySound).l
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A82A:				; CODE XREF: Obj09_ChkItems+7Aj
 		cmpi.b	#$3B,d4	; ';'
@@ -37232,7 +37204,7 @@ loc_1A862:				; CODE XREF: Obj09_ChkItems+C0j
 		jsr	(PlaySound_Special).l
 		moveq	#0,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A870:				; CODE XREF: Obj09_ChkItems+A4j
 					; Obj09_ChkItems+AAj
@@ -37251,7 +37223,7 @@ loc_1A890:				; CODE XREF: Obj09_ChkItems+F6j
 					; Obj09_ChkItems+FEj
 		moveq	#-1,d4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A894:				; CODE XREF: Obj09_ChkItems+32j
 		cmpi.b	#2,$3A(a0)
@@ -37280,7 +37252,7 @@ loc_1A8BE:				; CODE XREF: Obj09_ChkItems+110j
 ; End of function Obj09_ChkItems
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 OBj09_ChkItems2:			; CODE XREF: ROM:0001A476p
@@ -37297,7 +37269,7 @@ loc_1A8D8:				; CODE XREF: OBj09_ChkItems2+Aj
 
 locret_1A8E4:				; CODE XREF: OBj09_ChkItems2+16j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A8E6:				; CODE XREF: OBj09_ChkItems2+4j
 		cmpi.b	#$25,d0	; '%'
@@ -37333,7 +37305,7 @@ loc_1A8E6:				; CODE XREF: OBj09_ChkItems2+4j
 loc_1A954:				; CODE XREF: OBj09_ChkItems2+7Ej
 		move.w	#$B4,d0	; 'ґ'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A95E:				; CODE XREF: OBj09_ChkItems2+24j
 		cmpi.b	#$27,d0	; '''
@@ -37342,7 +37314,7 @@ loc_1A95E:				; CODE XREF: OBj09_ChkItems2+24j
 		move.w	#$A8,d0	; 'Ё'
 		jsr	(PlaySound_Special).l
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A974:				; CODE XREF: OBj09_ChkItems2+9Cj
 		cmpi.b	#$29,d0	; ')'
@@ -37360,7 +37332,7 @@ loc_1A974:				; CODE XREF: OBj09_ChkItems2+9Cj
 loc_1A99E:				; CODE XREF: OBj09_ChkItems2+C8j
 		move.w	#$A9,d0	; '©'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A9A8:				; CODE XREF: OBj09_ChkItems2+B2j
 		cmpi.b	#$2A,d0	; '*'
@@ -37378,7 +37350,7 @@ loc_1A9A8:				; CODE XREF: OBj09_ChkItems2+B2j
 loc_1A9D2:				; CODE XREF: OBj09_ChkItems2+FCj
 		move.w	#$A9,d0	; '©'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1A9DC:				; CODE XREF: OBj09_ChkItems2+E6j
 		cmpi.b	#$2B,d0	; '+'
@@ -37397,7 +37369,7 @@ loc_1AA04:				; CODE XREF: OBj09_ChkItems2+12Ej
 		neg.w	($FFFFF782).w
 		move.w	#$A9,d0	; '©'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1AA12:				; CODE XREF: OBj09_ChkItems2+11Aj
 		cmpi.b	#$2D,d0	; '-'
@@ -37429,31 +37401,30 @@ loc_1AA4A:				; CODE XREF: OBj09_ChkItems2+180j
 loc_1AA4E:				; CODE XREF: OBj09_ChkItems2+168j
 		move.w	#$BA,d0	; 'є'
 		jmp	(PlaySound_Special).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_1AA58:				; CODE XREF: OBj09_ChkItems2+B8j
 					; OBj09_ChkItems2+ECj ...
 		rts
 ; End of function OBj09_ChkItems2
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 ;----------------------------------------------------
-; Object 10 - Tails eating the master emerald
+; Object 10 - null
 ;----------------------------------------------------
 
 Obj10:					; DATA XREF: ROM:Obj_Indexo
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 j_ModifySpriteAttr_2P_7:		; CODE XREF: ROM:0001A3FAp
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 DynamicArtCues:				; CODE XREF: ROM:j_DynamicArtCuesj
@@ -37467,9 +37438,11 @@ DynamicArtCues:				; CODE XREF: ROM:j_DynamicArtCuesj
 		jmp	DynArtCue_Index(pc,d0.w)
 ; End of function DynamicArtCues
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	if RemovePadding=0
+; ---------------------------------------------------------------------------
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
+	endif
 DynArtCue_Index:dc.w Dynamic_NullGHZ-DynArtCue_Index,AnimCue_EHZ-DynArtCue_Index; 0
 					; DATA XREF: ROM:DynArtCue_Indexo
 					; ROM:DynArtCue_Index+2o ...
@@ -37488,15 +37461,17 @@ DynArtCue_Index:dc.w Dynamic_NullGHZ-DynArtCue_Index,AnimCue_EHZ-DynArtCue_Index
 		dc.w Dynamic_Null-DynArtCue_Index,AnimCue_Unk-DynArtCue_Index; 26
 		dc.w Dynamic_Null-DynArtCue_Index,AnimCue_Unk-DynArtCue_Index; 28
 		dc.w Dynamic_Null-DynArtCue_Index,AnimCue_Unk-DynArtCue_Index; 30
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Dynamic_Null:				; DATA XREF: ROM:DynArtCue_Indexo
+	if RemovePadding=0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+	endif
+; ---------------------------------------------------------------------------
 
 Dynamic_NullGHZ:			; DATA XREF: ROM:DynArtCue_Indexo
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Dynamic_Normal:				; DATA XREF: ROM:DynArtCue_Indexo
 		lea	($FFFFF7F0).w,a3
@@ -37544,7 +37519,7 @@ loc_1AB1A:				; CODE XREF: ROM:0001AB16j
 		addq.w	#2,a3
 		dbf	d6,loc_1AACA
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 AnimCue_EHZ:	dc.w 4			; DATA XREF: ROM:DynArtCue_Indexo
 		dc.l Art_EHZFlower1+$FF000000
 		dc.w $7280
@@ -37673,17 +37648,16 @@ AnimCue_Unk:	dc.w 7			; DATA XREF: ROM:DynArtCue_Indexo
 		dc.b   1		; 1
 		dc.b   2		; 2
 		dc.b   3		; 3
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		cmpi.b	#2,($FFFFFE10).w
 		beq.s	loc_1AC28
-	else
 	endif
 
 locret_1AC26:				; CODE XREF: ROM:0001AC30j
 					; ROM:0001AC36j ...
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1AC28:				; CODE XREF: ROM:0001AC24j
 		move.w	($FFFFEE00).w,d0
@@ -37699,7 +37673,7 @@ loc_1AC28:				; CODE XREF: ROM:0001AC24j
 		bsr.s	sub_1AC58
 		lea	($FFFF7D00).l,a1
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 sub_1AC58:				; CODE XREF: ROM:0001AC50p
@@ -37751,7 +37725,7 @@ loc_1AC5C:				; CODE XREF: sub_1AC58+94j
 ; This subroutines changes some	16x16 mappings
 ;----------------------------------------------------
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 LoadMap16Delta:				; CODE XREF: ROM:00003D42p
@@ -37774,7 +37748,7 @@ loc_1AD14:				; CODE XREF: LoadMap16Delta+24j
 
 locret_1AD1A:				; CODE XREF: LoadMap16Delta+12j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1AD1C:				; CODE XREF: LoadMap16Delta+20j
 					; LoadMap16Delta+3Cj
@@ -37789,7 +37763,7 @@ loc_1AD1C:				; CODE XREF: LoadMap16Delta+20j
 		rts
 ; End of function LoadMap16Delta
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map16Delta_Index:dc.w Map16Delta_GHZ1-Map16Delta_Index;	0 ; DATA XREF: ROM:Map16Delta_Indexo
 					; ROM:Map16Delta_Index+2o ...
 		dc.w Map16Delta_GHZ2-Map16Delta_Index; 1
@@ -37835,10 +37809,11 @@ Map16Delta_CPZ1:dc.w $1710,  $77,$62E8,$62E9,$62EA,$62EB,$62EC,$62ED,$62EE,$62EF
 		dc.w $62FB,$62FE,$62FD,	   0,$62FF,    0,    0,$42E8,	 0,$42EA,$42E9,$42EC,$42EB,$42EE,$42ED,	   0; 80
 		dc.w $42EF,    0,    0,$42F0,	 0,$42F2,$42F1,$42F4,$42F3,$42F6,$42F5,	   0,$42F7,    0,    0,$42F8; 96
 		dc.w	 0,$42FA,$42F9,$42FC,$42FB,$42FE,$42FD,	   0,$42FF,    0; 112
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 ;----------------------------------------------------
 ; Object 21 - SCORE, TIME, RINGS
@@ -37849,11 +37824,11 @@ Obj21:					; DATA XREF: ROM:Obj_Indexo
 		move.b	$24(a0),d0
 		move.w	Obj21_Index(pc,d0.w),d1
 		jmp	Obj21_Index(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Obj21_Index:	dc.w Obj21_Init-Obj21_Index ; DATA XREF: ROM:Obj21_Indexo
 					; ROM:0001B038o
 		dc.w Obj21_Main-Obj21_Index
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Obj21_Init:				; DATA XREF: ROM:Obj21_Indexo
 		addq.b	#2,$24(a0)
@@ -37879,7 +37854,7 @@ loc_1B082:				; CODE XREF: ROM:0001B076j
 					; ROM:0001B07Ej
 		move.b	d0,$1A(a0)
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B08C:				; CODE XREF: ROM:0001B06Cj
 		moveq	#0,d0
@@ -37894,7 +37869,7 @@ loc_1B0A2:				; CODE XREF: ROM:0001B094j
 					; ROM:0001B09Ej
 		move.b	d0,$1A(a0)
 		jmp	DisplaySprite
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Map_Obj21:	dc.w word_1B0B4-Map_Obj21 ; DATA XREF: ROM:0001B04Ao
 					; ROM:Map_Obj21o ...
 		dc.w word_1B106-Map_Obj21
@@ -37945,7 +37920,7 @@ word_1B1AA:	dc.w $A			; DATA XREF: ROM:0001B0B2o
 		dc.w $4005,$810A,$8085,	   0; 32
 		dc.w $400D,$A10E,$A087,	 $10; 36
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 AddPoints:				; CODE XREF: ROM:loc_BC66p
@@ -37969,7 +37944,7 @@ loc_1B214:				; CODE XREF: AddPoints+14j
 		addq.b	#1,($FFFFFE1C).w
 		move.w	#$88,d0	; '€'
 		jmp	(PlaySound).l
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 locret_1B23C:				; CODE XREF: AddPoints+1Ej
 					; AddPoints+2Cj
@@ -37977,14 +37952,13 @@ locret_1B23C:				; CODE XREF: AddPoints+1Ej
 ; End of function AddPoints
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HudUpdate:				; CODE XREF: DemoTime:loc_DEAp
 					; ROM:00000F7Cp
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 		lea	(VdpData).l,a6
 		tst.w	($FFFFFFFA).w
@@ -38018,7 +37992,6 @@ loc_1B286:				; CODE XREF: HudUpdate+2Cj
 		cmpi.l	#$93B3B,(a1)+
 	if RemovePadding=0
  	   	nop
-	else
 	endif
 		addq.b	#1,-(a1)
 		cmpi.b	#$3C,(a1) ; '<'
@@ -38065,7 +38038,7 @@ loc_1B2F0:				; CODE XREF: HudUpdate+A8j
 
 locret_1B318:				; CODE XREF: HudUpdate+B6j
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 S1TimeOver:				; leftover from	Sonic 1
 		clr.b	($FFFFFE1E).w
@@ -38074,7 +38047,7 @@ S1TimeOver:				; leftover from	Sonic 1
 		bsr.w	KillSonic
 		move.b	#1,($FFFFFE1A).w
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B330:				; CODE XREF: HudUpdate+Cj
 		bsr.w	HUDDebug_XY
@@ -38117,7 +38090,7 @@ locret_1B39A:				; CODE XREF: HudUpdate+138j
 ; End of function HudUpdate
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUD_LoadZero:				; CODE XREF: HudUpdate+30p
@@ -38129,7 +38102,7 @@ HUD_LoadZero:				; CODE XREF: HudUpdate+30p
 ; End of function HUD_LoadZero
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUD_Base:				; CODE XREF: ROM:00003D24p
@@ -38158,7 +38131,7 @@ loc_1B3E0:				; CODE XREF: HUD_Base+32j
 loc_1B3E6:				; CODE XREF: HUD_Base+46j
 		dbf	d2,loc_1B3D0
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B3EC:				; CODE XREF: HUD_Base+26j HUD_Base+42j
 		move.l	#0,(a6)
@@ -38166,12 +38139,12 @@ loc_1B3EC:				; CODE XREF: HUD_Base+26j HUD_Base+42j
 		bra.s	loc_1B3E6
 ; End of function HUD_Base
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 HUD_TilesBase:	dc.b $16,$FF,$FF,$FF,$FF,$FF,$FF,  0,  0,$14,  0,  0; 0
 					; DATA XREF: HUD_Base+14t
 HUD_TilesZero:	dc.b $FF,$FF,  0,  0	; 0 ; DATA XREF: HUD_LoadZero+At
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUDDebug_XY:				; CODE XREF: HudUpdate:loc_1B330p
@@ -38186,7 +38159,7 @@ HUDDebug_XY:				; CODE XREF: HudUpdate:loc_1B330p
 ; End of function HUDDebug_XY
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUDDebug_XY2:				; CODE XREF: HUDDebug_XY+14p
@@ -38218,7 +38191,7 @@ loc_1B442:				; CODE XREF: HUDDebug_XY2+14j
 ; End of function HUDDebug_XY2
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUD_Rings:				; CODE XREF: HudUpdate+44p
@@ -38229,7 +38202,7 @@ HUD_Rings:				; CODE XREF: HudUpdate+44p
 ; End of function HUD_Rings
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUD_Score:				; CODE XREF: HudUpdate+24p
@@ -38249,7 +38222,7 @@ loc_1B47C:				; CODE XREF: HUD_Score+18j
 		bcs.s	loc_1B484
 		addq.w	#1,d2
 		bra.s	loc_1B47C
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B484:				; CODE XREF: HUD_Score+14j
 		add.l	d3,d1
@@ -38286,7 +38259,7 @@ loc_1B4BC:				; CODE XREF: HUD_Score+26j
 		rts
 ; End of function HUD_Score
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 HUD_Unk:
 		move.l	#$5F800003,(VdpCtrl).l
@@ -38305,7 +38278,7 @@ loc_1B4EA:				; CODE XREF: ROM:0001B4F0j
 		bcs.s	loc_1B4F2
 		addq.w	#1,d2
 		bra.s	loc_1B4EA
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B4F2:				; CODE XREF: ROM:0001B4ECj
 		add.l	d3,d1
@@ -38329,7 +38302,7 @@ loc_1B4F2:				; CODE XREF: ROM:0001B4ECj
 		move.l	(a3)+,(a6)
 		dbf	d6,loc_1B4E6
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 HUD_100000:	dc.l 100000		; DATA XREF: HUD_Scoreo
 HUD_10000:	dc.l 10000
 HUD_1000:	dc.l 1000		; DATA XREF: HUD_TimeRingBonust
@@ -38337,7 +38310,7 @@ HUD_100:	dc.l 100		; DATA XREF: HUD_Ringso
 HUD_10:		dc.l 10			; DATA XREF: ROM:0001B4D8o HUD_Secst ...
 HUD_1:		dc.l 1			; DATA XREF: HUD_Minst
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUD_Mins:				; CODE XREF: HudUpdate+90p
@@ -38347,7 +38320,7 @@ HUD_Mins:				; CODE XREF: HudUpdate+90p
 ; End of function HUD_Mins
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUD_Secs:				; CODE XREF: HudUpdate+A0p
@@ -38370,7 +38343,7 @@ loc_1B550:				; CODE XREF: HUD_Secs+16j
 		bcs.s	loc_1B558
 		addq.w	#1,d2
 		bra.s	loc_1B550
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B558:				; CODE XREF: HUD_Secs+12j
 		add.l	d3,d1
@@ -38404,7 +38377,7 @@ loc_1B562:				; CODE XREF: HUD_Secs+1Cj
 ; End of function HUD_Secs
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUD_TimeRingBonus:			; CODE XREF: HudUpdate+CCp
@@ -38423,7 +38396,7 @@ loc_1B5A8:				; CODE XREF: HUD_TimeRingBonus+16j
 		bcs.s	loc_1B5B0
 		addq.w	#1,d2
 		bra.s	loc_1B5A8
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B5B0:				; CODE XREF: HUD_TimeRingBonus+12j
 		add.l	d3,d1
@@ -38456,7 +38429,7 @@ loc_1B5BA:				; CODE XREF: HUD_TimeRingBonus+1Cj
 loc_1B5E4:				; CODE XREF: HUD_TimeRingBonus+5Ej
 		dbf	d6,loc_1B5A4
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B5EA:				; CODE XREF: HUD_TimeRingBonus+24j
 		moveq	#$F,d5
@@ -38468,7 +38441,7 @@ loc_1B5EC:				; CODE XREF: HUD_TimeRingBonus+5Aj
 ; End of function HUD_TimeRingBonus
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 HUD_Lives:				; CODE XREF: HudUpdate+AEp
@@ -38491,7 +38464,7 @@ loc_1B618:				; CODE XREF: HUD_Lives+26j
 		bcs.s	loc_1B620
 		addq.w	#1,d2
 		bra.s	loc_1B618
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B620:				; CODE XREF: HUD_Lives+22j
 		add.l	d3,d1
@@ -38519,7 +38492,7 @@ loc_1B644:				; CODE XREF: HUD_Lives+68j
 		addi.l	#$400000,d0
 		dbf	d6,loc_1B610
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1B650:				; CODE XREF: HUD_Lives+34j
 		tst.w	d6
@@ -38532,7 +38505,7 @@ loc_1B656:				; CODE XREF: HUD_Lives+64j
 		bra.s	loc_1B644
 ; End of function HUD_Lives
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 Art_HUD:	dc.b   0,  0,  0,  0,  0,$66,$66,$10,  6,$66,$66,$61,  6,$61,$16,$61,  6,$61,  6,$61,$76,$61,$76,$61,$66,$10,$66,$10,$66,$10,$66,$10; 0
 					; DATA XREF: HUD_Base:loc_1B3CCt
 					; HUD_Score+At	...
@@ -38570,18 +38543,18 @@ Art_LivesNums:	dc.b   0,  0,  0,  0,  0,$66,$66,$10,  6,$61,$16,$61,  6,$61,  6,
 		dc.b   0,  0,  0,  0,  6,$66,$66,$61,  1,$11,$16,$61,  0,  0,$66,$10,  0,  6,$61,  0,  0,$66,$10,  0,  0,$66,$10,  0,  0,$11,$10,  0; 224
 		dc.b   0,  0,  0,  0,  0,$66,$66,$10,  6,$61,$16,$61,  0,$66,$66,$10,  6,$61,$16,$61,  6,$61,  6,$61,  0,$66,$66,$10,  0,$11,$11,  0; 256
 		dc.b   0,  0,  0,  0,  0,$66,$66,$10,  6,$61,$16,$61,  6,$61,  6,$61,  0,$66,$66,$61,  0,$11,$16,$61,  0,$66,$66,$10,  0,$11,$11,  0; 288
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
  	   	nop
 	else
+	    	even
 	endif
 
 j_ModifySpriteAttr_2P_8:		; CODE XREF: ROM:0001B058p
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 
 DebugMode:				; CODE XREF: ROM:0000FA02j
@@ -38590,11 +38563,11 @@ DebugMode:				; CODE XREF: ROM:0000FA02j
 		move.b	($FFFFFE08).w,d0
 		move.w	DebugIndex(pc,d0.w),d1
 		jmp	DebugIndex(pc,d1.w)
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DebugIndex:	dc.w Debug_Init-DebugIndex ; DATA XREF:	ROM:DebugIndexo
 					; ROM:0001BABCo
 		dc.w Debug_Move-DebugIndex
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 Debug_Init:				; DATA XREF: ROM:DebugIndexo
 		addq.b	#2,($FFFFFE08).w
@@ -38611,7 +38584,7 @@ Debug_Init:				; DATA XREF: ROM:DebugIndexo
 		bne.s	loc_1BB04
 		moveq	#6,d0
 		bra.s	loc_1BB0A
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BB04:				; CODE XREF: ROM:0001BAFEj
 		moveq	#0,d0
@@ -38646,7 +38619,7 @@ loc_1BB44:				; CODE XREF: ROM:0001BB3Cj
 		bsr.w	Debug_Control
 		jmp	DisplaySprite
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Debug_Control:				; CODE XREF: ROM:0001BB52p
@@ -38661,7 +38634,7 @@ Debug_Control:				; CODE XREF: ROM:0001BB52p
 		move.b	#$C,($FFFFFE0A).w
 		move.b	#$F,($FFFFFE0B).w
 		bra.w	loc_1BBF4
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BB86:				; CODE XREF: Debug_Control+18j
 		subq.b	#1,($FFFFFE0A).w
@@ -38725,7 +38698,7 @@ loc_1BBF4:				; CODE XREF: Debug_Control+26j
 		bcc.s	loc_1BC28
 		add.b	d6,($FFFFFE06).w
 		bra.s	loc_1BC28
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BC10:				; CODE XREF: Debug_Control+A6j
 		btst	#6,($FFFFF605).w
@@ -38738,7 +38711,7 @@ loc_1BC10:				; CODE XREF: Debug_Control+A6j
 loc_1BC28:				; CODE XREF: Debug_Control+ACj
 					; Debug_Control+B2j ...
 		bra.w	Debug_ShowItem
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BC2C:				; CODE XREF: Debug_Control+9Ej
 					; Debug_Control+BAj
@@ -38757,7 +38730,7 @@ loc_1BC2C:				; CODE XREF: Debug_Control+9Ej
 		lsl.w	#3,d0
 		move.b	4(a2,d0.w),$28(a1)
 		rts
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 
 loc_1BC70:				; CODE XREF: Debug_Control+D6j
 					; Debug_Control+DEj
@@ -38789,7 +38762,7 @@ locret_1BCCA:				; CODE XREF: Debug_Control+11Aj
 ; End of function Debug_Control
 
 
-; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
+; ~~~~~~~~~~~~~~~ S U B	R O U T	I N E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Debug_ShowItem:				; CODE XREF: ROM:loc_1BB24p
@@ -38804,7 +38777,7 @@ Debug_ShowItem:				; CODE XREF: ROM:loc_1BB24p
 		rts
 ; End of function Debug_ShowItem
 
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 DebugList:	dc.w Debug_GHZ-DebugList ; DATA	XREF: ROM:loc_1BB0Ao
 					; ROM:loc_1BB44o ...
 		dc.w Debug_CPZ-DebugList
@@ -39004,14 +38977,14 @@ Debug_HPZ:	dc.w $F			; DATA XREF: ROM:0001BCF4o
 		dc.b   0,  0,$23,$50	; 0
 		dc.l Map_Obj4A+$4A000000
 		dc.b   0,  0,$23,$8A	; 0
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+		even
+; ---------------------------------------------------------------------------
 
 j_ModifySpriteAttr_2P_1:		; CODE XREF: Debug_ShowItem+1Ap
 		jmp	ModifySpriteAttr_2P
-; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
+; ---------------------------------------------------------------------------
 	if RemovePadding=0
 		align 4
-	else
 	endif
 MainLoadBlocks:	dc.l Nem_GHZ+$4000000	; DATA XREF: ROM:00003B9Co
 					; MainLevelLoadBlock+8o
@@ -39042,6 +39015,7 @@ MainLoadBlocks:	dc.l Nem_GHZ+$4000000	; DATA XREF: ROM:00003B9Co
 		dc.l Map16_GHZ
 		dc.l UnkComp_Map128_GHZ
 		dc.b   0,$86,$13,$13	; 0
+		even
 ArtLoadCues:	dc.w PLC_Main-ArtLoadCues,PLC_Main2-ArtLoadCues; 0
 					; DATA XREF: LoadPLC:loc_1674o
 					; LoadPLC2:loc_16A6o ...
@@ -39060,6 +39034,7 @@ ArtLoadCues:	dc.w PLC_Main-ArtLoadCues,PLC_Main2-ArtLoadCues; 0
 		dc.w PLC_HTZAnimals-ArtLoadCues,LeftoverArt_Unknown-ArtLoadCues; 26
 		dc.w LeftoverArt_Unknown+2-ArtLoadCues,LeftoverArt_Unknown+4-ArtLoadCues; 28
 		dc.w LeftoverArt_Unknown+6-ArtLoadCues,LeftoverArt_Unknown+8-ArtLoadCues; 30
+		even
 PLC_Main:	dc.w 4			; DATA XREF: ROM:ArtLoadCueso
 		dc.l Nem_Lamppost
 		dc.w $8F80
@@ -39187,7 +39162,6 @@ word_1C1E4:	dc.w $A600		; DATA XREF: ROM:0000C3FAo
 		dc.w $A000
 		dc.l Nem_HPZ_Piranha
 		dc.w $A600
-	else
 	endif
 PLC_HTZ:	dc.w 9			; DATA XREF: ROM:ArtLoadCueso
 		dc.l Nem_EHZ
@@ -39283,6 +39257,7 @@ PLC_HTZAnimals:	dc.w 1			; DATA XREF: ROM:ArtLoadCueso
 		dc.w $B000
 		dc.l Nem_Chicken
 		dc.w $B240
+		even
 ;----------------------------------------------------
 ; Unknown leftover art from an unknown prototype game
 ;  leftover due	to usage of a large FF padding
@@ -39290,8 +39265,8 @@ PLC_HTZAnimals:	dc.w 1			; DATA XREF: ROM:ArtLoadCueso
 LeftoverArt_Unknown:
 	if RemovePadding=0
 		incbin	leftovers/LeftoverArt_Unknown.bin
-	else
 	endif
+	     	even
 AngleMap_GHZ:	dc.b $FF,  0,$88,$90,$A0,$B0,$B8,$C4,  0,  0,  0,  0,$D0,  0,  0,  0; 0
 					; DATA XREF: ROM:00013058o
 		dc.b $FC,$FC,$FC,$FC,$FC,$FC,$FC,$FC,$F8,$F8,$F8,$F8,$F0,$F0,$D0,$D0; 16
@@ -39309,6 +39284,7 @@ AngleMap_GHZ:	dc.b $FF,  0,$88,$90,$A0,$B0,$B8,$C4,  0,  0,  0,  0,$D0,  0,  0, 
 		dc.b $B0,$B8,$C0,  8,$18,$30,$84,$88,$90,$98,$A8,$B0,$B4,$B8,$BC,$10; 208
 		dc.b $20,$30,  8, $A, $C,$10,$E4,$EC,$E4,$E8,$E8,$E8,$F4,$D8,$EC,$F4; 224
 		dc.b $FA,$FC,$38,$38,$38,$38,$E4,  0,  0,  0,  0,$E0,$20,$A0,$60,$FF; 240
+		even
 AngleMap:	dc.b $FF,$FF,$E0,$D0,$D0,$C8,$C8,$C8,$C8,$F0,$F0,$F8,$F8,$F8,$F8,$FF; 0
 					; DATA XREF: FindFloor+2Ao
 					; FindFloor2+2Co ...
@@ -39327,6 +39303,7 @@ AngleMap:	dc.b $FF,$FF,$E0,$D0,$D0,$C8,$C8,$C8,$C8,$F0,$F0,$F8,$F8,$F8,$F8,$FF; 
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 208
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 224
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,$E0,$20,$A0,$60,$FF; 240
+		even
 ColArray1_GHZ:	dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 0
 					; DATA XREF: ROM:00013026o
 		dc.b   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1; 16
@@ -39840,6 +39817,7 @@ ColArray1_GHZ:	dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		dc.b $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10; 8144
 		dc.b $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10; 8160
 		dc.b $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10; 8176
+		even
 ColArray1:	dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 0
 					; DATA XREF: FindFloor+58o
 					; FindFloor2+5Ao ...
@@ -40098,6 +40076,7 @@ ColArray1:	dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0;
 		dc.b $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10; 4048
 		dc.b $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10; 4064
 		dc.b $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10; 4080
+		even
 ColArray2:	dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 0
 					; DATA XREF: FindWall+5Ao
 					; FindWall2+5Ao ...
@@ -40356,6 +40335,7 @@ ColArray2:	dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0;
 		dc.b $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10; 4048
 		dc.b $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10; 4064
 		dc.b $10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10; 4080
+		even
 ColP_GHZ:	dc.b   0,$FF,$1A,  0,  0,  0,$1A,  0,$1D,$1C,$FF,$FF,  9,$14, $B,  0,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 0
 					; DATA XREF: ROM:ColP_Indexo
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,  0,  0,$10,$11,$12,$13,$14,$15,$16,$18,$19,$1A,$1B,$FF,$FF,$FF,$FF,$FF,$FF,  0,$1C,$1D,$FF,$FF,$FF; 32
@@ -40370,6 +40350,7 @@ ColP_GHZ:	dc.b   0,$FF,$1A,  0,  0,  0,$1A,  0,$1D,$1C,$FF,$FF,  9,$14, $B,  0,$
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,  0,$6F,$6E,$6D,$FF,$70,$6E,$FF,$FF,$6D,$6A,$6B,$6C,$69,$FF,  0,  0,  0,  0,  0,  0,  0; 320
 		dc.b $68,  0,  0,  0,  0,  0,  0,  0,  0,$66,$67,  0,  0,  0,  0,  0,  0,  0,$64,$65,$66,$67,$68,$69,$6A,$6B,$6C,$6D,$6E,$6F,$70,$71; 352
 		dc.b $72,$73,$64,$65,$1A,  0,  0,$1A,  0,$FB,$FB,$FD,$FC,$FC,  0,  0,$15,$FF,$FF,  9, $A,  0,  0,$FF,$FF,  0; 384
+		even
 ColS_GHZ:	dc.b   0,$FF,$1A,  0,  0,  0,$1A,  0,$1D,$1C,$FF,$FF,  9,$14, $B,  0,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 0
 					; DATA XREF: ROM:ColS_Indexo
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,  0,  0,$10,$11,$12,$13,$14,$15,$16,$18,$19,$1A,$1B,$FF,$FF,$FF,$FF,$FF,$FF,  0,$1C,$1D,$FF,$FF,$FF; 32
@@ -40384,6 +40365,7 @@ ColS_GHZ:	dc.b   0,$FF,$1A,  0,  0,  0,$1A,  0,$1D,$1C,$FF,$FF,  9,$14, $B,  0,$
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,  0,$6F,$6E,$6D,$FF,$70,$6E,$FF,$FF,$6D,$6A,$6B,$6C,$69,$FF,  0,  0,  0,  0,  0,  0,  0; 320
 		dc.b $68,  0,  0,  0,  0,  0,  0,  0,  0,$66,$67,  0,  0,  0,  0,  0,  0,  0,$64,$FF,$69,$68,$67,$66,$6A,$6B,$6C,$6D,$6E,$6F,$70,$71; 352
 		dc.b $72,$73,$64,$65,$1A,  0,  0,$1A,  0,$FB,$65,$FD,$FC,$FC,  0,  0,$15,$FF,$FF,  9, $A,  0,  0,$FF,$FF,  0; 384
+		even
 ColP_EHZ:	dc.b   0,  0,$A4,$FF, $E,$A4,$A5,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$A6,$FF,$FF,$FF,$FF,  0, $B, $C, $D; 0
 					; DATA XREF: ROM:ColP_Indexo
 		dc.b  $E,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$A7,$A8,$4D,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$A4,$FF,$FF,  0,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 32
@@ -40409,6 +40391,7 @@ ColP_EHZ:	dc.b   0,  0,$A4,$FF, $E,$A4,$A5,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 672
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 704
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 736
+		even
 ColS_EHZ:	dc.b   0,  0,$A4,$FF, $E,$A4,$A5,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$A6,$FF,$FF,$FF,$FF,  0, $B, $C, $D; 0
 					; DATA XREF: ROM:ColS_Indexo
 		dc.b  $E,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$A7,$A8,$4D,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$A4,$FF,$FF,  0,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 32
@@ -40434,6 +40417,7 @@ ColS_EHZ:	dc.b   0,  0,$A4,$FF, $E,$A4,$A5,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 672
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 704
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 736
+		even
 ColP_CPZ:	dc.b   0,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 0
 					; DATA XREF: ROM:ColP_Indexo
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 32
@@ -40459,6 +40443,7 @@ ColP_CPZ:	dc.b   0,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 672
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 704
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 736
+		even
 ColS_CPZ:	dc.b   0,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 0
 					; DATA XREF: ROM:ColS_Indexo
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 32
@@ -40484,6 +40469,7 @@ ColS_CPZ:	dc.b   0,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 672
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 704
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 736
+		even
 ColP_HPZ:	dc.b   0,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,  3,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF; 0
 					; DATA XREF: ROM:ColP_Indexo
 		dc.b $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,  0,  0,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$68,$FF,$65,  0,$FF,$FF,$FF,$FF,$FF,$FF,$FB,$FF,$2E; 32
@@ -40509,6 +40495,7 @@ ColP_HPZ:	dc.b   0,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,  3,$FF,$
 		dc.b $FF,$FF,$FF,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,$17,$16,$15,$16,$FB,  3,  4,$FB,  3,$FB,  4,$FB,$FF,$FF,  0,  0,  0,  0,  0; 672
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 704
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 736
+		even
 ColS_HPZ:	dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 0
 					; DATA XREF: ROM:ColS_Indexo
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 32
@@ -40534,6 +40521,7 @@ ColS_HPZ:	dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 672
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 704
 		dc.b   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; 736
+		even
 S1SS_1:		dc.b  $B, $F,  0,  2,  0,  0,$48,  8,$20,$40,$78,  2,  0,$7D,$B0,$11,$E0, $C,  1,$F6,$C0,$47,$80,$40,  7,$DB,  1,$1E,  1,$40,$1F,$6C,  4,$78,  6,  0,$7D,$B0,$11,$E0,$1C,  1,$F7,$39,$12,$3A,$74,$74,$A8,  1,$F7,$39, $D,$3A,$74,$74,  0,$A9,$F7,$38, $E,  0,$47,$8A; 0
 					; DATA XREF: ROM:S1SS_LayoutIndexo
 		dc.b $A0,$D1,$C1,$EF,$B5,$C8,$78,  0,  3,$A7,$47,$48,$F1,$22,$24,$B0,  1,$F6,$3B,$2C,  0,  0,$74,$E8,$E8,  1,$D3,$A3,$A0,  0,  0, $B,$1F,$63,$80,  2,$B4,$7A,  0,$3A,$74,$74,  0,$E9,$D0,  2,$C0,  7,$D8,$E2,$B0,$48,$58,$62,$3C,$80,$1D,$3A,  0,$30,  0,$FB,$5D,  7; 64
@@ -41675,55 +41663,8 @@ LeveL_HPZBg:	dc.b   7,  8,$A3,$A3,$A3,$A3,$A3,$A3,$A3,$A3,$A0,$A1,$A0,$A1,$A0,$A
 		dc.b $B0,$B1,$A2,$A2,$A2,$A2,$A2,$A2,$A2,$A2,$B2,$B2,$B2,$B2,$B2,$B2; 48
 		dc.b $B2,$B2,$B2,$B2,$B2,$B2,$B2,$B2,$B2,$B2; 64
 Level_Null:	dc.b   0,  0,  0,  0	; 0 ; DATA XREF: ROM:LevelLayout_Indexo
-Art_BigRing:	dc.l	     0,	       0,	 0,	   0,	    $D,	     $DD,    $EDDC,   $EDDCC,	     0,	     $DD,   $DDCCC, $DDCCC6C,$DCCCCCCC,$CCCCCCCC,$CCCDCDDD,$DDCCCCDD; 0
-		dc.l   $CCCCCC,$CCC66666,$66666666,$CCCCCCCC,$CCCCCCCC,$CDDDDDDD,$DDDDDDDD,$DDDEEEEE,$CCCCCC00,$666666CC,$66666666,$66666666,$CCCCC666,$DDDDDCCC,$DDDDDDDD,$EEEEEEEE; 16
-		dc.l	     0,$CC000000,$66CCC000,$66666CC0,$66666666,$CC666666,$DCCCC666,$DDDDCCC6,	     0,	       0,	 0,	   0,$C0000000,$66000000,$666C0000,$66666000; 32
-		dc.l	     0,	       0,	 0,	  $E,	   $EE,	     $EE,     $EED,    $EEED,  $EEDDDD,	$EEDDDDC,$EEDDDDCC,$EDDDDCCC,$DDDDCCCD,$DDDCCCCD,$DDCCCCDE,$DCCCCDDE; 48
-		dc.l $CCCCDDDD,$CCCDDDEE,$CDDDEEEE,$DDEEEEEE,$DEEEEE00,$EEEE0000,$EE000000,$E0000000,$EEEEEEEE,$EEEEEEEE,$EEE00000,	   0,	     0,	       0,	 0,	   0; 64
-		dc.l $EEEEEEEE,$EEEEEEEE,     $EEE,	   0,	     0,	       0,	 0,	   0,$EEEDDDCC,$EEEEEDDD,$EEEEEEED,$EEEEEEEE,  $EEEEEE,	   $EEEE,      $EE,	  $E; 80
-		dc.l $66666600,$CC666660,$DDC66666,$EDDC6666,$EEDDC666,$EEEDDC66,$EEEEDDC6,$EEEEEDC6,	     0,	       0,	 0,$60000000,$6C000000,$66000000,$66600000,$666C0000; 96
-		dc.l	 $EEDD,	  $EEEDD,   $EEEDD,  $EEEDDC,  $EEEDDC,	 $EEEDCC, $EEEEDCC, $EEEDDCC, $EEEDCCC,	$EEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDCCC; 112
-		dc.l $EEEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDDCC,$EEEEEDCC,$EEEEEDCC, $EEEEDCC, $EEEEEDC, $EEEEEDC,	$EEEEEDC,  $EEEEDC,  $EEEEED,  $EEEEED,	  $EEEEE,   $EEEEE,    $EEEE; 128
-		dc.l $DCCCCDEE,$CCCCDEE0,$CCCCDE00,$CCCDEE00,$CCCDE000,$CCCDE000,$CCCE0000,$CCDE0000,$CCD00000,$CCD00000,$CCD00000,$CC000000,$C6000000,$C6000000,$C6000000,$C6000000; 144
-		dc.l $66000000,$66000000,$66000000,$66000000,$66000000,$66600000,$66600000,$66600000,$66660000,$66660000,$C6666000,$C6666000,$C6666600,$DC666600,$EDC66660,$EDC66666; 160
-		dc.l $EEEEEDDC,	$EEEEEDC,  $EEEEDD,  $EEEEED,	$EEEED,	  $EEEEE,    $EEEE,    $EEEE,	  $EEE,	    $EEE,     $EEE,	 $EE,	   $EE,	     $EE,      $EE,	 $EE; 176
-		dc.l	   $EE,	     $EE,      $EE,	 $EE,	   $EE,	    $EEE,     $EEE,	$EEE,	 $EEED,	   $EEED,   $EEEDD,   $EEEDD,  $EEEDDC,	 $EEEDCC, $EEEDDCC,$EEEDDCCC; 192
-		dc.l $66660000,$C666C000,$C666C000,$CC666C00,$DC666C00,$DC666C00,$DCC666C0,$DDC666C0,$EDC666C0,$EDC666C0,$EDC6666C,$EDDC666C,$EDDC666C,$EDDC666C,$EDDC666C,$EDDC666C; 208
-		dc.l $EDDCC66C,$EDDCC66C,$EDDCC66C,$EDDCC66C,$EDDCC66C,$DDDCC6CC,$DDDCC6C0,$DDCCC6C0,$DDCCCCD0,$DDCC6CD0,$CDCCCC00,$CCCCCD00,$CDCCCD00,$CCCCD000,$DCCCD000,$DCCD0000; 224
-		dc.l	 $EEEE,	    $EEE,      $EE,	 $EE,	    $E,	       0,	 0,	   0,$EEDC6666,$EEEDC666,$EEEEDC66,$EEEEEDC6,$EEEEEEDC,$EEEEEEED, $EEEEEEE,  $EEEEEE; 240
-		dc.l $60000000,$66000000,$66660000,$66666600,$66666666,$CC666666,$DDC66666,$EEDCCC66,	     0,	       0,	 0,	   0,	     0,$66600000,$66666666,$66666666; 256
-		dc.l	     0,	       0,	 0,	   0,	     0,	    $DDD,$6666CCCC,$CCCCCCCC,	    $E,	     $EE,    $EEED,  $EEEDDC,$EEDDDCCC,$DCCCCCCC,$CCCCCCCC,$CCCCCCCD; 272
-		dc.l $EEDDCCCD,$DDCCCCDD,$DCCCCDDD,$CCCCDDDD,$CCCDDDDE,$CCDDDDEE,$CDDDDEE0,$DDDDEE00,$CCDD0000,$CDD00000,$DD000000,$DE000000,$E0000000,	       0,	 0,	   0; 288
-		dc.l	$EEEEE,	   $EEEE,      $EE,	  $E,	     0,	       0,	 0,	   0,$EEEDDCCC,$EEEEEDDD,$EEEEEEEE,$EEEEEEEE, $EEEEEEE,	  $EEEEE,      $EE,	   0; 304
-		dc.l $CCCCCCCC,$DCCCCCCC,$EDDDDCCC,$EEEEDDDD,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE,  $EEEEEE,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$DDDDDDDD,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE,$EEEEEE00; 320
-		dc.l $CCCCCDDD,$CCCDDDDD,$DDDDDEEE,$DEEEEEEE,$EEEEEEE0,$EEEEE000,$EE000000,	   0,$DDEEE000,$EEEE0000,$EE000000,$E0000000,	     0,	       0,	 0,	   0; 336
-		dc.l	     0,	       0,	$D,	$DDC,	 $DCCC,	  $DCCCD,  $DCCDDD, $DCDDDDD,	$CCCCC,	$DCCC666,$CC666666,$C6CCC666,$CCCCCCCC,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD; 352
-		dc.l $CCCCC000,$66666CCC,$66666666,$66666666,$66666666,$CC666666,$DDCC6666,$DDDDC666,	     0,	       0,$CC000000,$66CC0000,$6666C000,$66666600,$66666660,$66666666; 368
-		dc.l	     0,	      $E,      $ED,	 $ED,	  $EDD,	    $EDD,    $EDDE,   $EEDDE,$DDDDDDDD,$DDDDDEEE,$DDDEEEEE,$DDEEEEEE,$DEEEEEEE,$EEEEEEEE,$EEEEEEE0,$EEEEEDE0; 384
-		dc.l $EEEEEEEE,$EEEEEEEE,$EEEE0000,$EE000000,$E0000000,	       0,	 0,	   0,$DDDDDC66,$EEDDDDC6,$EEEEDDDC,  $EEEDDD,	$EEEDD,	   $EEDD,     $EED,	 $EE; 400
-		dc.l	   $EE,	      $E,	$E,	   0,	     0,	       0,	 0,	   0,$66666666,$66666666,$66666666,$C6666666,$DC666666,$DC666666,$DDC66666,$DDC66666; 416
-		dc.l $DDDC6666,$EDDC6666,$EDDDC666,$EDDDC666,$EDDDCC66,$EEDDDC66,$EEDDDC66, $EDDDCC6,$60000000,$66000000,$66000000,$66600000,$666C0000,$66660000,$66666000,$66666000; 432
-		dc.l $66666000,$66666C00,$66666C00,$666666C0,$666666C0,$666666C0,$66666660,$6666666C,	$EDDEE,	  $EDDEE,   $EDEEE,  $EEDEEE,  $EDDEEE,	 $EDDEED, $EEDDEED, $EEDEEDD; 448
-		dc.l  $EDDEEDD,	$EDDEDDC,$EEDDEDCC,$EEDDEDCC,$EEDDEDCC,$EEDDDCCC,$EEEDDCCC,$EEEDDCC6,$EEEDDCC6,$EEEDDCC6,$EEEDDC66,$EEEDDC66,$EEEEDC66,$EEEEDC66, $EEEDC66, $EEEED66; 464
-		dc.l  $EEEED66,	$EEEED66,  $EEEDC6,  $EEEEC6,  $EEEEC6,	  $EEEDC,   $EEEED,   $EEEED,$EEEDDD00,$EEDDDE00,$EDDDD000,$DDDDE000,$DDDD0000,$DDCD0000,$DCCD0000,$CCCD0000; 480
-		dc.l $CCCD0000,$CCC00000,$CCC00000,$CC600000,$C6600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66660000; 496
-		dc.l $66660000,$66660000,$66660000,$66660000,$66666000,$66666000,$C6666600,$C6666600, $EDDDCC6,	$EDDDCC6, $EDDDCC6, $EDDDDCC,  $EDDDCC,	 $EDDDCC,  $EDDDCC,  $EDDDCC; 512
-		dc.l   $EDDDCC,	 $EDDDCC,  $EDDDCC,  $EDDDCC, $EDDDDCC,	$EDDDCCC, $EDDDCCC, $EDDDCCC,$6666666C,$6666666C,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666; 528
-		dc.l $6666666C,$C666666C,$C666666C,$CCC666CC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCD,	     0,	       0,	 0,	   0,	     0,	      $E,	$E,	 $ED; 544
-		dc.l	   $ED,	    $EDD,    $DDDD,   $DDDDD,  $DDDDDC,$DDDDDCCD,$DDDCCDDD,$DDDDDDDD, $EDDDCCC,$EDDDDCCC,$EDDDDCCC,$EDDDCCCC,$EDDDCCCC,$DDDDCCCC,$DDDCCCCC,$DDDCCDCC; 560
-		dc.l $DDCCDDCC,$DDCCDDDC,$DCCDDDDD,$CCDDDDDD,$CDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDEE,$CCCCCCCD,$CCCCCCC0,$CCCCCCC0,$CCCCCCD0,$CCCCCCD0,$CCCCCD00,$CCCCCD00,$CCCCD000; 576
-		dc.l $CCCCD000,$CCDDE000,$DDDE0000,$DDDE0000,$DDE00000,$DE000000,$EE000000,$E0000000,	$EEEEE,	   $EEEE,     $EEE,	$EEE,	   $EE,	     $EE,	$E,	   0; 592
-		dc.l $D6666660,$EC666660,$EDC66666,$EEDC6666,$EEED6666,$EEEEDD66,$EEEEDDDD,$EEEEEEDD,	     0,	       0,	 0,$60000000,$66000000,$66660000,$D6666DDD,$DDDDDDDD; 608
-		dc.l  $EEEEEED,	$EEEEEEE,   $EEEEE,    $EEEE,	  $EEE,	      $E,	 0,	   0,$DDDDDDDD,$DDDDDDDD,$EEEDDDDD,$EEEEEEDD,$EEEEEEEE,$EEEEEEEE, $EEEEEEE,   $EEEEE; 624
-		dc.l $DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDEEEEE,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE,$EEEEE000,$DDDDDEEE,$DDDEEEE0,$EEEEEE00,$EEEEE000,$EEEE0000,$EE000000,	 0,	   0; 640
-		dc.l	     0,	     $CC,     $CC6,    $DC66,	$DCC66,	  $DC666,  $DCC666,  $DCC666, $DDCC666,	$DCCC666, $DCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666; 656
-		dc.l $DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCCC66; 672
-		dc.l $CCCCCCCC,$C666666C,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666; 688
-		dc.l $66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666; 704
-		dc.l $EDDCCC66,$EDDCCC66,$EDDCCCC6,$EDDCCCCC,$EDDCCCCC,$EDDCCCCC,$EDDCCCCC,$EDDCCCCC,$EDDCCCCC,$EDDDCCCC,$EDDDCCCC,$EEDDCCCC,$EEDDCCCC,$EEDDDCCC,$EEDDDCCC,$EEDDDDCC; 720
-		dc.l $EEDDDDDC,$EEDDDDDD,$EEDDDDDD,$EEDDDDDD,$EEEDDDDD,	$EEDDDDD, $EEDDDDD, $EEEDDDD,  $EEDDDD,	 $EEEDDD,   $EEEDD,   $EEEEE,	 $EEEE,	    $EEE,      $EE,	   0; 736
-		dc.l $66666666,$66666666,$66666666,$C666666C,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC; 752
-		dc.l $CCCCCCCC,$DCCCCCCD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE; 768
+Art_BigRing:	incbin	art/sonic1/BigRing.bin
+		even
 	if RemovePadding=0
 ;
 ; leftover level layouts from a	previous build
@@ -41732,55 +41673,8 @@ Art_BigRing:	dc.l	     0,	       0,	 0,	   0,	    $D,	     $DD,    $EDDC,   $EDD
 ;----------------------------------------------------
 ; leftover from	a previous build
 ;----------------------------------------------------
-Leftover_Art_BigRing:dc.l	  0,	    0,	      0,	0,	 $D,	  $DD,	  $EDDC,   $EDDCC,	  0,	  $DD,	 $DDCCC, $DDCCC6C,$DCCCCCCC,$CCCCCCCC,$CCCDCDDD,$DDCCCCDD; 0
-		dc.l   $CCCCCC,$CCC66666,$66666666,$CCCCCCCC,$CCCCCCCC,$CDDDDDDD,$DDDDDDDD,$DDDEEEEE,$CCCCCC00,$666666CC,$66666666,$66666666,$CCCCC666,$DDDDDCCC,$DDDDDDDD,$EEEEEEEE; 16
-		dc.l	     0,$CC000000,$66CCC000,$66666CC0,$66666666,$CC666666,$DCCCC666,$DDDDCCC6,	     0,	       0,	 0,	   0,$C0000000,$66000000,$666C0000,$66666000; 32
-		dc.l	     0,	       0,	 0,	  $E,	   $EE,	     $EE,     $EED,    $EEED,  $EEDDDD,	$EEDDDDC,$EEDDDDCC,$EDDDDCCC,$DDDDCCCD,$DDDCCCCD,$DDCCCCDE,$DCCCCDDE; 48
-		dc.l $CCCCDDDD,$CCCDDDEE,$CDDDEEEE,$DDEEEEEE,$DEEEEE00,$EEEE0000,$EE000000,$E0000000,$EEEEEEEE,$EEEEEEEE,$EEE00000,	   0,	     0,	       0,	 0,	   0; 64
-		dc.l $EEEEEEEE,$EEEEEEEE,     $EEE,	   0,	     0,	       0,	 0,	   0,$EEEDDDCC,$EEEEEDDD,$EEEEEEED,$EEEEEEEE,  $EEEEEE,	   $EEEE,      $EE,	  $E; 80
-		dc.l $66666600,$CC666660,$DDC66666,$EDDC6666,$EEDDC666,$EEEDDC66,$EEEEDDC6,$EEEEEDC6,	     0,	       0,	 0,$60000000,$6C000000,$66000000,$66600000,$666C0000; 96
-		dc.l	 $EEDD,	  $EEEDD,   $EEEDD,  $EEEDDC,  $EEEDDC,	 $EEEDCC, $EEEEDCC, $EEEDDCC, $EEEDCCC,	$EEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDCCC; 112
-		dc.l $EEEEDCCC,$EEEEDCCC,$EEEEDCCC,$EEEEDDCC,$EEEEEDCC,$EEEEEDCC, $EEEEDCC, $EEEEEDC, $EEEEEDC,	$EEEEEDC,  $EEEEDC,  $EEEEED,  $EEEEED,	  $EEEEE,   $EEEEE,    $EEEE; 128
-		dc.l $DCCCCDEE,$CCCCDEE0,$CCCCDE00,$CCCDEE00,$CCCDE000,$CCCDE000,$CCCE0000,$CCDE0000,$CCD00000,$CCD00000,$CCD00000,$CC000000,$C6000000,$C6000000,$C6000000,$C6000000; 144
-		dc.l $66000000,$66000000,$66000000,$66000000,$66000000,$66600000,$66600000,$66600000,$66660000,$66660000,$C6666000,$C6666000,$C6666600,$DC666600,$EDC66660,$EDC66666; 160
-		dc.l $EEEEEDDC,	$EEEEEDC,  $EEEEDD,  $EEEEED,	$EEEED,	  $EEEEE,    $EEEE,    $EEEE,	  $EEE,	    $EEE,     $EEE,	 $EE,	   $EE,	     $EE,      $EE,	 $EE; 176
-		dc.l	   $EE,	     $EE,      $EE,	 $EE,	   $EE,	    $EEE,     $EEE,	$EEE,	 $EEED,	   $EEED,   $EEEDD,   $EEEDD,  $EEEDDC,	 $EEEDCC, $EEEDDCC,$EEEDDCCC; 192
-		dc.l $66660000,$C666C000,$C666C000,$CC666C00,$DC666C00,$DC666C00,$DCC666C0,$DDC666C0,$EDC666C0,$EDC666C0,$EDC6666C,$EDDC666C,$EDDC666C,$EDDC666C,$EDDC666C,$EDDC666C; 208
-		dc.l $EDDCC66C,$EDDCC66C,$EDDCC66C,$EDDCC66C,$EDDCC66C,$DDDCC6CC,$DDDCC6C0,$DDCCC6C0,$DDCCCCD0,$DDCC6CD0,$CDCCCC00,$CCCCCD00,$CDCCCD00,$CCCCD000,$DCCCD000,$DCCD0000; 224
-		dc.l	 $EEEE,	    $EEE,      $EE,	 $EE,	    $E,	       0,	 0,	   0,$EEDC6666,$EEEDC666,$EEEEDC66,$EEEEEDC6,$EEEEEEDC,$EEEEEEED, $EEEEEEE,  $EEEEEE; 240
-		dc.l $60000000,$66000000,$66660000,$66666600,$66666666,$CC666666,$DDC66666,$EEDCCC66,	     0,	       0,	 0,	   0,	     0,$66600000,$66666666,$66666666; 256
-		dc.l	     0,	       0,	 0,	   0,	     0,	    $DDD,$6666CCCC,$CCCCCCCC,	    $E,	     $EE,    $EEED,  $EEEDDC,$EEDDDCCC,$DCCCCCCC,$CCCCCCCC,$CCCCCCCD; 272
-		dc.l $EEDDCCCD,$DDCCCCDD,$DCCCCDDD,$CCCCDDDD,$CCCDDDDE,$CCDDDDEE,$CDDDDEE0,$DDDDEE00,$CCDD0000,$CDD00000,$DD000000,$DE000000,$E0000000,	       0,	 0,	   0; 288
-		dc.l	$EEEEE,	   $EEEE,      $EE,	  $E,	     0,	       0,	 0,	   0,$EEEDDCCC,$EEEEEDDD,$EEEEEEEE,$EEEEEEEE, $EEEEEEE,	  $EEEEE,      $EE,	   0; 304
-		dc.l $CCCCCCCC,$DCCCCCCC,$EDDDDCCC,$EEEEDDDD,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE,  $EEEEEE,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$DDDDDDDD,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE,$EEEEEE00; 320
-		dc.l $CCCCCDDD,$CCCDDDDD,$DDDDDEEE,$DEEEEEEE,$EEEEEEE0,$EEEEE000,$EE000000,	   0,$DDEEE000,$EEEE0000,$EE000000,$E0000000,	     0,	       0,	 0,	   0; 336
-		dc.l	     0,	       0,	$D,	$DDC,	 $DCCC,	  $DCCCD,  $DCCDDD, $DCDDDDD,	$CCCCC,	$DCCC666,$CC666666,$C6CCC666,$CCCCCCCC,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD; 352
-		dc.l $CCCCC000,$66666CCC,$66666666,$66666666,$66666666,$CC666666,$DDCC6666,$DDDDC666,	     0,	       0,$CC000000,$66CC0000,$6666C000,$66666600,$66666660,$66666666; 368
-		dc.l	     0,	      $E,      $ED,	 $ED,	  $EDD,	    $EDD,    $EDDE,   $EEDDE,$DDDDDDDD,$DDDDDEEE,$DDDEEEEE,$DDEEEEEE,$DEEEEEEE,$EEEEEEEE,$EEEEEEE0,$EEEEEDE0; 384
-		dc.l $EEEEEEEE,$EEEEEEEE,$EEEE0000,$EE000000,$E0000000,	       0,	 0,	   0,$DDDDDC66,$EEDDDDC6,$EEEEDDDC,  $EEEDDD,	$EEEDD,	   $EEDD,     $EED,	 $EE; 400
-		dc.l	   $EE,	      $E,	$E,	   0,	     0,	       0,	 0,	   0,$66666666,$66666666,$66666666,$C6666666,$DC666666,$DC666666,$DDC66666,$DDC66666; 416
-		dc.l $DDDC6666,$EDDC6666,$EDDDC666,$EDDDC666,$EDDDCC66,$EEDDDC66,$EEDDDC66, $EDDDCC6,$60000000,$66000000,$66000000,$66600000,$666C0000,$66660000,$66666000,$66666000; 432
-		dc.l $66666000,$66666C00,$66666C00,$666666C0,$666666C0,$666666C0,$66666660,$6666666C,	$EDDEE,	  $EDDEE,   $EDEEE,  $EEDEEE,  $EDDEEE,	 $EDDEED, $EEDDEED, $EEDEEDD; 448
-		dc.l  $EDDEEDD,	$EDDEDDC,$EEDDEDCC,$EEDDEDCC,$EEDDEDCC,$EEDDDCCC,$EEEDDCCC,$EEEDDCC6,$EEEDDCC6,$EEEDDCC6,$EEEDDC66,$EEEDDC66,$EEEEDC66,$EEEEDC66, $EEEDC66, $EEEED66; 464
-		dc.l  $EEEED66,	$EEEED66,  $EEEDC6,  $EEEEC6,  $EEEEC6,	  $EEEDC,   $EEEED,   $EEEED,$EEEDDD00,$EEDDDE00,$EDDDD000,$DDDDE000,$DDDD0000,$DDCD0000,$DCCD0000,$CCCD0000; 480
-		dc.l $CCCD0000,$CCC00000,$CCC00000,$CC600000,$C6600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66600000,$66660000; 496
-		dc.l $66660000,$66660000,$66660000,$66660000,$66666000,$66666000,$C6666600,$C6666600, $EDDDCC6,	$EDDDCC6, $EDDDCC6, $EDDDDCC,  $EDDDCC,	 $EDDDCC,  $EDDDCC,  $EDDDCC; 512
-		dc.l   $EDDDCC,	 $EDDDCC,  $EDDDCC,  $EDDDCC, $EDDDDCC,	$EDDDCCC, $EDDDCCC, $EDDDCCC,$6666666C,$6666666C,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666; 528
-		dc.l $6666666C,$C666666C,$C666666C,$CCC666CC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCD,	     0,	       0,	 0,	   0,	     0,	      $E,	$E,	 $ED; 544
-		dc.l	   $ED,	    $EDD,    $DDDD,   $DDDDD,  $DDDDDC,$DDDDDCCD,$DDDCCDDD,$DDDDDDDD, $EDDDCCC,$EDDDDCCC,$EDDDDCCC,$EDDDCCCC,$EDDDCCCC,$DDDDCCCC,$DDDCCCCC,$DDDCCDCC; 560
-		dc.l $DDCCDDCC,$DDCCDDDC,$DCCDDDDD,$CCDDDDDD,$CDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDEE,$CCCCCCCD,$CCCCCCC0,$CCCCCCC0,$CCCCCCD0,$CCCCCCD0,$CCCCCD00,$CCCCCD00,$CCCCD000; 576
-		dc.l $CCCCD000,$CCDDE000,$DDDE0000,$DDDE0000,$DDE00000,$DE000000,$EE000000,$E0000000,	$EEEEE,	   $EEEE,     $EEE,	$EEE,	   $EE,	     $EE,	$E,	   0; 592
-		dc.l $D6666660,$EC666660,$EDC66666,$EEDC6666,$EEED6666,$EEEEDD66,$EEEEDDDD,$EEEEEEDD,	     0,	       0,	 0,$60000000,$66000000,$66660000,$D6666DDD,$DDDDDDDD; 608
-		dc.l  $EEEEEED,	$EEEEEEE,   $EEEEE,    $EEEE,	  $EEE,	      $E,	 0,	   0,$DDDDDDDD,$DDDDDDDD,$EEEDDDDD,$EEEEEEDD,$EEEEEEEE,$EEEEEEEE, $EEEEEEE,   $EEEEE; 624
-		dc.l $DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDEEEEE,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE,$EEEEE000,$DDDDDEEE,$DDDEEEE0,$EEEEEE00,$EEEEE000,$EEEE0000,$EE000000,	 0,	   0; 640
-		dc.l	     0,	     $CC,     $CC6,    $DC66,	$DCC66,	  $DC666,  $DCC666,  $DCC666, $DDCC666,	$DCCC666, $DCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666; 656
-		dc.l $DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$DDCC6666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCC666,$EDCCCC66; 672
-		dc.l $CCCCCCCC,$C666666C,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666; 688
-		dc.l $66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666,$66666666; 704
-		dc.l $EDDCCC66,$EDDCCC66,$EDDCCCC6,$EDDCCCCC,$EDDCCCCC,$EDDCCCCC,$EDDCCCCC,$EDDCCCCC,$EDDCCCCC,$EDDDCCCC,$EDDDCCCC,$EEDDCCCC,$EEDDCCCC,$EEDDDCCC,$EEDDDCCC,$EEDDDDCC; 720
-		dc.l $EEDDDDDC,$EEDDDDDD,$EEDDDDDD,$EEDDDDDD,$EEEDDDDD,	$EEDDDDD, $EEDDDDD, $EEEDDDD,  $EEDDDD,	 $EEEDDD,   $EEEDD,   $EEEEE,	 $EEEE,	    $EEE,      $EE,	   0; 736
-		dc.l $66666666,$66666666,$66666666,$C666666C,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC,$CCCCCCCC; 752
-		dc.l $CCCCCCCC,$DCCCCCCD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$DDDDDDDD,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE,$EEEEEEEE; 768
+Leftover_Art_BigRing:incbin	art/sonic1/BigRing.bin
+		even
 ;
 ; these	are some level mappings	(16x16 or 256x256)
 ;
@@ -41795,7 +41689,6 @@ Leftover_Art_BigRing:dc.l	  0,	    0,	      0,	0,	 $D,	  $DD,	  $EDDC,   $EDDCC,
 ; have fun exploring it	:P
 ;
   	       	incbin	leftovers/Leftover_0x31000.bin
-	else
 	endif
 ObjPos_Index:	dc.w ObjPos_GHZ1-ObjPos_Index,ObjPos_Null-ObjPos_Index;	0
 					; DATA XREF: ROM:0000DC74o
@@ -42876,7 +42769,6 @@ ObjPos_Null:	dc.w $FFFF,    0,    0	; 0 ; DATA XREF: ROM:ObjPos_Indexo
 ; a symbol table. 'compiler trash'
 ;
     	   	incbin	leftovers/Leftover_0x418A8.bin
-	else
 	endif
 RingPos_Index:	dc.w RingPos_GHZ1-RingPos_Index; 0 ; DATA XREF:	RingPosLoad2+1Ao
 					; ROM:RingPos_Indexo ...
@@ -43587,7 +43479,6 @@ RingPos_CPZ1:	dc.w   $A8,$21B0	; 0 ; DATA XREF: ROM:RingPos_Indexo
 ;
    	       	incbin	leftovers/Leftover_0x50A9C.bin
 		even
-	else
 	endif
 		include sounddriver.asm
 	if RemovePadding=0
@@ -43722,7 +43613,6 @@ Unused_Art_9E1FB:dc.b	0,  0,	0,  0,	0,  0,	0,  0,	0,  0,	0,  0,$EE,  0,	0,$EE,$E
 		dc.b $EE,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, $E,  0,  0,$E0,$EE,  0,  0,$EE,$EE,$EE; 6336
 		dc.b $EE,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,$EE,$E0,  0,  0,$EE,$EE,$EE; 6400
 		dc.b $E0		; 6464
-	else
 	endif
 Map_Tails:	dc.w word_9FC46-Map_Tails,word_9FC48-Map_Tails;	0 ; DATA XREF: ROM:00010C68o
 					; ROM:00011D94o ...
@@ -44552,7 +44442,6 @@ Nem_UnusedDust:	dc.b   0,$18,$80,  5,$17,$14,  8,$25,$1B,$35,$19,$45,$1C,$56,$3A
 		dc.b $E2,$25,$D6,$6C,$DC,$4C,$B8,$C0,  6,$EB,$2D,$8A,$85,$69,$6B,$AD,$4D,$D6,$93,$DD,$69,$3D,$D9,$77, $D,$36,$5B,$6F,$79,$FA,  0,  3,$33,$FC,$3F,$86,$F7,$DC,$FD,$AE,$D3,$AE,$D7,$DC,$F9,$86,$F8,$6B,$B6,$2B,$7F,$40,  4,$37,$A5,$F3,$9B,$2A,$DE,$93,$47,$78,$7F,$7F; 128
 		dc.b $33,$F5, $C,$9B,$94,  0,  0,$43,$AE,$6B,$6B,$B8,$5D,$C3,$2B,$26,$DC,$D6,$69,  2,$F4,$E0,  3,$F5,$68,$78,$56,$BA,$75,$76,$4F,  9,$A1,$90,$10,$9D,$42,$8B,$28,$50,$C9,$80, $D,$DB,$AF,$39,$65,$94,$F5, $A,$28,$2F,$2C,$9E,$EF,$D2,$B7,$2C,$9B,$32,  0,$1E,$AC,$B9; 192
 		dc.b $65,$CC,$43,$F5,$60,$37,$6E,$A4,$2E,$80, $B,$74,$9F,$2E,$43,$C3,$81,$D2,$7D,$BE,$D1,$74,  0,  6,$6D,$D4,$C2,$38,$83,$A4,  0,$70; 256
-	else
 	endif
 Nem_CPZ_FloatingPlatform:dc.b	0,$10,$80,$73,	0,$81,	4,  5,$15,$12,$26,$2E,$36,$3A,$46,$3B,$74,  6,$82,  5,$14,$26,$34,$36,$33,$83,	4,  2,$16,$39,$25, $F,$35,$10,$84,  4,	3,$15,$16,$26,$32,$37,$78,$46,$35,$85,	4,  4,$15,$13,$86,  5, $E,$28,$FA,$87,	6,$36,$88,  5,$11,$16,$3D,$89; 0
 					; DATA XREF: ROM:0001C12Eo
@@ -44680,7 +44569,6 @@ Nem_Crocobot:	dc.b   0,$2C,$80,  5,$11,$16,$2A,$26,$30,$36,$33,$47,$76,$58,$EF,$
 		dc.b $7B,$8C,$AF,$8D,$74,$32,$84,$7D,$8A,$35,$BD,$65,$1A,$C2,$E7,$B0,$8F,$BB,$1A,$FA,$E2,$B9,$DF,$89,$CD,$AB,$26,$92,$B5,$F5,$CB,$5F,$41,$CC,$A1,$27,  7,$33,$83,$B9,$39,$52,$12, $A,$E7,$E5,$26,$44,$44,$DF,$81,$95,$C5,$51,$6A,$55,$31,$76,$69,$16,$77,$19,$60,$E1; 768
 		dc.b $25,$90,$8B,$83,$88,$C3,$E4,$E6,$9C,$94,$1C,$DD,  4,$43,$BB,$DD,$C0,$F7,$19,$5F,$1A,$E8,$65,  8,$FB,$14,$6B,$7A,$CA,$35,$85,$CF,$61,$1F,$76,$35,$F5,$C5,$73,$BF,$13,$9B,$56,$4C,$A9,$6B,$2E,$4E,$D7,$D0,$73,$28,$49,$C1,$CC,$E1,$CF,$F5,$12,$12, $E,$E5,$E5,$E8; 832
 		dc.b $22,$22,$6F,$C0,$CA,$E2,$A8,$B5,$2A,$98,$BB,$5C,$59,$B4,$8B,$37,  9,$19,$60,$E6,$59,$4A,$2E,$62,$30,$F0,$E0,$E9,$85,$33,$BD,$E5,$11,$C0; 896
-	else
 	endif
 Nem_Buzzbomber:	dc.b   0,$1C,$80,  5, $C,$15, $D,$25,$12,$35,$17,$47,$76,$57,$7A,$66,$37,$73,  0,$81,  3,  1,$14,  5,$26,$34,$37,$77,$46,$3A,$86,  5,$11,$16,$39,$28,$FA,$87,  5,$13,$88,  5, $F,$16,$36,$89,  4,  4,$15,$18,$26,$3C,$8B,  5,$16,$16,$35,$8C,  5,$10,$15,$15,$27,$7B; 0
 					; DATA XREF: ROM:0001C194o
@@ -44739,7 +44627,6 @@ Nem_Triceratops:dc.b   0,$32,$80,  5,$15,$16,$30,$26,$2E,$36,$33,$47,$71,$57,$75
 		dc.b $F4,$13,$C2,$DB,$BA,$71,$EF,$DB,$BF,$6E,$F2,$EA,$6F,$97,$19,$45,$F2,$CE,$C8,$BE,$45,$6B,$C2, $A,$3A,$F0,$29,$CD,$6C,$3E,$55,$9F,$93,$33,$33,$36,  7,$F1,$BE,$9F,$BD,$9F,$F7,$67,$FD,$5E,$83,$FA,$22,$7A,$A6, $E,$A9,$89,$F9,$11,$30,$42,$EC,$26,$BB,  3,$BF,$61; 832
 		dc.b $FA,$8B,$42,$FF,$87,$2F,$3F,$3B,$AD,$FF,$EF,$FF,$7F,$EB,$E7,$FC,$9B,$7C,$BA,$78,$41,$3F,  5,$C4,$D5,$27,$41,$3F,$D4,$1A,$6D,$BE,$8F,$6F,$22, $D,$7F,$4E,$44,$EB,$D0,$4F,  3,$8C,$EE,$E9,$C7,$BF,$6E,$FD,$BB,$CB,$A9,$BE,$5C,$65,$17,$CB,$3B,$22,$F9,$15,$AF,  8; 896
 		dc.b $28,$EB,$C0,$A7,$35,$B0,$F9,$56,$7E,$4C,$CC,$CC,$CC,$CC,$CC,$CC,$CD,$76,$BE,$31,$F8,$CD,$2E,$A7,$EB,$35,$E1,$CB,$F1,$9F,$B3,$AC,$7E,$33,$4C,$F5,$B3,$33,$33,$33,$33,$75,$D3,$38,$F4,$D3, $E,$5E,$9A,$56,$9F,$BC,$FD,$9F,$A6,$97,$68,$D9,$80,  0; 960
-	else
 	endif
 Nem_Dinobot:	dc.b   0,$30,$80,  5,$14,$15,$11,$25,$16,$35,$18,$47,$73,$56,$37,$67,$72,$75,$15,$81,  3,  0,$15,$12,$26,$33,$36,$36,$58,$F8,$86,  4,  6,$17,$76,$87,  4,  5,$16,$38,$88,  6,$34,$89,  4,  7,$17,$77,$8C,  4,  4,$16,$32,$26,$3A,$37,$7A,$47,$79,$8D,  3,  1,$15,$13; 0
 					; DATA XREF: ROM:0001C1DAo
@@ -44828,7 +44715,6 @@ Nem_UnusedBubbler:dc.b	 0,$18,$80,  3,	 0,$14,	 9,$25,$18,$36,$38,$46,$3B,$56,$3
 		dc.b $76,$D3,$EF,$A6,$9E,$41,$93,$8B,$F5,$7D,$37,$BE,$1A,$77,  7, $C,  8,$7E,$2F,$B3,$83,$83,$E8,$E1,$D6, $F,$9D,$7E,$BA,$9A,$4E,$1A,$4F,$6C, $A,$E8,$A1,$5C,$19,$F9,$46,$24,$CB,$4B,$62,  1,$81,$4D,$18,$89,$2D,$31,$86,  9,$97, $F,$D2,$C2,$70,$BD,$2C,$B6,$71,$52; 384
 		dc.b $EC,$65,  7,$C1,  8,$38,$60,$42,$60,$F2,$E1,$B4,$E1,$D8,$E1,$67,$36,$CF,$2C,$23, $B,$D6,$D1,$DB,$E1, $D,$B1, $F,$2E,$18,$1A, $F,$C3,$43,$8A,$CF,$A3,$D1,  7,$A3,$82,$37,  4,$6E,  8,$32,$41,  4,$19,$20,$83,$24,$11,$FA,$E9,$23,$70,$41,  4,$6F,$C6,$E3,$7F,$47; 448
 		dc.b $39,$CE, $E,$64,$F0,$78,$20,$F4,$46,$F8,$20,$83,$82,$37,  6,$77,$1B,$F0,$41,  6,$48,$20,$E3,$70,$64,$82,  8,$38,$23,$70,$7B,$DF,$39,$C0; 512
-	else
 	endif
 Nem_Snail:	dc.b $80,$1A,$80,  3,  1,$14,  7,$24,  8,$34, $A,$46,$32,$56,$36,$66,$39,$74,  6,$81,  3,  0,$15,$16,$28,$FA,$82,  7,$79,$83,  6,$3A,$84,  6,$37,$85,  5,$18,$86,  6,$35,$87,  7,$77,$88,  3,  2,$17,$76,$89,  5,$12,$17,$7A,$8A,  7,$78,$8C,  5,$13,$16,$38,$28,$F8; 0
 					; DATA XREF: ROM:0001C19Ao
@@ -44947,7 +44833,6 @@ Nem_BigExplosion:dc.b	0,$64,$80,  4,	5,$15,$12,$25,$15,$35,$18,$46,$35,$57,$6E,$
 		dc.b $F7,$15,$3E,$C3,$70,$9E,$A6,$7A,$99,$CE,$73,$9C,$F5,$12,$18,$69,$CD,$44,$E6,$A2,$72,$2A,$67,$3D,$44,$D4,$61,$A4,$14,$A8,$91,$AB,$A9,$67,$50,$A1,$E4,$1E,$AF,$5F,$F6,$B3,$EE,$2A,$77,  5,$79,  9,$15,$1E,$C2,$42,$A2,$7A,$89,$CE,$73,$13,$9C,$E7,$39,$CE,$7B,$8C; 1536
 		dc.b $E6,$A2,$73,$57,$12,  4,$19, $C,$15,$63,$8B,$49,$8F,$25,$75,$32,$76,$33,$99,$F6,  7,$50,$A0,$EE,$6F,$60,$70,$CA,$F8,$CB,$73,$6A,$67,$51,$A8,$C0,$91,$13,$1E,$C7,$73,$E0,$48,$D5,$B8,$C1,$53,$B8,$3E,$A0,$C8,$C8,$8D,$CC,$A5,$4C,$99,$EA,$58,$E0,$AB,$D5,$B2,$5E; 1600
 		dc.b $F2,$70,$A7, $D,$EC,$77,$3E,$A0; 1664
-	else
 	endif
 Nem_BossShipBoost:dc.b	 0,  8,$80,  5,$1C,$15,$16,$23,	 2,$34,	 6,$45,$1B,$66,$3E,$73,	 0,$86,$15,$1E,$8C,  4,	 9,$15,$1A,$23,	 1,$35,$1D,$8E,	 4, $A,$14, $C,$8F,  4,	 7,$14,	 8,$25,$17,$FF,	 0, $D,$95,$FC,$F5,$FB,$E7,$6F,$63,$7B,$17,$EF,$9D,$7F,$3F,$64,	 0,  0,	 2,$7E,$EB,$47;	0
 					; DATA XREF: ROM:0001C296o
@@ -45000,7 +44885,6 @@ Nem_EHZ_Boss_Blades:dc.b   0,$14,$80,  5,$17,$14,  9,$26,$39,$35,$1A,$45,$19,$72
 	if RemovePadding=0
 S1Nem_Ballhog:  incbin	art/sonic1/Ballhog.bin
 		even
-	else
 	endif
 Nem_Crabmeat:	dc.b   0,$44,$80,  5,$12,$15, $F,$25,$10,$35,$15,$46,$35,$56,$38,$67,$72,$74,  2,$81,  3,  0,$15,$14,$27,$78,$86,  6,$32,$17,$77,$87,  4,  6,$16,$34,$27,$76,$88,  5, $E,$15,$16,$89,  4,  4,$15,$13,$27,$7A,$8A,  6,$36,$17,$73,$8B,  5,$18,$17,$74,$8C,  6,$2F,$16; 0
 		dc.b $2E,$26,$33,$37,$75,$47,$79,$8D,  4,  3,$15,$11,$28,$F6,$38,$F7,$8E,  4,  5,$16,$37,$FF,$22,$E5,$7F,  6,$B5,$31,$C5,$F4,$D6,$FF,$10,$3B,$A9,  8,$DC,$21,$1C,$E0,$6A,$77,$54,$D4,$EF,$A9,$AC,$75,$35,$3D,$62,$BC,$8C,$A5,$99,$C3,$3E,$77,$9C,$97,$3E,$71,$92,$E7; 64
@@ -45048,7 +44932,6 @@ Nem_UnknownGroundExplosion:dc.b	$80,$24,$80,  4,  6,$14,  8,$24,  9,$34, $C,$45,
 		dc.b $92,$58,$E8,$B7,$EB,$53,$19,$3B,$E9,$CE,$88,$20,  0,  6,$CE,$C8,$B7,$50,$64,$C7,$58,$60,$CA, $A, $E,$8D,$97,$58,$E5,$8E,$8D,$BA,  3,$68,$D8,$B9,$B7,$40, $D,  0; 448
 S1Nem_LZBurrobot:incbin	art/sonic1/Burrobot.bin
 		even
-	else
 	endif
 Nem_GHZ_Piranha:dc.b $80,$20,$80,  4,  2,$14,  5,$24, $A,$35,$12,$45,$17,$56,$36,$65,$18,$74,  3,$81,  3,  0,$17,$7B,$82,  7,$7A,$83,  5,$19,$84,  5,$1A,$85,  6,$37,$86,  5,$16,$87,  4,  7,$16,$3A,$88,  4,  4,$16,$3B,$89,  5,$13,$8A,  8,$F9,$8B,  6,$39,$8C,  6,$38,$8D,  6,$3C; 0
 					; DATA XREF: ROM:0001C0E8o
@@ -45067,7 +44950,6 @@ Nem_S1LZJaws:	incbin	art/sonic1/Jaws.bin
 		even
 Nem_S1SYZRoller:incbin	art/sonic1/Roller.bin
 		even
-	else
 	endif
 Nem_Motobug:	incbin	art/sonic1/Motobug.bin
 		even
@@ -45086,7 +44968,6 @@ S1Nem_Orbinaut: incbin	art/sonic1/Orbinaut.bin
 		even
 S1Nem_Caterkiller:incbin	art/sonic1/Caterkiller.bin
 		even
-	else
 	endif
 Nem_S1TitleCard:dc.b $80,$80,$80,  4,  9,$14,  7,$24,  8,$35,$16,$45,$17,$55,$19,$65,$18,$73,  1,$81,  3,  0,$16,$34,$26,$39,$83,  6,$36,$86,  4,  6,$17,$76,$27,$7A,$87,  3,  2,$16,$3A,$27,$77,$37,$78,$47,$79,$88,  6,$37,$89,  6,$35,$8A,  8,$F7,$8E,  4, $A,$18,$F6,$8F,  6,$38; 0
 					; DATA XREF: ROM:00003B54o
@@ -45191,7 +45072,6 @@ S1Nem_MiniSonic:dc.b $80,$1E,$80,  4,  5,$14,  4,$24,  8,$35,$13,$45,$18,$56,$35
 		dc.b $34,$F0,$E9,$5F,$CA,$B6,$78,$E3,$9D,$33,$41,$76,$D7,$DD,$E1,$33,$5C,$EF,$90,$8C,$FB,$7C,$D6,$72,$13,$17,$DD,$C5,$FE,$13,$DC,$AB,$A2,$FB,$FC,$E0,$BB,$F7,$B8,$FD,$1C,$75,$FA,$74,$A5,$9E,$51,$E5,  4,$A7,$44,$11,$D7,$E6,$5D,$1A,$74,$56,$D6,$8A,$31,$46,$A0,$CA; 384
 		dc.b $88,$35, $B,$CC,$30,$C3,  8,  8,$DE,$7E,$6E,$8F,$CD,$5A,$E4,$CC,$56,$E5, $B,$7F,$E7,$34,$6E,  2,$59,$25,$72,$DE,$F6,$BF,$4E,$C9,$7D,$55,$C6,$36,$1D,$B6,$9E,$99,$8C,$5F,$EF,$96,$CA,$BD,$6B,$F9,$7D,$9B,$CA,$59,$6A,$30,$16,$A9,$46,$50,$B6,$86,$B3,$70,$DA,$B2; 448
 		dc.b $D5,$1A,  4,$F6,$2A,$CB,$54,$E5,$6A,$F4,$FD,$62,$E7,$DB,$45,  8,$2B,$A3,$AF,$1F,$94,$D3,$C3,$A5,$7F,$2A,$D9,$E3,$8E,$74,$CD,  5,$DB,$5F,$77,$84,$CD,$73,$BE,$42,$33,$ED,$F3,$77,$87,$49, $B,$FA,$71,$7D,$DF,$95,$D9,$D7,$DC,$BA,$B9,  0; 512
-	else
 	endif
 Nem_Bunny:	dc.b   0,$12,$80,  5,$12,$15,$1A,$25,$13,$35,$19,$45,$17,$55,$1C,$66,$3C,$78,$FA,$81,  4, $A,$86,  3,  3,$15,$18,$26,$3B,$38,$FB,$87,  3,  0,$16,$3A,$88,  3,  2,$14,  8,$25,$16,$35,$1B,$47,$7C,$89,  3,  1,$16,$3D,$FF,$95,$8E,$7E,$64,$EE,$F6,$37,$31,$7B,$64,$A6; 0
 					; DATA XREF: ROM:0001C2C6o
@@ -46043,7 +45923,6 @@ Nem_GHZ2:	dc.b $81,$CD,$80,  3,  1,$14,  4,$25,$12,$34,  7,$46,$31,$56,$26,$66,$
 		dc.b $3E,  6,$AB,$BF,$1E,$3B,$27,$A2,$50,$A9,$E1,$5A,$2E,$F9,$F0,$9B,$88,$D7,$8C,$DD,$82,$98,$E5,$E9,$BB,$95,$48,$A9,$C9,$33,$56,$A8,$D4,$99,$9A,$92,$AE,$5C,$2A,$BC,$D5,$5F, $B,$EA,$BD,$7A,$25,$F5,$5F,$92,$79,$F4,$96,$77,$74,$CF,$2A,$B3,$E4,$78,$65,$53,$FE,$A3; 5568
 		dc.b $93,$E7,$46,$A6,$4F,$E7,$D0, $C,$7F,$53,$FA,$84,$FD,$4F,  6,$D7,$29,$74,$AB,$1C,$AB,$CF,$1B,$F8,  0,$73,$D5,$B2,$F3,$7E,$9E,$60,  0,$FF,$A9,$FD,$52,$7E,$A7,$D3,$84,$BF,$57,$C0,  0,$1F,$87,$27,$E1,$7B,$6B,$50,  0, $B,$F5,$6F,$D5,$BD,$5F,$AB,  0,$63,$E7,$96; 5632
 		dc.b $35,$51,$B3,$E5,$2F,$D4,$72,  0,  0,  0,$7E,$9E,$6F,$95,$1A,$99,$BF,$2E,  0,  0,$25,$FA,$9E,  7,$95,$D4,$6C,$CF,$2F,$3E,$84,  0; 5696
-	else
 	endif
 UnkComp_Map128_GHZ:incbin	"Lvl_maps/chunks/GHZ (Chameleon compressed).bin"
 		even
@@ -46102,7 +45981,6 @@ S1Nem_EndingSONICText:dc.b $80,$30,$80,	 6,$3A,$15,$1B,$24,  9,$35,$1A,$45,$18,$
 ; Toe Jam & Earl REV00 leftovers
 ;
        	  	incbin	leftovers/Leftover_0xE166F.bin
-	else
 	endif
 EndOfROM:
 ; end of 'ROM'

@@ -3,23 +3,23 @@ VdpCtrl:    equ $C00004  ; VDP control port
 VdpData:    equ $C00000  ; VDP data port
 HvCounter:  equ $C00008  ; H/V counter
 
-VDPREG_MODE1:     equ $8000  ; Mode register #1
-VDPREG_MODE2:     equ $8100  ; Mode register #2
-VDPREG_MODE3:     equ $8B00  ; Mode register #3
-VDPREG_MODE4:     equ $8C00  ; Mode register #4
+VDPREG_MODE1:	  equ $8000  ; Mode register #1
+VDPREG_MODE2:	  equ $8100  ; Mode register #2
+VDPREG_MODE3:	  equ $8B00  ; Mode register #3
+VDPREG_MODE4:	  equ $8C00  ; Mode register #4
 
-VDPREG_PLANEA:    equ $8200  ; Plane A table address
-VDPREG_PLANEB:    equ $8400  ; Plane B table address
-VDPREG_SPRITE:    equ $8500  ; Sprite table address
-VDPREG_WINDOW:    equ $8300  ; Window table address
+VDPREG_PLANEA:	  equ $8200  ; Plane A table address
+VDPREG_PLANEB:	  equ $8400  ; Plane B table address
+VDPREG_SPRITE:	  equ $8500  ; Sprite table address
+VDPREG_WINDOW:	  equ $8300  ; Window table address
 VDPREG_HSCROLL:   equ $8D00  ; HScroll table address
 
-VDPREG_SIZE:      equ $9000  ; Plane A and B size
-VDPREG_WINX:      equ $9100  ; Window X split position
-VDPREG_WINY:      equ $9200  ; Window Y split position
-VDPREG_INCR:      equ $8F00  ; Autoincrement
-VDPREG_BGCOL:     equ $8700  ; Background color
-VDPREG_HRATE:     equ $8A00  ; HBlank interrupt rate
+VDPREG_SIZE:	  equ $9000  ; Plane A and B size
+VDPREG_WINX:	  equ $9100  ; Window X split position
+VDPREG_WINY:	  equ $9200  ; Window Y split position
+VDPREG_INCR:	  equ $8F00  ; Autoincrement
+VDPREG_BGCOL:	  equ $8700  ; Background color
+VDPREG_HRATE:	  equ $8A00  ; HBlank interrupt rate
 
 VDPREG_DMALEN_L:  equ $9300  ; DMA length (low)
 VDPREG_DMALEN_H:  equ $9400  ; DMA length (high)
@@ -27,13 +27,13 @@ VDPREG_DMASRC_L:  equ $9500  ; DMA source (low)
 VDPREG_DMASRC_M:  equ $9600  ; DMA source (mid)
 VDPREG_DMASRC_H:  equ $9700  ; DMA source (high)
 
-VRAM_ADDR_CMD:  equ $40000000
-CRAM_ADDR_CMD:  equ $C0000000
+VRAM_ADDR_CMD:	equ $40000000
+CRAM_ADDR_CMD:	equ $C0000000
 VSRAM_ADDR_CMD: equ $40000010
 
-VRAM_DMA_CMD:   equ $40000080
-CRAM_DMA_CMD:   equ $C0000080
-VSRAM_DMA_CMD:  equ $40000090
+VRAM_DMA_CMD:	equ $40000080
+CRAM_DMA_CMD:	equ $C0000080
+VSRAM_DMA_CMD:	equ $40000090
 
 VRAM_SIZE:    	equ 65536
 CRAM_SIZE:    	equ 128
@@ -50,15 +50,15 @@ GFXMODE_320x448_SH:   equ %10001111
 
 ; Sprite equates
 NOFLIP: equ $0000  ; Don't flip (default)
-HFLIP:  equ $0800  ; Flip horizontally
-VFLIP:  equ $1000  ; Flip vertically
+HFLIP:	equ $0800  ; Flip horizontally
+VFLIP:	equ $1000  ; Flip vertically
 HVFLIP: equ $1800  ; Flip both ways
-PAL0:   equ $0000  ; Use palette 0 (default)
-PAL1:   equ $2000  ; Use palette 1
-PAL2:   equ $4000  ; Use palette 2
-PAL3:   equ $6000  ; Use palette 3
-LOPRI:  equ $0000  ; Low priority (default)
-HIPRI:  equ $8000  ; High priority
+PAL0:	equ $0000  ; Use palette 0 (default)
+PAL1:	equ $2000  ; Use palette 1
+PAL2:	equ $4000  ; Use palette 2
+PAL3:	equ $6000  ; Use palette 3
+LOPRI:	equ $0000  ; Low priority (default)
+HIPRI:	equ $8000  ; High priority
 
 ; Z80 stuff
 Z80Ram:    	equ $A00000  ; Where Z80 RAM starts
@@ -113,7 +113,7 @@ anim_frame  = 		$1B
 anim  = 			$1C
 next_anim  = 		$1D
 anim_frame_duration  = 	$1E
-status  = 		$22 ; note: exact meaning depends on the object... for sonic/tails: bit 0: leftfacing. bit 1: inair. bit 2: spinning. bit 3: onobject. bit 4: rolljumping. bit 5: pushing. bit 6: underwater.
+status	= 		$22 ; note: exact meaning depends on the object... for sonic/tails: bit 0: leftfacing. bit 1: inair. bit 2: spinning. bit 3: onobject. bit 4: rolljumping. bit 5: pushing. bit 6: underwater.
 routine  = 		$24
 routine_secondary  = 	$25
 angle  = 		$26 ; angle about the z = 0 axis (360 degrees  =  256)
@@ -230,22 +230,22 @@ palette_line_size =	$10*2	; 16 word entries
 ; bitfield with the following meaning:
 p1_standing_bit   = 3
 p2_standing_bit   = p1_standing_bit + 1
-p1_standing       = 1<<p1_standing_bit
-p2_standing       = 1<<p2_standing_bit
+p1_standing	  = 1<<p1_standing_bit
+p2_standing	  = 1<<p2_standing_bit
 pushing_bit_delta = 2
-p1_pushing_bit    = p1_standing_bit + pushing_bit_delta
-p2_pushing_bit    = p1_pushing_bit + 1
-p1_pushing        = 1<<p1_pushing_bit
-p2_pushing        = 1<<p2_pushing_bit
-standing_mask     = p1_standing|p2_standing
-pushing_mask      = p1_pushing|p2_pushing
+p1_pushing_bit	  = p1_standing_bit + pushing_bit_delta
+p2_pushing_bit	  = p1_pushing_bit + 1
+p1_pushing	  = 1<<p1_pushing_bit
+p2_pushing	  = 1<<p2_pushing_bit
+standing_mask	  = p1_standing|p2_standing
+pushing_mask	  = p1_pushing|p2_pushing
 ; ---------------------------------------------------------------------------
 ; The high word of d6 after a SolidObject call is a bitfield
 ; with the following meaning:
 p1_touch_side_bit   = 0
 p2_touch_side_bit   = p1_touch_side_bit + 1
-p1_touch_side       = 1<<p1_touch_side_bit
-p2_touch_side       = 1<<p2_touch_side_bit
+p1_touch_side	    = 1<<p1_touch_side_bit
+p2_touch_side	    = 1<<p2_touch_side_bit
 touch_side_mask     = p1_touch_side|p2_touch_side
 p1_touch_bottom_bit = p1_touch_side_bit + pushing_bit_delta
 p2_touch_bottom_bit = p1_touch_bottom_bit + 1
@@ -254,9 +254,9 @@ p2_touch_bottom     = 1<<p2_touch_bottom_bit
 touch_bottom_mask   = p1_touch_bottom|p2_touch_bottom
 p1_touch_top_bit   = p1_touch_bottom_bit + pushing_bit_delta
 p2_touch_top_bit   = p1_touch_top_bit + 1
-p1_touch_top       = 1<<p1_touch_top_bit
-p2_touch_top       = 1<<p2_touch_top_bit
-touch_top_mask     = p1_touch_top|p2_touch_top
+p1_touch_top	   = 1<<p1_touch_top_bit
+p2_touch_top	   = 1<<p2_touch_top_bit
+touch_top_mask	   = p1_touch_top|p2_touch_top
 ; ---------------------------------------------------------------------------
 ; Controller Buttons;
 ; Buttons bit numbers
