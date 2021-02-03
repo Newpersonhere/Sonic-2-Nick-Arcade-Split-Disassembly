@@ -98,8 +98,10 @@ id =			  0 ; object ID
 render_flags =		  1 ; bitfield ; bit 7 = onscreen flag, bit 0 = x mirror, bit 1 = y mirror, bit 2 = coordinate system
 art_tile =		  2 ; and 3 ; start of sprite's art
 mappings =		  4 ; and 5 and 6 and 7
-x_pos =			  8 ; and 9 ... some objects use $A and $B as well when extra precision is r=ired (see ObjectMove) ... for screen-space objects this is called x_pixel instead
-y_pos =			 $C ; and $D ... some objects use $E and $F as well when extra precision is r=ired ... screen-space objects use y_pixel instead
+x_pos =			  8 ; and 9 ... some objects use $A and $B as well when extra precision is required (see ObjectMove) ... for screen-space objects this is called x_pixel instead
+x_sub =			 x_pos+2
+y_pos =			 $C ; and $D ... some objects use $E and $F as well when extra precision is required ... screen-space objects use y_pixel instead
+y_sub =			 y_pos+2
 priority =		$18 ; 0 = front
 width_pixels =		$19
 mapping_frame =		$1A
@@ -110,9 +112,10 @@ y_vel  = 		$12 ; and $13 ; vertical velocity
 y_radius  = 		$16 ; collision width / 2
 x_radius  = 		$17 ; collision height / 2
 anim_frame  = 		$1B
-anim  = 			$1C
+anim  = 		$1C
 next_anim  = 		$1D
 anim_frame_duration  = 	$1E
+anim_delay =		$1F
 status	= 		$22 ; note: exact meaning depends on the object... for sonic/tails: bit 0: leftfacing. bit 1: inair. bit 2: spinning. bit 3: onobject. bit 4: rolljumping. bit 5: pushing. bit 6: underwater.
 routine  = 		$24
 routine_secondary  = 	$25
@@ -152,37 +155,6 @@ layer_plus  = 		$3F ; always same as layer+1 ?? used for collision somehow
 y_pixel =		2+x_pos ; and 3+x_pos ; y coordinate for objects using screen-space coordinate system
 x_pixel =		x_pos ; and 1+x_pos ; x coordinate for objects using screen-space coordinate system
 parent =		$3E ; and $3F ; address of object that owns or spawned this one, if applicable
-; ---------------------------------------------------------------------------
-; when childsprites are activated (i.e. bit #6 of render_flags set)
-mainspr_mapframe	= $B
-mainspr_width		= $E
-mainspr_childsprites 	= $F	; amount of child sprites
-mainspr_height		= $14
-sub2_x_pos		= $10	;x_vel
-sub2_y_pos		= $12	;y_vel
-sub2_mapframe		= $15
-sub3_x_pos		= $16	;y_radius
-sub3_y_pos		= $18	;priority
-sub3_mapframe		= $1B	;anim_frame
-sub4_x_pos		= $1C	;anim
-sub4_y_pos		= $1E	;anim_frame_duration
-sub4_mapframe		= $21	;collision_property
-sub5_x_pos		= $22	;status
-sub5_y_pos		= $24	;routine
-sub5_mapframe		= $27
-sub6_x_pos		= $28	;subtype
-sub6_y_pos		= $2A
-sub6_mapframe		= $2D
-sub7_x_pos		= $2E
-sub7_y_pos		= $30
-sub7_mapframe		= $33
-sub8_x_pos		= $34
-sub8_y_pos		= $36
-sub8_mapframe		= $39
-sub9_x_pos		= $3A
-sub9_y_pos		= $3C
-sub9_mapframe		= $3F
-next_subspr		= $6
 ; ---------------------------------------------------------------------------
 ; unknown or inconsistently used offsets that are not applicable to sonic/tails:
 ; (provided because rearrangement of the above values sometimes requires making space in here too)
@@ -289,3 +261,13 @@ status_sec_hasShield_mask:	EQU	1<<status_sec_hasShield		; $01
 status_sec_isInvincible_mask:	EQU	1<<status_sec_isInvincible	; $02
 status_sec_hasSpeedShoes_mask:	EQU	1<<status_sec_hasSpeedShoes	; $04
 status_sec_isSliding_mask:	EQU	1<<status_sec_isSliding		; $80
+; ---------------------------------------------------------------------------
+; RAM Adresses
+RAM_Start =			$FFFF0000	; 4 bytes ; start of RAM
+Demo_mode_flag =		$FFFFFFF0	; 1 if a demo is playing (2 bytes)
+Demo_number =			$FFFFFFF2	; which demo will play next (2 bytes)
+Ending_demo_number =		$FFFFFFF4	; zone for the ending demos (2 bytes)
+Graphics_Flags =		$FFFFFFF8	; misc. bitfield
+Debug_mode_flag =		$FFFFFFFA	; (2 bytes)
+Checksum_fourcc =		$FFFFFFFC	; (4 bytes)
+RAM_End =			$FFFFFFFF

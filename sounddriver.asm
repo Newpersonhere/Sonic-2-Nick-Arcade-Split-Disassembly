@@ -18,12 +18,12 @@ PSG5:		incbin	"sound/psg/psg5.bin"
 PSG7:		incbin	"sound/psg/psg7.bin"
 PSG8:		incbin	"sound/psg/psg8.bin"
 PSG9:		incbin	"sound/psg/psg9.bin"
+		even
 byte_71A94:	dc.b   7,$72,$73,$26,$15,  8,-1,  5; 0	; DATA XREF: ROM:off_719A0o
 ; ---------------------------------------------------------------------------
 ; Music	Pointers
 ; ---------------------------------------------------------------------------
 MusicIndex:	dc.l Music81, Music82, Music83,	Music84, Music85, Music86
-					; DATA XREF: ROM:Go_MusicIndexo
 		dc.l Music87, Music88, Music89,	Music8A, Music8B, Music8C
 		dc.l Music8D, Music8E, Music8F,	Music90, Music91, Music92
 		dc.l Music93
@@ -31,7 +31,6 @@ MusicIndex:	dc.l Music81, Music82, Music83,	Music84, Music85, Music86
 ; Type of sound	being played ($90 = music, $70 = normal	sound effect)
 ; ---------------------------------------------------------------------------
 SoundTypes:	dc.b $90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90; 0
-					; DATA XREF: ROM:Go_SoundTypeso
 		dc.b $90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$80; 16
 		dc.b $70,$70,$70,$70,$70,$70,$70,$70,$70,$68,$70,$70,$70,$60,$70,$70; 32
 		dc.b $60,$70,$60,$70,$70,$70,$70,$70,$70,$70,$70,$70,$70,$70,$7F,$60; 48
@@ -52,7 +51,6 @@ sub_71B4C:				; CODE XREF: ROM:loc_B5Cp
 		nop
 		nop
 		nop
-	else
 	endif
 
 loc_71B5A:				; CODE XREF: sub_71B4C+16j
@@ -67,7 +65,6 @@ loc_71B5A:				; CODE XREF: sub_71B4C+16j
 		nop
 		nop
 		nop
-	else
 	endif
 		bra.s	sub_71B4C
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
@@ -1054,7 +1051,6 @@ locret_723C6:				; CODE XREF: Sound_ChkValue+3C4j
 ; ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 	if RemovePadding=0
 		dc.l $FFF100, $FFF1F0, $FFF250,	$FFF310, $FFF340, $FFF370
-	else
 	endif
 
 ; ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ S U B	R O U T	I N E ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
@@ -1512,7 +1508,6 @@ sub_7272E:				; CODE XREF: sub_71CCA+A2Ej
 		nop
 		nop
 		nop
-	else
 	endif
 
 loc_72746:				; CODE XREF: sub_7272E+22j
@@ -1545,7 +1540,6 @@ sub_72764:				; CODE XREF: sub_72764+Aj
 		nop
 		nop
 		nop
-	else
 	endif
 
 loc_7277C:				; CODE XREF: sub_72764+22j

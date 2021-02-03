@@ -4,5 +4,5 @@ drx dumped the ROM and made it public on November 7th, 2006 and made a text/IDB 
 This split disassembly is based off of this version, and it's up for [research purposes!](https://tcrf.net/Proto:Sonic_the_Hedgehog_2_(Genesis)/Nick_Arcade_Prototype)
 It's currently not very complete, and I don't know when it'll be complete. ~~(I'd rather not be stressed by a deadline, you know?)~~
 # Note
-I (RepellantMold and AlexField442) do not claim ownership of any of this code, it was all programmed by Yuji Naka @ SEGA Technical Institute back in 1992
+I (RepellantMold) do not claim ownership of any of this code, it was all programmed by Yuji Naka @ SEGA Technical Institute back in 1992
 Source code uses UNIX (LF only) line endings so it may not show up properly in Windows Notepad (all versions of Windows before Windows 10 1903), please use a text editor that supports LF-only line endings!
