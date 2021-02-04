@@ -191,10 +191,25 @@ objoff_3C = $3C
 objoff_3D = $3D
 objoff_3E = $3E
 objoff_3F = $3F
+objoff_40 = $40
 ; ---------------------------------------------------------------------------
 ; property of all objects:
 object_size  = 		$40 ; the size of an object
 next_object =		object_size
+objectslot2 =		object_size*2
+objectslot3 =		object_size*3
+objectslot4 =		object_size*4
+objectslot5 =		object_size*5
+objectslot6 =		object_size*6
+objectslot7 =		object_size*7
+objectslot8 =		object_size*8
+objectslot9 =		object_size*9
+objectslotA =		object_size*10
+objectslotB =		object_size*11
+objectslotC =		object_size*12
+objectslotD =		object_size*13
+objectslotE =		object_size*14
+objectslotF =		object_size*15
 ; Other sizes
 palette_line_size =	$10*2	; 16 word entries
 ; ---------------------------------------------------------------------------
@@ -264,6 +279,43 @@ status_sec_isSliding_mask:	EQU	1<<status_sec_isSliding		; $80
 ; ---------------------------------------------------------------------------
 ; RAM Adresses
 RAM_Start =			$FFFF0000	; 4 bytes ; start of RAM
+Chunk_Table  = 			RAM_Start
+Level_Layout =			$FFFF8000
+Block_Table  = 			$FFFF9000
+Sprite_Table_Input  =  		$FFFFAC00 ; in custom format before being converted and stored in Sprite_Table/Sprite_Table_2
+Object_RAM  = 			$FFFFB000 ; through $FFFFD5FF
+MainCharacter  = 		Object_RAM ; first object (usually Sonic except in a Tails Alone game)
+Sidekick  = 			Object_RAM+next_object ; second object (Tails in a Sonic and Tails game)
+Tails_Tails  = 			Object_RAM+objectslot7 ; address of the Tail's Tails object
+Game_Mode =			$FFFFF600
+VDP_Reg1_val =			$FFFFF60C
+Demo_Time_left =		$FFFFF614
+SonicTails_top_speed =		$FFFFF760
+SonicTails_acceleration =	SonicTails_top_speed+2
+SonicTails_deceleration =	SonicTails_top_speed+2
+Sonic_LastLoadedDPLC =		$FFFFF766	; mapping frame number when Sonic last had his tiles requested to be transferred from ROM to VRAM. can be set to a dummy value like -1 to force a refresh DMA.
+Oscillation_Control =		$FFFFFE5E
+Oscillating_Data =		$FFFFFE60
+Logspike_anim_counter =		$FFFFFEC0
+Logspike_anim_frame =		$FFFFFEC1
+Rings_anim_counter =		$FFFFFEC2
+Rings_anim_frame =		$FFFFFEC3
+Unknown_anim_counter =		$FFFFFEC4
+Unknown_anim_frame =		$FFFFFEC5
+Ring_spill_anim_counter =	$FFFFFEC6
+Ring_spill_anim_frame =		$FFFFFEC7
+Ring_spill_anim_accum =		$FFFFFEC8
+Debug_object =			$FFFFFE06
+Debug_placement_mode =		$FFFFFE08
+Debug_Accel_Timer =		$FFFFFE0A
+Debug_Speed =			$FFFFFE0B
+Current_ZoneAndAct =		$FFFFFE10	; 2 bytes
+Current_Zone =			Current_ZoneAndAct
+Current_Act =			Current_Zone+1
+Life_count =			$FFFFFE12
+LevSel_HoldTimer =		$FFFFFF80
+Level_select_zone =		$FFFFFF82
+Sound_test_sound =		$FFFFFF84
 Demo_mode_flag =		$FFFFFFF0	; 1 if a demo is playing (2 bytes)
 Demo_number =			$FFFFFFF2	; which demo will play next (2 bytes)
 Ending_demo_number =		$FFFFFFF4	; zone for the ending demos (2 bytes)
