@@ -80,8 +80,8 @@ writeVRAM:	macro
 		move.l	#$96000000+(((\1>>1)&$FF00)<<8)+VDPREG_DMASRC_L+((\1>>1)&$FF),(a5)
 		move.w	#VDPREG_DMASRC_H+((((\1>>1)&$FF0000)>>16)&$7F),(a5)
 		move.w	#$4000+(\3&$3FFF),(a5)
-		move.w	#$80+((\3&vram_fg)>>14),($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
+		move.w	#$80+((\3&vram_fg)>>14),(DMA_data_thunk).w
+		move.w	(DMA_data_thunk).w,(a5)
 		endm
 
 ; ---------------------------------------------------------------------------
@@ -95,8 +95,8 @@ writeCRAM:	macro
 		move.l	#$96000000+(((\1>>1)&$FF00)<<8)+VDPREG_DMASRC_L+((\1>>1)&$FF),(a5)
 		move.w	#VDPREG_DMASRC_H+((((\1>>1)&$FF0000)>>16)&$7F),(a5)
 		move.w	#vram_fg+(\3&$3FFF),(a5)
-		move.w	#$80+((\3&vram_fg)>>14),($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
+		move.w	#$80+((\3&vram_fg)>>14),(DMA_data_thunk).w
+		move.w	(DMA_data_thunk).w,(a5)
 		endm
 
 ; ---------------------------------------------------------------------------
