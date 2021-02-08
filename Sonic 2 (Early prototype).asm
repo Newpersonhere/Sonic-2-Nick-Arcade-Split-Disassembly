@@ -11975,21 +11975,25 @@ loc_8D46:				; CODE XREF: ROM:00008D06j
 		tst.b	1(a0)
 		bpl.w	DeleteObject
 		bra.w	DisplaySprite
+		
 ; ---------------------------------------------------------------------------
 
-S1_Obj53:				; leftover object from Sonic 1
+; ---------------------------------------------------------------------------
+; Object 53 (Sonic 1 leftover) - collapsing floors	(MZ, SLZ, SBZ)
+; ---------------------------------------------------------------------------
+S1Obj53:
 		moveq	#0,d0
 		move.b	$24(a0),d0
-		move.w	S1_Obj53_Index(pc,d0.w),d1
-		jmp	S1_Obj53_Index(pc,d1.w)
+		move.w	S1Obj53_Index(pc,d0.w),d1
+		jmp	S1Obj53_Index(pc,d1.w)
 ; ---------------------------------------------------------------------------
-S1_Obj53_Index:	dc.w loc_8D6A-S1_Obj53_Index ; DATA XREF: ROM:S1_Obj53_Indexo
+S1Obj53_Index:	dc.w loc_8D6A-S1Obj53_Index ; DATA XREF: ROM:S1Obj53_Indexo
 					; ROM:00008D66o ...
-		dc.w loc_8DB4-S1_Obj53_Index
-		dc.w loc_8DEA-S1_Obj53_Index
+		dc.w loc_8DB4-S1Obj53_Index
+		dc.w loc_8DEA-S1Obj53_Index
 ; ---------------------------------------------------------------------------
 
-loc_8D6A:				; DATA XREF: ROM:S1_Obj53_Indexo
+loc_8D6A:				; DATA XREF: ROM:S1Obj53_Indexo
 		addq.b	#2,$24(a0)
 		move.l	#Map_S1Obj53,4(a0)
 		move.w	#$42B8,2(a0)
@@ -12558,18 +12562,18 @@ word_964A:	dc.w 2			; DATA XREF: ROM:000095B8o
 ; Sonic	1 Object 1E - leftover Ballhog object
 ;----------------------------------------------------
 
-S1_Obj1E:				; leftover from	Sonic 1
+S1Obj1E:				; leftover from	Sonic 1
 		moveq	#0,d0
 		move.b	$24(a0),d0
-		move.w	S1_Obj1E_Index(pc,d0.w),d1
-		jmp	S1_Obj1E_Index(pc,d1.w)
+		move.w	S1Obj1E_Index(pc,d0.w),d1
+		jmp	S1Obj1E_Index(pc,d1.w)
 ; ---------------------------------------------------------------------------
-S1_Obj1E_Index:	dc.w loc_966E-S1_Obj1E_Index ; DATA XREF: ROM:S1_Obj1E_Indexo
+S1Obj1E_Index:	dc.w loc_966E-S1Obj1E_Index ; DATA XREF: ROM:S1Obj1E_Indexo
 					; ROM:0000966Co
-		dc.w loc_96C2-S1_Obj1E_Index
+		dc.w loc_96C2-S1Obj1E_Index
 ; ---------------------------------------------------------------------------
 
-loc_966E:				; DATA XREF: ROM:S1_Obj1E_Indexo
+loc_966E:				; DATA XREF: ROM:S1Obj1E_Indexo
 		move.b	#$13,$16(a0)
 		move.b	#8,$17(a0)
 		move.l	#Map_S1Obj1E,4(a0)
@@ -14244,21 +14248,21 @@ loc_AA6E:				; CODE XREF: ROM:0000AA38j
 ; Sonic	1 Object 4B - leftover giant ring code
 ;----------------------------------------------------
 
-S1_Obj4B:
+S1Obj4B:
 		moveq	#0,d0
 		move.b	routine(a0),d0
-		move.w	S1_Obj4B_Index(pc,d0.w),d1
-		jmp	S1_Obj4B_Index(pc,d1.w)
+		move.w	S1Obj4B_Index(pc,d0.w),d1
+		jmp	S1Obj4B_Index(pc,d1.w)
 ; ---------------------------------------------------------------------------
-S1_Obj4B_Index:	dc.w loc_AA88-S1_Obj4B_Index ; DATA XREF: ROM:S1_Obj4B_Indexo
+S1Obj4B_Index:	dc.w loc_AA88-S1Obj4B_Index ; DATA XREF: ROM:S1Obj4B_Indexo
 					; ROM:0000AA82o ...
-		dc.w loc_AAD6-S1_Obj4B_Index
-		dc.w loc_AAF4-S1_Obj4B_Index
-		dc.w loc_AB38-S1_Obj4B_Index
+		dc.w loc_AAD6-S1Obj4B_Index
+		dc.w loc_AAF4-S1Obj4B_Index
+		dc.w loc_AB38-S1Obj4B_Index
 ; ---------------------------------------------------------------------------
 
-loc_AA88:				; DATA XREF: ROM:S1_Obj4B_Indexo
-		move.l	#Map_S1_Obj4B,mappings(a0)
+loc_AA88:				; DATA XREF: ROM:S1Obj4B_Indexo
+		move.l	#Map_S1Obj4B,mappings(a0)
 		move.w	#$2400,art_tile(a0)
 		bsr.w	ModifySpriteAttr_2P
 		ori.b	#4,render_flags(a0)
@@ -14320,19 +14324,19 @@ loc_AB38:				; CODE XREF: ROM:0000AAB2j
 ;   collected the giant	ring
 ;----------------------------------------------------
 
-S1_Obj7C:
+S1Obj7C:
 		moveq	#0,d0
 		move.b	routine(a0),d0
-		move.w	S1_Obj7C_Index(pc,d0.w),d1
-		jmp	S1_Obj7C_Index(pc,d1.w)
+		move.w	S1Obj7C_Index(pc,d0.w),d1
+		jmp	S1Obj7C_Index(pc,d1.w)
 ; ---------------------------------------------------------------------------
-S1_Obj7C_Index:dc.w loc_AB50-S1_Obj7C_Index ; DATA XREF: ROM:S1_Obj7C_Indexo
+S1Obj7C_Index:dc.w loc_AB50-S1Obj7C_Index ; DATA XREF: ROM:S1Obj7C_Indexo
 					; ROM:0000AB4Co ...
-		dc.w loc_AB7E-S1_Obj7C_Index
-		dc.w loc_ABE6-S1_Obj7C_Index
+		dc.w loc_AB7E-S1Obj7C_Index
+		dc.w loc_ABE6-S1Obj7C_Index
 ; ---------------------------------------------------------------------------
 
-loc_AB50:				; DATA XREF: ROM:S1_Obj7C_Indexo
+loc_AB50:				; DATA XREF: ROM:S1Obj7C_Indexo
 		addq.b	#2,routine(a0)
 		move.l	#Map_S1Obj7C,mappings(a0)
 		move.w	#$2462,art_tile(a0)
@@ -14416,12 +14420,12 @@ word_AC40:	dc.w 1			; DATA XREF: ROM:0000ABFEo
 word_AC4A:	dc.w 1			; DATA XREF: ROM:0000AC00o
 		dc.w $F805,$100A,$1005,$FFF8; 0
 word_AC54:	dc.w 0			; DATA XREF: ROM:0000AC02o
-Map_S1_Obj4B:	dc.w word_AC5E-Map_S1_Obj4B ; DATA XREF:	ROM:loc_AA88o
-					; ROM:Map_S1_Obj4Bo ...
-		dc.w word_ACB0-Map_S1_Obj4B
-		dc.w word_ACF2-Map_S1_Obj4B
-		dc.w word_AD14-Map_S1_Obj4B
-word_AC5E:	dc.w $A			; DATA XREF: ROM:Map_S1_Obj4Bo
+Map_S1Obj4B:	dc.w word_AC5E-Map_S1Obj4B ; DATA XREF:	ROM:loc_AA88o
+					; ROM:Map_S1Obj4Bo ...
+		dc.w word_ACB0-Map_S1Obj4B
+		dc.w word_ACF2-Map_S1Obj4B
+		dc.w word_AD14-Map_S1Obj4B
+word_AC5E:	dc.w $A			; DATA XREF: ROM:Map_S1Obj4Bo
 		dc.w $E008,    0,    0,$FFE8; 0
 		dc.w $E008,    3,    1,	   0; 4
 		dc.w $E80C,    6,    3,$FFE0; 8
@@ -27612,8 +27616,8 @@ Obj7D_Main:				; DATA XREF: ROM:Obj7D_Indexo
 		move.w	d2,d3
 		add.w	d3,d3
 		lea	(MainCharacter).w,a1
-		move.w	8(a1),d0
-		sub.w	8(a0),d0
+		move.w	x_pos(a1),d0
+		sub.w	x_pos(a0),d0
 		add.w	d2,d0
 		cmp.w	d3,d0
 		bcc.s	loc_13804
@@ -27626,26 +27630,26 @@ Obj7D_Main:				; DATA XREF: ROM:Obj7D_Indexo
 		bne.s	loc_13804
 		tst.b	($FFFFF7CD).w
 		bne.s	loc_13804
-		addq.b	#2,$24(a0)
-		move.l	#Map_Obj7D,4(a0)
-		move.w	#$84B6,2(a0)
+		addq.b	#2,routine(a0)
+		move.l	#Map_Obj7D,mappings(a0)
+		move.w	#$84B6,art_tile(a0)
 		bsr.w	ModifySpriteAttr_2P
-		ori.b	#4,1(a0)
-		move.b	#0,$18(a0)
-		move.b	#$10,$19(a0)
-		move.b	$28(a0),$1A(a0)
-		move.w	#$77,$30(a0) ; 'w'
+		ori.b	#4,render_flags(a0)
+		move.b	#0,priority(a0)
+		move.b	#$10,width_pixels(a0)
+		move.b	subtype(a0),mapping_frame(a0)
+		move.w	#$77,objoff_30(a0) ; 'w'
 		move.w	#$C9,d0	; 'É'
 		jsr	(PlaySound_Special).l
 		moveq	#0,d0
-		move.b	$28(a0),d0
+		move.b	subtype(a0),d0
 		add.w	d0,d0
 		move.w	Obj7D_Points(pc,d0.w),d0
 		jsr	AddPoints
 
 loc_13804:				; CODE XREF: ROM:00013798j
 					; ROM:000137A6j ...
-		move.w	8(a0),d0
+		move.w	x_pos(a0),d0
 		andi.w	#$FF80,d0
 		sub.w	($FFFFF7DA).w,d0
 		cmpi.w	#$280,d0
@@ -27660,9 +27664,9 @@ Obj7D_Points:	dc.w	 0, 1000,  100,	   1; 0
 ; ---------------------------------------------------------------------------
 
 Obj7D_DelayDelete:			; DATA XREF: ROM:00013780o
-		subq.w	#1,$30(a0)
+		subq.w	#1,objoff_30(a0)
 		bmi.s	loc_13844
-		move.w	8(a0),d0
+		move.w	x_pos(a0),d0
 		andi.w	#$FF80,d0
 		sub.w	($FFFFF7DA).w,d0
 		cmpi.w	#$280,d0
@@ -27692,7 +27696,9 @@ word_13868:	dc.w 1			; DATA XREF: ROM:00013850o
 	else
 	    	even
 	endif
-
+; ---------------------------------------------------------------------------
+; Object 47 (Sonic 1 leftover) - bumper
+; ---------------------------------------------------------------------------
 S1Obj47:
 		moveq	#0,d0
 		move.b	$24(a0),d0
@@ -27811,7 +27817,9 @@ word_139BC:	dc.w 2			; DATA XREF: ROM:00013996o
 	else
 	    	even
 	endif
-
+; ---------------------------------------------------------------------------
+; Object 64 (Sonic 1 leftover) - bubbles (LZ)
+; ---------------------------------------------------------------------------
 S1Obj64:
 		moveq	#0,d0
 		move.b	$24(a0),d0
