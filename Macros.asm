@@ -26,18 +26,17 @@ resetZ80a:	macro
 ; Macros from Plutiedev.com
 
 PauseZ80: macro
-    move.w  #$100, (Z80BusReq)
-.WaitZ80\@:
-    btst    #0,(Z80BusReq).l
-    bne.s   .WaitZ80\@
+	        move.w  #$100,(Z80BusReq).l
+.WaitZ80\@:	btst    #0,(Z80BusReq).l
+    		bne.s   .WaitZ80\@
     endm
 
 ResumeZ80: macro
-    move.w  #0, (Z80BusReq)
+    	   	move.w  #0,(Z80BusReq).l
     endm
     
 FastPauseZ80: macro
-    move.w  #$100, (Z80BusReq)
+	      	move.w  #$100,(Z80BusReq).l
     endm
 
 ; ---------------------------------------------------------------------------

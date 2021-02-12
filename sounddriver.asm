@@ -645,7 +645,7 @@ Sound_E1:				; CODE XREF: Sound_ChkValue+50j
 		move.w	#$11,d1
 
 loc_71FC0:				; CODE XREF: Sound_ChkValue+7Ej
-		move.w	#$FFFF,d0
+		move.w	#-1,d0
 
 loc_71FC4:				; CODE XREF: Sound_ChkValue+7Aj
 		nop
@@ -1637,7 +1637,7 @@ sub_728AC:				; DATA XREF: sub_72878+1Ct
 
 loc_728CA:				; CODE XREF: sub_728AC+4j
 		bset	#1,(a5)
-		move.w	#$FFFF,$10(a5)
+		move.w	#-1,$10(a5)
 		jsr	sub_71D60(pc)
 		bra.w	sub_729A0
 ; End of function sub_728AC
@@ -2506,8 +2506,8 @@ SegaPCM_End
 		even
 
 		if SegaPCM_End-SegaPCM>$8000
-			inform 3,"Sega sound must fit within a Z80 Bank ($8000 bytes/32 KB), but you have a $%h byte Sega sound. That will not fit within a bank and break the driver!",SegaPCM_End-SegaPCM
+			inform 3,"Sega sound must fit within a Z80 Bank ($8000 bytes/32 KB), but you have a $%h byte Sega sound. That will not fit and the sample will break!",SegaPCM_End-SegaPCM
 		endc
 		if SegaPCM_End-SegaPCM>Size_of_SegaPCM
-			inform 3,"Size_of_SegaPCM = $%h, but you have a $%h byte Sega sound.",Size_of_SegaPCM,SegaPCM_End-SegaPCM
+			inform 3,"Size_of_SegaPCM = $%h, but you have a $%h byte Sega sound....Please fix that equate.",Size_of_SegaPCM,SegaPCM_End-SegaPCM
 		endc
